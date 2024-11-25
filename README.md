@@ -1,10 +1,24 @@
-# Badgetizr
 
-## To read before going further: I need your star !
+<h1 align="center">
+    Badgetizr
+</h1>
+
+<div id="header" align="center">
+  <img src="badgetizr_screen.png" width="1000"/>
+</div>
+
+---
+
+## To read before going further: I need your ⭐ !
 I would like to put this tool available with Homebrew and Apt-Get. Tu succeed, I need a maximum of star on this repository (according to the submission of Homebrew, min = 40stars). By using Homebrew or apt-get, I will be able to simplify the installation process by skipping the configure step below 🚀. Thank you for your help!
 
 ## Installation
+For now, only Github Pull Requests are supported. You have to export the environment variables `GITHUB_TOKEN` such as:
+```bash
+export GITHUB_TOKEN="your_github_token"
+```
 
+Then you can run the configure script and the badgetizer script:
 ```bash
 $ ./configure && ./badgetizer.sh
 ```
@@ -12,8 +26,12 @@ $ ./configure && ./badgetizer.sh
 ## Configuration
 You can look to the `.badgetizr.yml.example` file at the root of the repository to see the different configuration options available.
 
+All icons are available at [simpleicons.org](https://simpleicons.org/).
+
+## Badges
+
 ### Badge Ticket
-Disabled by default.
+`Disabled` by default.
 
 The badge ticket is a badge that will be displayed on your pull request if you have a Jira ticket or a Youtrack ticket in your pull request title or overall, something you would like to extract from the pull request title.
 To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string.
@@ -24,15 +42,18 @@ You can also use the url option to define the url of the badge by letting `%s` a
 You don't need to escape the `-` and ` ` characters, they will be automatically escaped.
 
 ### Badge Wip
-Enabled by default.
+`Enabled` by default.
+
 The badge wip is a badge that will be displayed on your pull request if the pull request title contains the word `WIP` whatever the case.
 
 ### Badge Dynamic
-Disabled by default.
+`Disabled` by default.
+
 The badge dynamic is a badge that will be displayed on your pull request if the pull request body contains a pattern. You can define multiple patterns and each pattern will be displayed with a badge.
 
 ### Badge Base Branch
-Enabled by default.
+`Enabled` by default.
+
 The badge base branch is a badge that will be displayed on your pull request to indicate the target branch of the pull request. The default value is `develop`.
 
 example:
@@ -48,8 +69,8 @@ will display:
 In this case you can also use this to display a badge if the checkbox is checked.
 example:
 ```yaml
-- pattern: "- \\[[xX]\\] Task 1"
-  label: "Task 1"
+- pattern: "- [x] Task 2"
+  label: "Task 2"
   value: "Done"
   color: "green"
 ```
@@ -60,6 +81,17 @@ will display:
 You don't need to escape the `-` and ` ` characters, they will be automatically escaped.
 
 ⚠️ Beware currently the regex has limitations, it is not using sed regex but only bash regex by checking if the pattern is found in the string (like a `contains`). An opened issue has been created and you are welcome to contribute to fix this ❤️.
+
+### Badge CI
+`Disabled` by default.
+
+The badge ci is a badge that will be displayed on your pull request to indicate the status of the CI pipeline, the build number and the build url. Currently the status is not dynamic but it will be in a short future.
+
+You must define the build number and the build url in your environment variables such as 
+```shell
+export BADGETIZR_BUILD_NUMBER="123"
+export BADGETIZR_BUILD_URL="https://random.url%s"
+```
 
 ## Contributing
 
