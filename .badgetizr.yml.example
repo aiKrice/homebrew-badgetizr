@@ -1,0 +1,47 @@
+badge_ci:
+  enabled: true
+  settings:
+    color: "purple"
+    label: "Bitrise"
+    logo: "bitrise"
+    build_number: "${BADGETIZR_BUILD_NUMBER}"
+    build_url: "${BADGETIZR_BUILD_URL}"
+
+badge_ticket:
+  enabled: true
+  settings:
+    color: "blue"
+    label: "JIRA"
+    sed_pattern: '.*\(([^)]+)\).*'
+    url: "https://yourproject.atlassian.net/browse/%s"
+    logo: "jirasoftware"
+
+badge_base_branch:
+  enabled: true
+  settings:
+    color: "orange"
+    label: "Base Branch"
+    destination_pr_branch: "${BADGETIZR_PR_DESTINATION_BRANCH}"
+    base_branch: "develop"
+
+badge_wip:
+  enabled: true
+  settings:
+    color: "yellow"
+    label: "WIP"
+    logo: "vlcmediaplayer"
+
+badge_dynamic:
+  enabled: true
+  settings:
+    patterns:
+      - badge_1:
+        pattern: "- [ ] Task 1"
+        label: "Task 1"
+        value: "Not done"
+        color: "orange"
+      - badge_2:
+        pattern: "- [x] Task 2"
+        label: "Task 2"
+        value: "Done"
+        color: "darkgreen"

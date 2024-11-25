@@ -1,0 +1,80 @@
+#!/bin/bash
+
+is_command_exists() {
+    command -v "$1" &> /dev/null
+}
+
+check_yaml_key() {
+    local yaml_file="$1"
+    local yaml_key="$2"
+
+    if [[ ! -f "$yaml_file" ]]; then
+        echo "🔴 $yaml_file file not found."
+        exit 1
+    fi
+
+    local value
+    value=$(yq eval ".$yaml_key" "$yaml_file" 2>/dev/null)
+
+    if [[ -z "$value" ]]; then
+        echo "🔴 $yaml_key is not found in $yaml_file."
+        exit 2
+    fi
+
+    if [[ "$value" == "true" ]]; then
+        echo "🟢 $yaml_key is enabled (true)."
+    elif [[ "$value" == "false" ]]; then
+        echo "🔴 $yaml_key is disabled (false)."
+    else
+        echo "🔴 $yaml_key has an invalid value ($value)."
+        exit 3
+    fi
+}
+
+
+# Main
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "🟡 Running on : macOS"
+    
+    if ! is_command_exists brew; then
+        echo "🔴 Homebrew not installed. Visit https://brew.sh/ to install it"
+        exit 1
+    fi
+
+    if ! is_command_exists yq; then
+        echo "🟡 Installing yq..."
+        brew install yq
+        echo "🟢 yq successfuly installed"
+    else
+        echo "🔵 yq is already installed."
+    fi
+
+    if ! is_command_exists jq; then
+        echo "🟡 Installing jq..."
+        brew install jq
+        echo "🟢 jq successfuly installed"
+    else
+        echo "🔵 jq is already installed."
+    fi
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "Running on: Linux"
+    sudo apt-get update
+    if ! is_command_exists yq; then
+        echo "🟡 Installing yq..."
+        sudo apt-get install -y yq
+        echo "🟢 yq successfuly installed"
+    else
+        echo "🔵 yq is already installed."
+    fi
+
+    if ! is_command_exists jq; then
+        echo "🟡 Installing jq..."
+        sudo apt-get install -y jq
+        echo "🟢 jq successfuly installed"
+    else
+        echo "🔵 jq is already installed."
+    fi
+else
+    echo "🔴 Unsupported Operating System: $OSTYPE"
+    exit 1
+fi
