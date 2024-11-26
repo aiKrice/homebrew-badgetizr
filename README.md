@@ -2,6 +2,9 @@
 <h1 align="center">
     Badgetizr
 </h1>
+<h2 align="center">
+    Add badges to your pull requests and increase your productivity 🚀.
+</h2>
 
 <div id="header" align="center">
   <img src="badgetizr_screen.png" width="1000"/>
@@ -10,17 +13,46 @@
 ---
 
 ## To read before going further: I need your ⭐ !
-I would like to put this tool available with Homebrew and Apt-Get. Tu succeed, I need a maximum of star on this repository (according to the submission of Homebrew, min = 40stars). By using Homebrew or apt-get, I will be able to simplify the installation process by skipping the configure step below 🚀. Thank you for your help!
+_📣 I would like to put this tool available with Homebrew and Apt-Get. Tu succeed, I need a maximum of star on this repository (according to the submission of Homebrew, min = 40stars). By using Homebrew or apt-get, I will be able to simplify the installation process by skipping the configure step below 🚀. Thank you for your help!_
+
+## Roadmap
+- [x] Add option to use a custom configuration file
+- [ ] Make the badge_ci badge dynamic (success, failure, pending)
+- [ ] Add a beautiful icon for this repository
+- [ ] Improve the Readme.md file
+- [ ] Add the tool to Homebrew
+- [ ] Add the tool to Apt-Get
+- [ ] Add the tools to Github Actions
+- [ ] Add the tools to Github Marketplace
+- [ ] Support natively Gitlab with `glab` CLI
+
+To see how to contribute, please refer to the section [Contributing](#contributing).
+
+## I am 🇫🇷 and I love coffee ☕.
+I am fully engaged to make this tool the best tool ever to add badges to your pull requests and increase your productivity 🚀. The roadmap is huge and I will do my best to achieve all of this and achieve my goal to make this the best tool to add badges to your pull requests. If you want to support me, you can buy me a coffee, you will be mentioned in the README.md file as a backer ❤️.
+
+<a href='https://ko-fi.com/Q5Q7PPTYK' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ## Installation
-For now, only Github Pull Requests are supported. You have to export the environment variables `GITHUB_TOKEN` such as:
+
 ```bash
-export GITHUB_TOKEN="your_github_token"
+$ git clone https://github.com/aiKrice/badgetizr.git
+# edit the .badgetizr.yml file to your needs
+$ export GITHUB_TOKEN="your_github_token"
+$ export BADGETIZR_BUILD_NUMBER="123" # the build number of your CI
+$ export BADGETIZR_BUILD_URL="https://your-shiny-ci.io/app/build/123" # the build url of your CI
+$ export BADGETIZR_PR_DESTINATION_BRANCH="develop" # the destination branch of your PR from the CI.
+$ cd badgetizr && ./configure
 ```
 
-Then you can run the configure script and the badgetizer script:
+## Usage
 ```bash
-$ ./configure && ./badgetizer.sh
+$ ./badgetizer.sh
+```
+
+By default, the configuration file used is `.badgetizr.yml`. You can also specify a configuration file to use by using the `-c` option.
+```bash
+$ ./badgetizer.sh -c my_config.yml
 ```
 
 ## Configuration
