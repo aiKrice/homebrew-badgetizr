@@ -1,7 +1,59 @@
 #!/bin/bash
 
 # Read config file
+
+show_help() {
+    cat <<EOF
+Usage: $0 [options]
+
+Options :
+  -c <file>, 
+  --configuration=<file>,
+  --configuration <file>        Specify a configuration file. By default, the configuration file used is : .badgetizr.yml
+
+  --help                        Display this help.
+
+EOF
+}
+
 config_file=".badgetizr.yml"
+
+while getopts "c:-:" opt; do
+    case $opt in
+        c)
+            config_file="$OPTARG"
+            ;;
+        -)
+            case "${OPTARG}" in
+                configuration=*)
+                    config_file="${OPTARG#*=}"
+                    ;;
+
+                configuration)
+                    config_file="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
+                    ;;
+
+                help)
+                    show_help
+                    exit 0
+                    ;;
+
+                *)
+                    echo "Option invalide --${OPTARG}" >&2
+                    echo "Utilisez --help pour plus d'informations." >&2
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        \?)
+            echo "Option invalide : -$OPTARG" >&2
+            echo "Utilisez --help pour plus d'informations." >&2
+            exit 1
+            ;;
+    esac
+done
+
 if [ -f "$config_file" ]; then
     wip_badge_enabled=$(yq e '.badge_wip.enabled // "true"' "$config_file")
     wip_badge_label=$(yq e '.badge_wip.settings.label // "Work in Progress"' "$config_file")
