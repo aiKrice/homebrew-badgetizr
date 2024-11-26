@@ -2,6 +2,7 @@
 <h1 align="center">
     Badgetizr
 </h1>
+
 <h2 align="center">
     Add badges to your pull requests and increase your productivity 🚀.
 </h2>
@@ -13,7 +14,7 @@
 ---
 
 ## To read before going further: I need your ⭐ !
-_📣 I would like to put this tool available with Homebrew and Apt-Get. Tu succeed, I need a maximum of star on this repository (according to the submission of Homebrew, min = 40stars). By using Homebrew or apt-get, I will be able to simplify the installation process by skipping the configure step below 🚀. Thank you for your help!_
+_📣 I would like to put this tool available with Homebrew and Apt-Get. To succeed, I need a maximum of star on this repository (according to the submission of Homebrew, min = 40stars). By using Homebrew or apt-get, I will be able to simplify the installation process by skipping the configure step below 🚀. Thank you for your help!_
 
 ## Roadmap
 - [x] Add option to use a custom configuration file
@@ -34,7 +35,12 @@ I am fully engaged to make this tool the best tool ever to add badges to your pu
 <a href='https://ko-fi.com/Q5Q7PPTYK' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ## Installation
+For now, only Github Pull Requests are supported. You have to export the environment variables `GITHUB_TOKEN` such as:
+```bash
+export GITHUB_TOKEN="your_github_token"
+```
 
+Then you can run the configure script and the badgetizer script:
 ```bash
 $ git clone https://github.com/aiKrice/badgetizr.git
 # edit the .badgetizr.yml file to your needs
