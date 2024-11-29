@@ -7,5 +7,10 @@ class Badgetizr < Formula
   
     depends_on "yq"
     depends_on "gh"
+
+    def install
+      bin.install "badgetizr.sh" => "badgetizr"
+    end
+    
   end
   
