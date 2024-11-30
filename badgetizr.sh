@@ -9,50 +9,103 @@ Usage: $0 [options]
 Options :
   -c <file>, 
   --configuration=<file>,
-  --configuration <file>        Specify a configuration file. By default, the configuration file used is : .badgetizr.yml
+  --configuration <file>        (Optional) Specify a configuration file. By default, the configuration file used is : .badgetizr.yml
 
-  --help                        Display this help.
+  --pr-id=<id>,
+  --pr-id <id>                  (Mandatory) Specify the pull request id.
+
+  --pr-destination-branch=<branch>,
+  --pr-destination-branch <branch>        (Mandatory when branch badge is enabled) Specify the pull request destination branch.
+
+  --pr-build-number=<number>,
+  --pr-build-number <number>        (Mandatory when CI badge is enabled) Specify the pull request build number.
+
+  --pr-build-url=<url>,
+  --pr-build-url <url>              (Mandatory when CI badge is enabled) Specify the pull request build url.
+
+  --version, -v                 Display the version of Badgetizr.
+  -h, --help                    Display this help.
 
 EOF
 }
 
 config_file=".badgetizr.yml"
+BADGETIZR_VERSION=$(git tag --sort=-creatordate | head -n 1)
 
 while getopts "c:-:" opt; do
     case $opt in
         c)
             config_file="$OPTARG"
             ;;
+        h)
+            show_help
+            exit 0
+            ;;
+        v)
+            echo "$BADGETIZR_VERSION"
+            exit 0
+            ;;
         -)
             case "${OPTARG}" in
                 configuration=*)
                     config_file="${OPTARG#*=}"
                     ;;
-
                 configuration)
                     config_file="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))
                     ;;
-
+                pr-build-number=*)
+                    ci_badge_build_number="${OPTARG#*=}"
+                    ;;
+                pr-build-number)
+                    ci_badge_build_number="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
+                pr-build-url=*)
+                    ci_badge_build_url="${OPTARG#*=}"
+                    ;;
+                pr-build-url)
+                    ci_badge_build_url="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
+                pr-destination-branch=*)
+                    ci_badge_destination_branch="${OPTARG#*=}"
+                    ;;
+                pr-destination-branch)
+                    ci_badge_destination_branch="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
+                pr-id=*)
+                    ci_badge_pull_request_id="${OPTARG#*=}"
+                    ;;
+                pr-id)
+                    ci_badge_pull_request_id="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
+                version)
+                    echo "$BADGETIZR_VERSION"
+                    exit 0
+                    ;;
                 help)
                     show_help
                     exit 0
                     ;;
-
                 *)
-                    echo "Option invalide --${OPTARG}" >&2
-                    echo "Utilisez --help pour plus d'informations." >&2
+                    echo "Invalid option --${OPTARG}" >&2
+                    echo "Use --help for more information." >&2
                     exit 1
                     ;;
             esac
             ;;
 
         \?)
-            echo "Option invalide : -$OPTARG" >&2
-            echo "Utilisez --help pour plus d'informations." >&2
+            echo "Invalid option: -$OPTARG" >&2
+            echo "Use --help for more information." >&2
             exit 1
             ;;
     esac
 done
+
+if [ -z "$ci_badge_pull_request_id" ]; then
+    echo "🔴 Error: --pr-id is mandatory." >&2
+    show_help
+    exit 1
+fi
 
 if [ -f "$config_file" ]; then
     wip_badge_enabled=$(yq e '.badge_wip.enabled // "true"' "$config_file")
@@ -95,8 +148,8 @@ else
     dynamic_badge_enabled="false"
 fi
 
-pull_request_body=$(gh pr view $BITRISE_PULL_REQUEST --json body -q '.body')
-pull_request_title=$(gh pr view $BITRISE_PULL_REQUEST --json title -q '.title')
+pull_request_body=$(gh pr view $ci_badge_pull_request_id --json body -q '.body')
+pull_request_title=$(gh pr view $ci_badge_pull_request_id --json title -q '.title')
 
 # Extract current badges from the pull request body
 pull_request_body=$(echo "$pull_request_body" | awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' | tr -d '\r')          
@@ -117,19 +170,17 @@ fi
 
 # CI Badge
 if [ "$ci_badge_enabled" = "true" ]; then
-    if [[ -z "$BADGETIZR_BUILD_NUMBER" ]]; then
-        echo "🔴 BADGETIZR_BUILD_NUMBER is not defined: You have to export it in the environment."
+    if [ -z "$ci_badge_build_number" ]; then
+        echo "🔴 Error: --pr-build-number is mandatory." >&2
+        show_help
         exit 1
     fi
-    if [[ -z "$BADGETIZR_BUILD_URL" ]]; then
-        echo "🔴 BADGETIZR_BUILD_URL is not defined: You have to export it in the environment."
-        exit 1
-    fi
-    ci_badge_build_number=$BADGETIZR_BUILD_NUMBER
-    ci_badge_build_url=$BADGETIZR_BUILD_URL
 
-    #Evaluation of the env var defined in the yaml config file
-    yq eval '.badge_ci.settings.build_number = env(BADGETIZR_BUILD_NUMBER) | .badge_ci.settings.build_url = env(BADGETIZR_BUILD_URL)' "$config_file" >/dev/null
+    if [ -z "$ci_badge_build_url" ]; then
+        echo "🔴 Error: --pr-build-url is mandatory." >&2
+        show_help
+        exit 1
+    fi
 
     ci_badge="[![Static Badge](https://img.shields.io/badge/$ci_badge_label-$ci_badge_build_number-purple?logo=$ci_badge_logo&logoColor=white&labelColor=$ci_badge_color&color=green)]($ci_badge_build_url)"
     all_badges=$(echo $all_badges $ci_badge)
@@ -137,15 +188,15 @@ fi
 
 # Target Branch Badge 
 if [ "$branch_badge_enabled" = "true" ]; then
-    if [[ -z "$BADGETIZR_PR_DESTINATION_BRANCH" ]]; then
-        echo "🔴 BADGETIZR_PR_DESTINATION_BRANCH is not defined: You have to export it in the environment."
+    if [ -z "$ci_badge_destination_branch" ]; then
+        echo "🔴 Error: --pr-destination-branch is mandatory when branch badge is enabled." >&2
+        show_help
         exit 1
     fi
-    #Evaluation of the env var defined in the yaml config file
-    yq eval '.badge_base_branch.settings.destination_pr_branch = env(BADGETIZR_PR_DESTINATION_BRANCH)' "$config_file" >/dev/null
+
     branch_badge_label_for_badge=$(echo $branch_badge_label | sed -E 's/ /_/g; s/-/--/g')
-    if [[ "$BADGETIZR_PR_DESTINATION_BRANCH" != "$branch_badge_base_branch" ]];then
-        branch_badge="![Static Badge](https://img.shields.io/badge/$branch_badge_label_for_badge-$BADGETIZR_PR_DESTINATION_BRANCH-$branch_badge_color?labelColor=grey&color=$branch_badge_color)"
+    if [[ "$ci_badge_destination_branch" != "$branch_badge_base_branch" ]];then
+        branch_badge="![Static Badge](https://img.shields.io/badge/$branch_badge_label_for_badge-$ci_badge_destination_branch-$branch_badge_color?labelColor=grey&color=$branch_badge_color)"
         all_badges=$(echo $all_badges $branch_badge)
     fi
 fi
@@ -170,13 +221,8 @@ if [ "$dynamic_badge_enabled" = "true" ]; then
         value=$(yq ".badge_dynamic.settings.patterns[$i].value // \"default\"" "$config_file" | sed -E 's/ /_/g; s/-/--/g')
         color=$(yq ".badge_dynamic.settings.patterns[$i].color // \"orange\"" "$config_file")
 
-        echo "🟢 Value $label"
-        echo "🟢 Label $override_label"
-        echo "🟢 Default label $default_label"
         if [[ "$pull_request_body" == *"$pattern"* ]];then
-            echo "🟢 Pattern $pattern found in the pull request body for badge $label at index $i"
             dynamic_badge="![Static Badge](https://img.shields.io/badge/$default_label-$value-grey?label=$override_label&labelColor=grey&color=${color})"
-            #dynamic_badge="![Static Badge](https://img.shields.io/badge/${label}-${value}-${color})"
             all_badges=$(echo $all_badges $dynamic_badge)
         fi
     done
@@ -188,4 +234,4 @@ all_badges=$(printf "<!--begin:badgetizr--> \n%s\n<!--end:badgetizr-->" "$all_ba
 # Build new body
 new_pull_request_body=$(printf "%s\n%s" "$all_badges" "$pull_request_body")
 # Send the new body
-gh pr edit $BITRISE_PULL_REQUEST -b "$new_pull_request_body"
+gh pr edit $ci_badge_pull_request_id -b "$new_pull_request_body"

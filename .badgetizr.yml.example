@@ -4,8 +4,6 @@ badge_ci:
     color: "purple"
     label: "Bitrise"
     logo: "bitrise"
-    build_number: "${BADGETIZR_BUILD_NUMBER}"
-    build_url: "${BADGETIZR_BUILD_URL}"
 
 badge_ticket:
   enabled: true
@@ -21,7 +19,6 @@ badge_base_branch:
   settings:
     color: "orange"
     label: "Base Branch"
-    destination_pr_branch: "${BADGETIZR_PR_DESTINATION_BRANCH}"
     base_branch: "develop"
 
 badge_wip:
