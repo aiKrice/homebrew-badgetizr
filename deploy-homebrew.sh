@@ -50,4 +50,5 @@ git merge master --no-ff --no-edit --no-verify
 git push --no-verify
 echo "🟢 Backmerged to develop"
 
+rm badgetizr-$VERSION.tar.gz
 echo "🚀 Done"
