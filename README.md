@@ -21,6 +21,7 @@ _📣 I would like to put this tool available with Homebrew and Apt-Get. To succ
 - [ ] Make the badge_ci badge dynamic (success, failure, pending)
 - [ ] Add a beautiful icon for this repository
 - [ ] Improve the Readme.md file
+- [x] Add the tools to Homebrew tap
 - [ ] Add the tool to Homebrew
 - [ ] Add the tool to Apt-Get
 - [ ] Add the tools to Github Actions
@@ -34,7 +35,7 @@ I am fully engaged to make this tool the best tool ever to add badges to your pu
 
 <a href='https://ko-fi.com/Q5Q7PPTYK' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
-## Installation
+## Installation via Homebrew (MacOS)
 For now, only Github Pull Requests are supported. You have to export the environment variables `GITHUB_TOKEN` such as:
 ```bash
 export GITHUB_TOKEN="your_github_token"
@@ -42,23 +43,34 @@ export GITHUB_TOKEN="your_github_token"
 
 Then you can run the configure script and the badgetizer script:
 ```bash
-$ git clone https://github.com/aiKrice/badgetizr.git
+$ brew tap aiKrice/badgetizr
+$ brew install aiKrice/badgetizr/badgetizr
 # edit the .badgetizr.yml file to your needs
 $ export GITHUB_TOKEN="your_github_token"
 $ export BADGETIZR_BUILD_NUMBER="123" # the build number of your CI
 $ export BADGETIZR_BUILD_URL="https://your-shiny-ci.io/app/build/123" # the build url of your CI
 $ export BADGETIZR_PR_DESTINATION_BRANCH="develop" # the destination branch of your PR from the CI.
-$ cd badgetizr && ./configure
 ```
+
+## Installation via Apt-Get (Linux)
+Coming soon...
+
+## Installation manually
+```bash
+$ git clone https://github.com/aiKrice/badgetizr.git --branch master
+$ cd badgetizr
+$ ./configure
+```
+In the rest of the documentation, I will consider that you have installed the tool in your `$PATH` and remove the `.sh` extension from the binary name.
 
 ## Usage
 ```bash
-$ ./badgetizer.sh
+$ badgetizr 
 ```
 
 By default, the configuration file used is `.badgetizr.yml`. You can also specify a configuration file to use by using the `-c` option.
 ```bash
-$ ./badgetizer.sh -c my_config.yml
+$ badgetizer -c my_config.yml
 ```
 
 ## Configuration
@@ -142,4 +154,10 @@ export BADGETIZR_BUILD_NUMBER="123"
 export BADGETIZR_BUILD_URL="https://random.url%s"
 export BADGETIZR_PR_DESTINATION_BRANCH="develop"
 $ ./configure && ./badgetizer.sh
+```
+
+## Release (for maintainers)
+To release the tool, you can run the `deploy-homebrew.sh` script by providing the version you want to release. Please respect the semantic versioning notation.
+```bash
+./deploy-homebrew.sh 1.1.3
 ```
