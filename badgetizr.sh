@@ -9,7 +9,7 @@ Usage: $0 [options]
 Options :
   -c <file>, 
   --configuration=<file>,
-  --configuration <file>        (Optional) Specify a configuration file. By default, the configuration file used is : .badgetizr.yml
+  --configuration <file>        (Optional) Specify the path to the configuration. Default is .badgetizr.yml
 
   --pr-id=<id>,
   --pr-id <id>                  (Mandatory) Specify the pull request id.

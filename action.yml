@@ -1,0 +1,73 @@
+name: 'Badgetizr'
+description: 'A GitHub Action to run Badgetizr for custom PR badges'
+inputs:
+  pr_id:
+    description: 'Specify the path to the configuration. Default is .badgetizr.yml'
+    required: true
+  configuration:
+    description: 'The path to the configuration. Default is .badgetizr.yml'
+    required: false
+    default: '.badgetizr.yml'
+  pr_destination_branch:
+    description: '(Mandatory when branch badge is enabled) Specify the pull request destination branch'
+    required: false
+  pr_build_number:
+    description: '(Mandatory when CI badge is enabled) Specify the pull request build number'
+    required: false
+  pr_build_url:
+    description: '(Mandatory when CI badge is enabled) Specify the pull request build url'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      run: |
+        if [[ "$(uname)" == "Darwin" ]]; then
+          echo "Running on macOS"
+          if ! command -v gh &> /dev/null; then
+            echo "GitHub CLI (gh) not found. Installing..."
+            brew install gh
+          fi
+
+          if ! command -v yq &> /dev/null; then
+            echo "yq not found. Installing..."
+            brew install yq
+          fi
+        else
+          echo "Running on Linux"
+          if ! command -v gh &> /dev/null; then
+            echo "GitHub CLI (gh) not found. Installing..."
+            sudo apt-get update
+            sudo apt-get install -y gh
+          fi
+
+          if ! command -v yq &> /dev/null; then
+            echo "yq not found. Installing..."
+            sudo apt-get install -y yq
+          fi
+        fi
+      shell: bash
+    - name: "Execute Badgetizr"
+      run: |
+        pr_id="${{ inputs.pr_id }}"
+        configuration="${{ inputs.configuration }}"
+        pr_destination_branch="${{ inputs.pr_destination_branch }}"
+        pr_build_number="${{ inputs.pr_build_number }}"
+        pr_build_url="${{ inputs.pr_build_url }}"
+
+        options=""
+        if [ -n "$pr_id" ]; then
+          options="$options \"$pr_id\""
+        fi
+        if [ -n "$pr_destination_branch" ]; then
+          options="$options --pr-destination-branch $pr_destination_branch"
+        fi
+        if [ -n "$pr_build_number" ]; then
+          options="$options --pr-build-number $pr_build_number"
+        fi
+        if [ -n "$pr_build_url" ]; then
+          options="$options --pr-build-url $pr_build_url"
+        fi
+
+        chmod +x ./badgetizr.sh
+        ./badgetizr.sh -c $configuration $options
