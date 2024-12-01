@@ -35,10 +35,20 @@ badge_dynamic:
       - badge_1:
         pattern: "- [ ] Task 1"
         label: "Task 1"
-        value: "Not done"
+        value: "Missing"
         color: "orange"
       - badge_2:
+        pattern: "- [x] Task 1"
+        label: "Task 1"
+        value: "Completed"
+        color: "forestgreen"
+      - badge_3:
+        pattern: "- [ ] Task 2"
+        label: "Task 2"
+        value: "Missing"
+        color: "orange"
+      - badge_3:
         pattern: "- [x] Task 2"
         label: "Task 2"
-        value: "Done"
-        color: "darkgreen"
+        value: "Completed"
+        color: "forestgreen"
