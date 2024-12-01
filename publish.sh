@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# The script deploy-homebrew.sh is used to release the tool to the homebrew repository.
+# The script publish.sh is usefull to:
+# - Generate the sha256 for Homebrew formula
+# - Update the workflow with the right new version
+# - Update the Readme.md for the best developer experience during integration
 # It will create a tag, update the formula and create a PR.
 
 # Configuration
 REPOSITORY="aiKrice/homebrew-badgetizr"
 FORMULA_PATH="Formula/badgetizr.rb"
+WORKFLOW_PATH=".github/workflows/badgetizr.yml"
+README_PATH="README.md"
 VERSION="$1"
 
 red='\033[1;31m'
@@ -27,7 +32,7 @@ function fail_if_error() {
 }
 
 if [ -z "$VERSION" ]; then
-  echo "❌ Please provide a version (example: ./release.sh 1.1.3). Please respect the semantic versioning notation."
+  echo "❌ Please provide a version (example: ./release.sh ${cyan}1.1.3${reset}). Please respect the semantic versioning notation."
   exit 1
 fi
 
@@ -40,20 +45,21 @@ fail_if_error "Failed to merge develop into master"
 echo "🟢 [Step 1/5] Master is updated."
 git push --no-verify
 
-echo "🟡 [Step 2/5] Creating the release tag..."
+echo "🟡 [Step 2/5] Creating the release tag ${cyan}$VERSION${reset}..."
 git tag -a "$VERSION" -m "Release $VERSION"
 git push origin "$VERSION" --no-verify
 gh release create $VERSION --generate-notes --verify-tag
 echo "🟢 [Step 2/5] Github release created"
 
 # Step 2: Download the archive and calculate SHA256 for Homebrew
-echo "🟡 [Step 3/5] Downloading the archive..."
 ARCHIVE_URL="https://github.com/$REPOSITORY/archive/refs/tags/$VERSION.tar.gz"
+echo "🟡 [Step 3/5] Downloading the archive $ARCHIVE_URL..."
+
 curl -L -o "badgetizr-$VERSION.tar.gz" "$ARCHIVE_URL" > /dev/null
 fail_if_error "Failed to download the archive"
 echo "🟢 [Step 3/5] Archive downloaded."
 SHA256=$(shasum -a 256 "badgetizr-$VERSION.tar.gz" | awk '{print $1}')
-echo "🟢 SHA256 generated: $SHA256"
+echo "🟢 SHA256 generated: ${cyan}$SHA256${reset}"
 
 # Step 3: Update the formula
 sed -i "" -E \
@@ -61,14 +67,18 @@ sed -i "" -E \
   -e "s#(sha256 \").*(\".*)#\1$SHA256\2#" \
   "$FORMULA_PATH"
 
+# Step 3bis: Update the workflow with new version number
+sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${NEW_VERSION}|" "$WORKFLOW_FILE"
+
 # Step 4: Commit and push
-echo "🟡 [Step 4/5] Committing the formula..."
-git add "$FORMULA_PATH"
-git commit -m "Update formula for version $VERSION"
-fail_if_error "Failed to commit the formula"
+echo "🟡 [Step 4/5] Commiting the bump of the files..."
+git add "$FORMULA_PATH" "$WORKFLOW_PATH"
+git commit -m "Bump version $VERSION"
+fail_if_error "Failed to commit the bump"
 git push --no-verify
-fail_if_error "Failed to push the formula"
-echo "🟢 [Step 4/5] Formula pushed."
+fail_if_error "Failed to push the bump"
+echo "🟢 [Step 4/5] Bump pushed."
+
 # Step 5: Backmerge to develop
 echo "🟡 [Step 5/5] Switching to develop..."
 git switch develop

@@ -31,8 +31,7 @@ _📣 I would like to put this tool available with Homebrew and Apt-Get. To succ
 - [x] Add the tools to Homebrew tap
 - [ ] Add the tool to Homebrew
 - [ ] Add the tool to Apt-Get
-- [ ] Add the tools to Github Actions
-- [ ] Add the tools to Github Marketplace
+- [x] Add the tools to Github Actions
 - [ ] Support natively Gitlab with `glab` CLI
 
 To see how to contribute, please refer to the section [Contributing](#contributing).
@@ -66,13 +65,37 @@ $ ./configure
 ```
 In the rest of the documentation, I will consider that you have installed the tool in your `$PATH` and remove the `.sh` extension from the binary name.
 
-## Usage
+## Usage (CLI)
 ```bash
 $ badgetizr #[options]
 ```
 To see the different options available, you can use the `--help` option:
 ```bash
 $ badgetizr --help
+```
+
+## Usage GithubAction
+Instead of using the CLI, you can directly use the github action in your workflow.
+```yaml
+jobs:
+  badgetizr:
+    runs-on: ubuntu-latest #works also on macos-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Run Badgetizr
+        uses: aiKrice/homebrew-badgetizr@1.3.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 ```
 
 ## Configuration
@@ -185,8 +208,9 @@ $ ./configure #optional, just for dependencies
 $ ./badgetizer.sh
 ```
 
-## Release (for maintainers)
-To release the tool, you can run the `deploy-homebrew.sh` script by providing the version you want to release. Please respect the semantic versioning notation.
+## Publishing (for maintainers)
+To publish the tool, you can run the `publish.sh` script by providing the version you want to release. Please respect the semantic versioning notation.
 ```bash
-./deploy-homebrew.sh 1.1.3
+./publish.sh 1.1.3
 ```
+This script will bump everything possible to keep everything up-to-date.
