@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@eb5b28d8e1a48abb96af4f9009199d512f5bf02f
+        uses: aiKrice/homebrew-badgetizr@904b959
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
