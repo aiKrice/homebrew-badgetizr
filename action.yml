@@ -71,3 +71,4 @@ runs:
 
         chmod +x ./badgetizr.sh
         ./badgetizr.sh -c $configuration $options
+      shell: bash
