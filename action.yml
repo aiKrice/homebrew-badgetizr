@@ -57,7 +57,7 @@ runs:
 
         options=""
         if [ -n "$pr_id" ]; then
-          options="$options \"$pr_id\""
+          options="$options --pr-id=$pr_id"
         fi
         if [ -n "$pr_destination_branch" ]; then
           options="$options --pr-destination-branch $pr_destination_branch"
