@@ -93,7 +93,7 @@ If you want to use an icon for your badge, you can use the `icon` option and spe
 #### Description 
 
 The badge ticket is a badge that will be displayed on your pull request if you have a Jira ticket or a Youtrack ticket in your pull request title or overall, something you would like to extract from the pull request title.
-To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string.
+To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string. Badgetizr will process the pattern like this: `sed -n -E "s/${ticket_badge_pattern}/\1/p"'`.
 
 #### Configuration:
 - `color`: The color of the badge (default: `blue`).

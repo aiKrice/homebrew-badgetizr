@@ -156,14 +156,16 @@ pull_request_body=$(echo "$pull_request_body" | awk '/<!--begin:badgetizr-->/ {f
 
 all_badges=
 
-#Jira Badge
+#Ticket Badge
 if [ "$ticket_badge_enabled" = "true" ]; then
     ticket_id=$(echo "$pull_request_title" | sed -n -E "s/${ticket_badge_pattern}/\1/p")
-    ticket_badge_url=$(printf "$ticket_badge_url" "$ticket_id")
-    if [[ -n "$ticket_id" ]]; then
+    if [[ -z "$ticket_id" ]]; then
+        echo "🟠 No ticket id identified in the PR title. Maybe your pattern is not correct."
+    else
         echo "🟡 Ticket id identified is -> $ticket_id"
+        ticket_badge_url_for_badge=$(printf "$ticket_badge_url" "$ticket_id")
         ticket_id_for_badge=$(echo $ticket_id | sed -E 's/ /_/g; s/-/--/g') 
-        ticket_badge="[![Static Badge](https://img.shields.io/badge/$ticket_badge_label-$ticket_id_for_badge-$ticket_badge_color?logo=$ticket_badge_logo&color=$ticket_badge_color&labelColor=grey)]($ticket_badge_url)"
+        ticket_badge="[![Static Badge](https://img.shields.io/badge/$ticket_badge_label-$ticket_id_for_badge-$ticket_badge_color?logo=$ticket_badge_logo&color=$ticket_badge_color&labelColor=grey)]($ticket_badge_url_for_badge)"
         all_badges=$all_badges$ticket_badge
     fi
 fi

@@ -1,5 +1,5 @@
 badge_ci:
-  enabled: true
+  enabled: false
   settings:
     color: "purple"
     label: "Bitrise"
@@ -10,7 +10,7 @@ badge_ticket:
   settings:
     color: "black"
     label: "Github"
-    sed_pattern: "\[GH-(\d+)\]"
+    sed_pattern: '.*\[GH-([0-9]+)\].*'
     url: "https://github.com/aiKrice/badgetizr/issues/%s"
     logo: "github"
 
