@@ -8,11 +8,11 @@ badge_ci:
 badge_ticket:
   enabled: true
   settings:
-    color: "blue"
-    label: "JIRA"
-    sed_pattern: '.*\(([^)]+)\).*'
-    url: "https://yourproject.atlassian.net/browse/%s"
-    logo: "jirasoftware"
+    color: "black"
+    label: "Github"
+    sed_pattern: "\[GH-(\d+)\]"
+    url: "https://github.com/aiKrice/badgetizr/issues/%s"
+    logo: "github"
 
 badge_base_branch:
   enabled: true
