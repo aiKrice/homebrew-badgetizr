@@ -31,8 +31,7 @@ _📣 I would like to put this tool available with Homebrew and Apt-Get. To succ
 - [x] Add the tools to Homebrew tap
 - [ ] Add the tool to Homebrew
 - [ ] Add the tool to Apt-Get
-- [ ] Add the tools to Github Actions
-- [ ] Add the tools to Github Marketplace
+- [x] Add the tools to Github Actions
 - [ ] Support natively Gitlab with `glab` CLI
 
 To see how to contribute, please refer to the section [Contributing](#contributing).
@@ -66,13 +65,37 @@ $ ./configure
 ```
 In the rest of the documentation, I will consider that you have installed the tool in your `$PATH` and remove the `.sh` extension from the binary name.
 
-## Usage
+## Usage (CLI)
 ```bash
 $ badgetizr #[options]
 ```
 To see the different options available, you can use the `--help` option:
 ```bash
 $ badgetizr --help
+```
+
+## Usage GithubAction
+Instead of using the CLI, you can directly use the github action in your workflow.
+```yaml
+jobs:
+  badgetizr:
+    runs-on: ubuntu-latest #works also on macos-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Run Badgetizr
+        uses: aiKrice/homebrew-badgetizr@1.3.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 ```
 
 ## Configuration
@@ -93,7 +116,7 @@ If you want to use an icon for your badge, you can use the `icon` option and spe
 #### Description 
 
 The badge ticket is a badge that will be displayed on your pull request if you have a Jira ticket or a Youtrack ticket in your pull request title or overall, something you would like to extract from the pull request title.
-To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string.
+To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string. Badgetizr will process the pattern like this: `sed -n -E "s/${ticket_badge_pattern}/\1/p"'`.
 
 #### Configuration:
 - `color`: The color of the badge (default: `blue`).
@@ -185,8 +208,9 @@ $ ./configure #optional, just for dependencies
 $ ./badgetizer.sh
 ```
 
-## Release (for maintainers)
-To release the tool, you can run the `deploy-homebrew.sh` script by providing the version you want to release. Please respect the semantic versioning notation.
+## Publishing (for maintainers)
+To publish the tool, you can run the `publish.sh` script by providing the version you want to release. Please respect the semantic versioning notation.
 ```bash
-./deploy-homebrew.sh 1.1.3
+./publish.sh 1.1.3
 ```
+This script will bump everything possible to keep everything up-to-date.
