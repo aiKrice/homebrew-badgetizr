@@ -1,5 +1,5 @@
 badge_ci:
-  enabled: true
+  enabled: false
   settings:
     color: "purple"
     label: "Bitrise"
@@ -8,11 +8,11 @@ badge_ci:
 badge_ticket:
   enabled: true
   settings:
-    color: "blue"
-    label: "JIRA"
-    sed_pattern: '.*\(([^)]+)\).*'
-    url: "https://yourproject.atlassian.net/browse/%s"
-    logo: "jirasoftware"
+    color: "black"
+    label: "Github"
+    sed_pattern: '.*\[GH-([0-9]+)\].*'
+    url: "https://github.com/aiKrice/badgetizr/issues/%s"
+    logo: "github"
 
 badge_base_branch:
   enabled: true
@@ -35,10 +35,20 @@ badge_dynamic:
       - badge_1:
         pattern: "- [ ] Task 1"
         label: "Task 1"
-        value: "Not done"
+        value: "Missing"
         color: "orange"
       - badge_2:
+        pattern: "- [x] Task 1"
+        label: "Task 1"
+        value: "Completed"
+        color: "forestgreen"
+      - badge_3:
+        pattern: "- [ ] Task 2"
+        label: "Task 2"
+        value: "Missing"
+        color: "orange"
+      - badge_3:
         pattern: "- [x] Task 2"
         label: "Task 2"
-        value: "Done"
-        color: "darkgreen"
+        value: "Completed"
+        color: "forestgreen"
