@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 # The script publish.sh is usefull to:
 # - Generate the sha256 for Homebrew formula
@@ -13,15 +13,15 @@ WORKFLOW_PATH=".github/workflows/badgetizr.yml"
 README_PATH="README.md"
 VERSION="$1"
 
-red='\033[1;31m'
-green='\033[1;32m'
-yellow='\033[1;33m'
-blue='\033[1;34m'
-purple='\033[1;35m'
-cyan='\033[1;36m'
-white='\033[1;37m'
-orange='\033[38;5;208m'
-reset='\033[0m'
+red='\e[1;31m'
+green='\e[1;32m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+purple='\e[1;35m'
+cyan='\e[1;36m'
+white='\e[1;37m'
+orange='\e[38;5;208m'
+reset='\e[0m'
 
 function fail_if_error() {
     if [ $? -ne 0 ]; then
@@ -32,7 +32,7 @@ function fail_if_error() {
 }
 
 if [ -z "$VERSION" ]; then
-  echo "❌ Please provide a version (example: ./release.sh ${cyan}1.1.3${reset}). Please respect the semantic versioning notation."
+  echo -e "❌ Please provide a ${cyan}version${reset} (example: ./release.sh ${cyan}1.1.3${reset}). Please respect the semantic versioning notation."
   exit 1
 fi
 
@@ -59,7 +59,7 @@ curl -L -o "badgetizr-$VERSION.tar.gz" "$ARCHIVE_URL" > /dev/null
 fail_if_error "Failed to download the archive"
 echo "🟢 [Step 3/5] Archive downloaded."
 SHA256=$(shasum -a 256 "badgetizr-$VERSION.tar.gz" | awk '{print $1}')
-echo "🟢 SHA256 generated: ${cyan}$SHA256${reset}"
+echo -e "🟢 SHA256 generated: ${cyan}$SHA256${reset}"
 
 # Step 3: Update the formula
 sed -i "" -E \
@@ -68,7 +68,7 @@ sed -i "" -E \
   "$FORMULA_PATH"
 
 # Step 3bis: Update the workflow with new version number
-sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${NEW_VERSION}|" "$WORKFLOW_FILE"
+sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${NEW_VERSION}|" "$WORKFLOW_PATH"
 
 # Step 4: Commit and push
 echo "🟡 [Step 4/5] Commiting the bump of the files..."
