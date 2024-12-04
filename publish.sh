@@ -10,6 +10,7 @@
 REPOSITORY="aiKrice/homebrew-badgetizr"
 FORMULA_PATH="Formula/badgetizr.rb"
 WORKFLOW_PATH=".github/workflows/badgetizr.yml"
+UTILS_PATH="utils.sh"
 README_PATH="README.md"
 VERSION="$1"
 
@@ -41,6 +42,11 @@ if [ -z "$GITHUB_TOKEN" ]; then
   exit 1
 fi 
 
+# Changing the version for -v option
+sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"$VERSION\"|" "$UTILS_PATH"
+git add "$UTILS_PATH"
+git commit -m "Bump version to $VERSION for -v option"
+git push
 # Step 1: Create the release
 echo "🟡 [Step 1/5] Switching to master..."
 git switch master

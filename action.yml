@@ -72,6 +72,5 @@ runs:
           options="$options --pr-build-url $pr_build_url"
         fi
 
-        chmod +x ./badgetizr.sh
-        ./badgetizr.sh -c $configuration $options
+        ./badgetizr -c $configuration $options
       shell: bash
