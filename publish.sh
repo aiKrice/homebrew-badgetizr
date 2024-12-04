@@ -36,6 +36,11 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
+if [ -z "$GITHUB_TOKEN" ]; then
+  echo -e "❌ Please provide a ${cyan}GthubToken${reset} Exemple export GITHUB_TOKEN=...."
+  exit 1
+fi 
+
 # Step 1: Create the release
 echo "🟡 [Step 1/5] Switching to master..."
 git switch master
