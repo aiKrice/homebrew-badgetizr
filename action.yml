@@ -1,5 +1,8 @@
 name: 'Badgetizr'
 description: 'A GitHub Action to run Badgetizr for custom PR badges'
+branding:
+  icon: 'award'
+  color: 'green'
 inputs:
   pr_id:
     description: 'Specify the path to the configuration. Default is .badgetizr.yml'
