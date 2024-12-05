@@ -1,6 +1,12 @@
 
 <h1 align="center">
     Badgetizr
+
+![Static Badge](https://img.shields.io/${VERSION}-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/${VERSION}-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+![Static Badge](https://img.shields.io/badge/passed-darkgreen?logo=github&logoColor=white&label=Github&labelColor=black)
+![Static Badge](https://img.shields.io/badge/soon-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)
+
 </h1>
 
 <h2 align="center">
@@ -86,7 +92,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@1.4.0
+        uses: aiKrice/homebrew-badgetizr@1.5.1
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -116,7 +122,7 @@ If you want to use an icon for your badge, you can use the `icon` option and spe
 #### Description 
 
 The badge ticket is a badge that will be displayed on your pull request if you have a Jira ticket or a Youtrack ticket in your pull request title or overall, something you would like to extract from the pull request title.
-To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string. Badgetizr will process the pattern like this: `sed -n -E "s/${ticket_badge_pattern}/\1/p"'`.
+To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string. Badgetizr will process the pattern like this: `sed -n -E "s/${ticket_badge_pattern}/\1/p"'`. You have to provide a regex group with ()
 
 #### Configuration:
 - `color`: The color of the badge (default: `blue`).
@@ -144,12 +150,11 @@ The badge dynamic is a badge that will be displayed on your pull request if the 
 - `color`: The color of the badge (default: `grey`).
 - `label`: The label of the badge (default: `Task 2`).
 - `value`: The value of the badge (default: `Done`).
-- `labelColor`: The color of the label (default: `grey`).
-- `color`: The color of the badge (default: `darkgreen`).
+- `sed_pattern`: The pattern which will be applied against the pull request body (default: `no pattern`). A regex group `()` must be present or it will trigger a sed error. See .badgetizr.yml.example file.
 
 example:
 ```yaml
-- pattern: "- [ ] Task 1"
+- sed_pattern: "(- [ ] Task 1)"
   label: "Task 1"
   value: "Not done"
   color: "orange"
@@ -159,7 +164,7 @@ will display: ![Static Badge](https://img.shields.io/badge/Task_1-Not_done-orang
 In this case you can also use this to display a badge if the checkbox is checked.
 example:
 ```yaml
-- pattern: "- [x] Task 2"
+- sed_pattern: "(- [x] Task 2)"
   label: "Task 2"
   value: "Done"
   color: "green"
@@ -197,6 +202,19 @@ The `badge ci` is a badge that will be displayed on your pull request to indicat
 - `color`: The color of the badge (default: `purple`).
 - `label`: The label of the badge (default: `Bitrise`).
 - `logo`: The logo of the badge (default: `bitrise`).
+
+#### Example
+```yaml
+badge_ticket:
+  enabled: "true"
+  settings:
+    color: "black"
+    label: "Github"
+    sed_pattern: '.*\[GH-([0-9]+)\].*'
+    url: "https://github.com/aiKrice/badgetizr/issues/%s"
+    logo: "github"
+```
+will match feat(scope): implement stuff [GH-1234] #will extract 1234
 
 ## Contributing
 You are welcome to contribute to this project. The current rules to follow is that each time you are opening a pull request, you have to generate yourself the badge inside the pull request by running the script locally on your machine when your forked the repository.

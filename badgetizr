@@ -1,38 +1,16 @@
 #!/bin/bash
 
-# Read config file
-
-show_help() {
-    cat <<EOF
-Usage: $0 [options]
-
-Options :
-  -c <file>, 
-  --configuration=<file>,
-  --configuration <file>        (Optional) Specify the path to the configuration. Default is .badgetizr.yml
-
-  --pr-id=<id>,
-  --pr-id <id>                  (Mandatory) Specify the pull request id.
-
-  --pr-destination-branch=<branch>,
-  --pr-destination-branch <branch>        (Mandatory when branch badge is enabled) Specify the pull request destination branch.
-
-  --pr-build-number=<number>,
-  --pr-build-number <number>        (Mandatory when CI badge is enabled) Specify the pull request build number.
-
-  --pr-build-url=<url>,
-  --pr-build-url <url>              (Mandatory when CI badge is enabled) Specify the pull request build url.
-
-  --version, -v                 Display the version of Badgetizr.
-  -h, --help                    Display this help.
-
-EOF
-}
+# Use local utils.sh during development
+if [ -f "$(dirname "$0")/../libexec/utils.sh" ]; then
+  UTILS_PATH="$(dirname "$0")/../libexec/utils.sh"
+else
+  UTILS_PATH="$(dirname "$0")/utils.sh"
+fi
+source "$UTILS_PATH"
 
 config_file=".badgetizr.yml"
-BADGETIZR_VERSION=$(git tag --sort=-creatordate | head -n 1)
 
-while getopts "c:-:" opt; do
+while getopts "c:hv-:" opt; do
     case $opt in
         c)
             config_file="$OPTARG"
@@ -106,19 +84,20 @@ if [ -z "$ci_badge_pull_request_id" ]; then
     show_help
     exit 1
 fi
-
-if [ -f "$config_file" ]; then
+echo "$config_file"
+if [[ -f "$config_file" && -s "$config_file" ]]; then
     wip_badge_enabled=$(yq e '.badge_wip.enabled // "true"' "$config_file")
     wip_badge_label=$(yq e '.badge_wip.settings.label // "Work in Progress"' "$config_file")
     wip_badge_color=$(yq e '.badge_wip.settings.color // "yellow"' "$config_file")
     wip_badge_logo=$(yq e '.badge_wip.settings.logo // "vlcmediaplayer"' "$config_file")
 
-    branch_badge_enabled=$(yq e '.badge_base_branch.enabled // "true"' "$config_file")
+    branch_badge_enabled=$(yq e '.badge_base_branch.enabled // "false"' "$config_file")
     branch_badge_base_branch=$(yq e '.badge_base_branch.settings.base_branch // "develop"' "$config_file")
     branch_badge_color=$(yq e '.badge_base_branch.settings.color // "orange"' "$config_file")
     branch_badge_label=$(yq e '.badge_base_branch.settings.label // "Target branch"' "$config_file")
 
     ci_badge_enabled=$(yq e '.badge_ci.enabled // "false"' "$config_file")
+    ci_badge_label_color=$(yq e '.badge_ci.settings.label_color // "purple"' "$config_file")
     ci_badge_color=$(yq e '.badge_ci.settings.color // "purple"' "$config_file")
     ci_badge_label=$(yq e '.badge_ci.settings.label // "CI"' "$config_file")
     ci_badge_logo=$(yq e '.badge_ci.settings.logo // "🤖"' "$config_file")
@@ -173,26 +152,23 @@ fi
 # CI Badge
 if [ "$ci_badge_enabled" = "true" ]; then
     if [ -z "$ci_badge_build_number" ]; then
-        echo "🔴 Error: --pr-build-number is mandatory." >&2
-        show_help
+        echo "🔴 Error: --pr-build-number is mandatory. Use -h for help." >&2
         exit 1
     fi
 
     if [ -z "$ci_badge_build_url" ]; then
-        echo "🔴 Error: --pr-build-url is mandatory." >&2
-        show_help
+        echo "🔴 Error: --pr-build-url is mandatory. Use -h for help." >&2
         exit 1
     fi
 
-    ci_badge="[![Static Badge](https://img.shields.io/badge/$ci_badge_label-$ci_badge_build_number-purple?logo=$ci_badge_logo&logoColor=white&labelColor=$ci_badge_color&color=green)]($ci_badge_build_url)"
+    ci_badge="[![Static Badge](https://img.shields.io/badge/$ci_badge_label-$ci_badge_build_number-purple?logo=$ci_badge_logo&logoColor=white&labelColor=$ci_badge_label_color&color=$ci_badge_color)]($ci_badge_build_url)"
     all_badges=$(echo $all_badges $ci_badge)
 fi
 
 # Target Branch Badge 
 if [ "$branch_badge_enabled" = "true" ]; then
     if [ -z "$ci_badge_destination_branch" ]; then
-        echo "🔴 Error: --pr-destination-branch is mandatory when branch badge is enabled." >&2
-        show_help
+        echo "🔴 Error: --pr-destination-branch is mandatory when branch badge is enabled. Use -h for help." >&2
         exit 1
     fi
 
@@ -214,19 +190,23 @@ fi
 # Dynamic Badge
 if [ "$dynamic_badge_enabled" = "true" ]; then
     badge_count=$(yq '.badge_dynamic.settings.patterns | length' "$config_file")
-
     for ((i=0; i<$badge_count; i++)); do
-        pattern=$(yq ".badge_dynamic.settings.patterns[$i].pattern // \"no_pattern\"" "$config_file")
         label=$(yq ".badge_dynamic.settings.patterns[$i].label // \"Badge_$1\"" "$config_file")
+        pattern=$(yq ".badge_dynamic.settings.patterns[$i].sed_pattern // \"no_pattern\"" "$config_file")
+ 
+        match=$(echo $pull_request_body | sed -n -E "s/${pattern}/\1/p")
+        if [[ -z "$match" ]]; then
+            echo "🔵 Match=${match} is empty for badge label: ${label} at position[$i]. Check your regex: ${pattern} against your PR. The regexp must contain a group (*.)"
+            continue
+        fi
+
         default_label=$(echo $label | sed -E 's/ /_/g; s/-/--/g')
         override_label=$(jq -rn --arg s "$label" '$s | @uri')
         value=$(yq ".badge_dynamic.settings.patterns[$i].value // \"default\"" "$config_file" | sed -E 's/ /_/g; s/-/--/g')
         color=$(yq ".badge_dynamic.settings.patterns[$i].color // \"orange\"" "$config_file")
-
-        if [[ "$pull_request_body" == *"$pattern"* ]];then
-            dynamic_badge="![Static Badge](https://img.shields.io/badge/$default_label-$value-grey?label=$override_label&labelColor=grey&color=${color})"
-            all_badges=$(echo $all_badges $dynamic_badge)
-        fi
+        
+        dynamic_badge="![Static Badge](https://img.shields.io/badge/$default_label-$value-grey?label=$override_label&labelColor=grey&color=${color})"
+        all_badges=$(echo $all_badges $dynamic_badge)
     done
 fi
 
