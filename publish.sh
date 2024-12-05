@@ -44,7 +44,10 @@ fi
 
 # Changing the version for -v option
 sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"$VERSION\"|" "$UTILS_PATH"
-git add "$UTILS_PATH"
+sed -i '' -E "s/(badge\/)[0-9]+\.[0-9]+\.[0-9]+(-darkgreen\?logo=homebrew)/\${VERSION}\2/" "$README_PATH"
+sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "$WORKFLOW_PATH" "$README_PATH"
+
+git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH"
 git commit -m "Bump version to $VERSION for -v option"
 git push
 # Step 1: Create the release
@@ -78,12 +81,9 @@ sed -i "" -E \
   -e "s#(sha256 \").*(\".*)#\1$SHA256\2#" \
   "$FORMULA_PATH"
 
-# Step 3bis: Update the workflow with new version number
-sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${NEW_VERSION}|" "$WORKFLOW_PATH"
-
 # Step 4: Commit and push
 echo "🟡 [Step 4/5] Commiting the bump of the files..."
-git add "$FORMULA_PATH" "$WORKFLOW_PATH"
+git add "$FORMULA_PATH"
 git commit -m "Bump version $VERSION"
 fail_if_error "Failed to commit the bump"
 git push --no-verify

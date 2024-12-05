@@ -1,5 +1,5 @@
 name: 'Badgetizr'
-description: 'A GitHub Action to run Badgetizr for custom PR badges'
+description: 'Badgetizr will automatically add visual badges and link shortcuts inside your pull requests to enhance code reviews developer experience.'
 branding:
   icon: 'award'
   color: 'green'
