@@ -10,7 +10,8 @@ class Badgetizr < Formula
     depends_on "gh"
 
     def install
-      bin.install "badgetizr.sh" => "badgetizr"
+      libexec.install "badgetizr", "utils.sh"
+      bin.install_symlink libexec/"badgetizr"
     end
     
   end

@@ -1,44 +1,54 @@
 badge_ci:
-  enabled: true
+  enabled: "false"
   settings:
     color: "purple"
     label: "Bitrise"
     logo: "bitrise"
 
 badge_ticket:
-  enabled: true
+  enabled: "true"
   settings:
-    color: "blue"
-    label: "JIRA"
-    sed_pattern: '.*\(([^)]+)\).*'
-    url: "https://yourproject.atlassian.net/browse/%s"
-    logo: "jirasoftware"
+    color: "black"
+    label: "Github"
+    sed_pattern: '.*\[GH-([0-9]+)\].*'
+    url: "https://github.com/aiKrice/badgetizr/issues/%s"
+    logo: "github"
 
 badge_base_branch:
-  enabled: true
+  enabled: "false"
   settings:
     color: "orange"
     label: "Base Branch"
     base_branch: "develop"
 
 badge_wip:
-  enabled: true
+  enabled: "true"
   settings:
     color: "yellow"
     label: "WIP"
     logo: "vlcmediaplayer"
 
 badge_dynamic:
-  enabled: true
+  enabled: "true"
   settings:
     patterns:
       - badge_1:
-        pattern: "- [ ] Task 1"
+        sed_pattern: '(- \[ \] Task 1)'
         label: "Task 1"
-        value: "Not done"
+        value: "Missing"
         color: "orange"
       - badge_2:
-        pattern: "- [x] Task 2"
+        sed_pattern: '(- \[x\] Task 1)'
+        label: "Task 1"
+        value: "Completed"
+        color: "forestgreen"
+      - badge_3:
+        sed_pattern: '(- \[x\] Task 2)'
         label: "Task 2"
-        value: "Done"
-        color: "darkgreen"
+        value: "Missing"
+        color: "orange"
+      - badge_4:
+        sed_pattern: '(- [ ] Task 2)'
+        label: "Task 2"
+        value: "Completed"
+        color: "forestgreen"
