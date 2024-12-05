@@ -49,8 +49,10 @@ fail_if_error "Failed to pull develop. Please stash changes."
 
 # Changing the version for -v option
 sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"$VERSION\"|" "$UTILS_PATH"
-sed -i '' -E "s/(badge\/)[0-9]+\.[0-9]+\.[0-9]+(-darkgreen\?logo=homebrew)/${VERSION}\2/" "$README_PATH"
-sed -i '' -E "s/(badge\/)[0-9]+\.[0-9]+\.[0-9]+(-grey\?logo=github)/${VERSION}\2/" "$README_PATH"
+sed -i '' -E \
+  -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-darkgreen\\?logo=homebrew.*)@\1${VERSION}\2@" \
+  -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=github.*)@\1${VERSION}\2@" \
+  "$README_PATH"
 sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "$WORKFLOW_PATH" "$README_PATH"
 
 git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH"

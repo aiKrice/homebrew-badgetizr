@@ -1,12 +1,6 @@
 #!/bin/bash
 
-# Use local utils.sh during development
-if [ -f "$(dirname "$0")/../libexec/utils.sh" ]; then
-  UTILS_PATH="$(dirname "$0")/../libexec/utils.sh"
-else
-  UTILS_PATH="$(dirname "$0")/utils.sh"
-fi
-source "$UTILS_PATH"
+source $UTILS_PATH
 
 config_file=".badgetizr.yml"
 
