@@ -4,7 +4,7 @@
 if [ -f "$(dirname "$0")/../libexec/utils.sh" ]; then
   UTILS_PATH="$(dirname "$0")/../libexec/utils.sh"
 else
-  UTILS_PATH="$(dirname "$0")/utils.sh"
+  UTILS_PATH="$(dirname "$0")/Formula/utils.sh"
 fi
 source "$UTILS_PATH"
 

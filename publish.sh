@@ -10,7 +10,7 @@
 REPOSITORY="aiKrice/homebrew-badgetizr"
 FORMULA_PATH="Formula/badgetizr.rb"
 WORKFLOW_PATH=".github/workflows/badgetizr.yml"
-UTILS_PATH="utils.sh"
+UTILS_PATH="Formula/utils.sh"
 README_PATH="README.md"
 VERSION="$1"
 
@@ -47,6 +47,8 @@ sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"$VERSION\"|" "$UTILS_PATH
 sed -i '' -E "s/(badge\/)[0-9]+\.[0-9]+\.[0-9]+(-darkgreen\?logo=homebrew)/\${VERSION}\2/" "$README_PATH"
 sed -i '' -E "s/(badge\/)[0-9]+\.[0-9]+\.[0-9]+(-grey\?logo=github)/\${VERSION}\2/" "$README_PATH"
 sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "$WORKFLOW_PATH" "$README_PATH"
+
+exit 0
 
 git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH"
 git commit -m "Bump version to $VERSION for -v option"
