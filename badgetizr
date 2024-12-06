@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $UTILS_PATH
+source "utils.sh"
 
 config_file=".badgetizr.yml"
 

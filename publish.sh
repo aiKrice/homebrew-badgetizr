@@ -10,7 +10,7 @@
 REPOSITORY="aiKrice/homebrew-badgetizr"
 FORMULA_PATH="Formula/badgetizr.rb"
 WORKFLOW_PATH=".github/workflows/badgetizr.yml"
-UTILS_PATH="Formula/utils.sh"
+UTILS_PATH="utils.sh"
 README_PATH="README.md"
 VERSION="$1"
 
