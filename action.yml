@@ -1,5 +1,5 @@
 name: 'Badgetizr'
-description: 'Badgetizr will automatically add visual badges and link shortcuts inside your pull requests to enhance code reviews developer experience.'
+description: 'Badgetizr adds visual badges and shortcuts to pull requests, streamlining code reviews and highlighting key details effortlessly.'
 branding:
   icon: 'award'
   color: 'green'
