@@ -1,6 +1,13 @@
 #!/bin/bash
 
-source "utils.sh"
+if [ -f "$(dirname "$0")/../libexec/utils.sh" ]; then
+  UTILS_PATH="$(dirname "$0")/../libexec/utils.sh"
+else
+  UTILS_PATH="$(dirname "$0")/utils.sh"
+fi
+
+# Charge utils.sh
+source "$UTILS_PATH"
 
 config_file=".badgetizr.yml"
 
