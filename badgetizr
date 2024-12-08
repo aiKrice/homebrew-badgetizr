@@ -2,8 +2,11 @@
 
 if [ -f "$(dirname "$0")/../libexec/utils.sh" ]; then
   UTILS_PATH="$(dirname "$0")/../libexec/utils.sh"
-else
+elif [ -f "$(dirname "$0")/utils.sh" ]; then
   UTILS_PATH="$(dirname "$0")/utils.sh"
+else
+  echo "Error: utils.sh not found!"
+  exit 1
 fi
 
 # Charge utils.sh
