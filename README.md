@@ -1,5 +1,7 @@
 
 <h1 align="center">
+    <img src="logo.png" alt="Badgetizr Logo" width="120"/>
+    <br/>
     Badgetizr
 
 ![Static Badge](https://img.shields.io/badge/1.5.4-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
