@@ -11,7 +11,7 @@ class Badgetizr < Formula
 
     def install
       libexec.install "badgetizr", "utils.sh"
-      bin.install_symlink libexec/"badgetizr"
+      (bin/"badgetizr").write_env_script libexec/"badgetizr", UTILS_PATH: libexec/"utils.sh"
     end
     
   end
