@@ -4,8 +4,8 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/1.5.5-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/1.5.5-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+![Static Badge](https://img.shields.io/badge/1.6.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/1.6.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
 ![Static Badge](https://img.shields.io/badge/passed-darkgreen?logo=github&logoColor=white&label=Github&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/soon-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)
 
@@ -94,7 +94,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@1.5.5
+        uses: aiKrice/homebrew-badgetizr@1.6.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
