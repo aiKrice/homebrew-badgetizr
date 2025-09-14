@@ -28,6 +28,7 @@ badge_wip:
     color: "yellow"
     label: "WIP"
     logo: "vlcmediaplayer"
+    labelized: "Work In Progress"
 
 badge_dynamic:
   enabled: "true"

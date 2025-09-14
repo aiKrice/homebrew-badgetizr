@@ -88,12 +88,13 @@ if [ -z "$ci_badge_pull_request_id" ]; then
     show_help
     exit 1
 fi
-echo "$config_file"
+
 if [[ -f "$config_file" && -s "$config_file" ]]; then
     wip_badge_enabled=$(yq e '.badge_wip.enabled // "true"' "$config_file")
     wip_badge_label=$(yq e '.badge_wip.settings.label // "Work in Progress"' "$config_file")
     wip_badge_color=$(yq e '.badge_wip.settings.color // "yellow"' "$config_file")
     wip_badge_logo=$(yq e '.badge_wip.settings.logo // "vlcmediaplayer"' "$config_file")
+    wip_badge_labelized=$(yq e '.badge_wip.settings.labelized // ""' "$config_file")
 
     branch_badge_enabled=$(yq e '.badge_base_branch.enabled // "false"' "$config_file")
     branch_badge_base_branch=$(yq e '.badge_base_branch.settings.base_branch // "develop"' "$config_file")
@@ -188,7 +189,13 @@ if [ "$wip_badge_enabled" = "true" ]; then
     if [[ "$pull_request_title" =~ [Ww][Ii][Pp] ]]; then
         wip_badge="![Static Badge](https://img.shields.io/badge/${wip_badge_label}-${wip_badge_color}?logo=$wip_badge_logo&logoColor=white)"
         all_badges=$(echo $all_badges $wip_badge)
+
+        add_label_to_pull_request "$wip_badge_labelized" "$wip_badge_color"
+    else
+        remove_label_from_pull_request "$wip_badge_labelized"
     fi
+else
+    remove_label_from_pull_request "$wip_badge_labelized"
 fi
 
 # Dynamic Badge
