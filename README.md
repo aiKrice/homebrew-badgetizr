@@ -4,8 +4,8 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/1.5.5-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/1.5.5-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+![Static Badge](https://img.shields.io/badge/1.6.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/1.6.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
 ![Static Badge](https://img.shields.io/badge/passed-darkgreen?logo=github&logoColor=white&label=Github&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/soon-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)
 
@@ -22,7 +22,7 @@
 ---
 
 ## What is Badgetizr ?
-Badgetizr is a tool that will add badges to your pull requests to increase your team's productivity. It is fully customizable and you can add (almost) as many badges as you want. With Badgtizr on your CI, you will be able to save time by:
+Badgetizr is a tool that will add badges to your pull requests to increase your team's productivity. It is fully customizable and you can add (almost) as many badges as you want. With Badgetizr on your CI, you will be able to save time by:
 - Stop adding a link to your ticket in the description of the PR if you add the id of it in the title of the PR.
 - Reminding that some tasks are still missing to do in the PR.
 - Stop adding a visual indicator if your PR is a WIP.
@@ -34,7 +34,7 @@ _📣 I would like to put this tool available with Homebrew and Apt-Get. To succ
 ## Roadmap
 - [x] Add option to use a custom configuration file
 - [ ] Make the badge_ci badge dynamic (success, failure, pending)
-- [ ] Add a beautiful icon for this repository
+- [x] Add a beautiful icon for this repository
 - [x] Improve the Readme.md file
 - [x] Add the tools to Homebrew tap
 - [ ] Add the tool to Homebrew
@@ -44,7 +44,7 @@ _📣 I would like to put this tool available with Homebrew and Apt-Get. To succ
 
 To see how to contribute, please refer to the section [Contributing](#contributing).
 
-## I love coffee ☕.
+## I like coffee ☕.
 If your productivity has increased, my mission is done 🎉. This means I can go back to my coffee and enjoy it 🤤. If you want to support me, you can buy me a coffee, you will be mentioned in the README.md file as a backer ❤️. It will also motivate me to continue to work on this tool and improve it. 
 <a href='https://ko-fi.com/Q5Q7PPTYK' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
@@ -94,7 +94,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@1.5.5
+        uses: aiKrice/homebrew-badgetizr@1.6.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -109,11 +109,11 @@ jobs:
 ## Configuration
 By default, the configuration file used is `.badgetizr.yml`. You can also specify a configuration file to use by using the `-c` option.
 ```bash
-$ badgetizer -c my_config.yml
+$ badgetizr -c my_config.yml
 ```
 You can look to the `.badgetizr.yml.example` file at the root of the repository to see the different configuration options available.
 
-If you want to use an icon for your badge, you can use the `icon` option and specify the icon name (badge ci only). All icons are available at [simpleicons.org](https://simpleicons.org/).
+If you want to use a custom icon for your badges, you can use the `icon` option and specify the icon name (badge ci only). All icons are available at [simpleicons.org](https://simpleicons.org/).
 
 ## Badges
 
@@ -140,6 +140,17 @@ To do so, you have to define a pattern that will be used to extract the data (ie
 
 #### Description
 The badge wip is a badge that will be displayed on your pull request if the pull request title contains the word `WIP` whatever the case.
+
+example:
+```yaml
+badge_wip:
+  enabled: "true"
+  settings:
+    color: "yellow"
+    label: "WIP"
+    logo: "vlcmediaplayer"
+    labelized: "Work In Progress"
+```
 
 ### Badge Dynamic ![Static Badge](https://img.shields.io/badge/Task_2-Done-grey?label=Task%202&labelColor=grey&color=darkgreen)
 #### Status
@@ -181,7 +192,7 @@ You don't need to escape the `-` and ` ` characters, they will be automatically 
 ### Badge Base Branch ![Static Badge](https://img.shields.io/badge/Base_Branch-master-orange?labelColor=grey&color=red)
 
 #### Status
-`Enabled` by default.
+`Disabled` by default.
 
 #### Description
 The badge base branch is a badge that will be displayed on your pull request to indicate the target branch of the pull request. The default value is `develop`.
