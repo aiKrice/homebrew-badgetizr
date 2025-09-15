@@ -31,16 +31,16 @@ Badgetizr is a tool that will add badges to your pull requests to increase your 
 ## To read before going further: I need your ⭐ !
 _📣 I would like to put this tool available with Homebrew and Apt-Get. To succeed, I need a maximum of star on this repository (according to the submission of Homebrew, min = 75stars). By using Homebrew or apt-get, I will be able to simplify the installation process by skipping the configure step below 🚀. Thank you for your help!_
 
-## Roadmap
+## Roadmap to V2
 - [x] Add option to use a custom configuration file
 - [ ] Make the badge_ci badge dynamic (success, failure, pending)
 - [x] Add a beautiful icon for this repository
 - [x] Improve the Readme.md file
 - [x] Add the tools to Homebrew tap
-- [ ] Add the tool to Homebrew
 - [ ] Add the tool to Apt-Get
 - [x] Add the tools to Github Actions
 - [ ] Support natively Gitlab with `glab` CLI
+- [ ] Add the tool to Homebrew (Bonus)
 
 To see how to contribute, please refer to the section [Contributing](#contributing).
 
@@ -54,7 +54,7 @@ For now, only Github Pull Requests are supported. You have to export the environ
 export GITHUB_TOKEN="your_github_token"
 ```
 
-Then you can run the configure script and the badgetizer script:
+Then you can run the configure script and the badgetizr script:
 ```bash
 $ brew tap aiKrice/badgetizr
 $ brew install aiKrice/badgetizr/badgetizr
@@ -141,7 +141,21 @@ To do so, you have to define a pattern that will be used to extract the data (ie
 #### Description
 The badge wip is a badge that will be displayed on your pull request if the pull request title contains the word `WIP` whatever the case.
 
-example:
+#### Configuration:
+- `color`: The color of the badge (default: `yellow`)
+- `label`: The label of the badge (default: `WIP`)
+- `logo`: The logo of the badge (default: `vlcmediaplayer`)
+- `labelized`: (Optional) GitHub label to automatically manage for WIP status
+
+#### WIP Label Management
+When `labelized` is set, the WIP badge will automatically add/remove a GitHub label:
+
+**Behavior:**
+- PR title with "WIP" → Badge displayed + Label added
+- PR title without "WIP" → No badge + Label removed
+- Missing label → Auto-created with yellow color
+
+**Example:**
 ```yaml
 badge_wip:
   enabled: "true"
@@ -149,8 +163,10 @@ badge_wip:
     color: "yellow"
     label: "WIP"
     logo: "vlcmediaplayer"
-    labelized: "Work In Progress"
+    labelized: "work in progress"
 ```
+
+**Note:** This automatic label management is currently only available for the WIP badge.
 
 ### Badge Dynamic ![Static Badge](https://img.shields.io/badge/Task_2-Done-grey?label=Task%202&labelColor=grey&color=darkgreen)
 #### Status
@@ -236,7 +252,7 @@ example:
 ```bash
 export GITHUB_TOKEN="your_github_token"
 $ ./configure #optional, just for dependencies
-$ ./badgetizer.sh
+$ ./badgetizr
 ```
 
 ## Publishing (for maintainers)
