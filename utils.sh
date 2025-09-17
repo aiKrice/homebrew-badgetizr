@@ -1,5 +1,5 @@
 #!/bin/bash
-BADGETIZR_VERSION="1.6.1"
+BADGETIZR_VERSION="2.0.0"
 
 show_help() {
     cat <<EOF
