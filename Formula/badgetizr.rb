@@ -8,9 +8,11 @@ class Badgetizr < Formula
 
     depends_on "yq"
     depends_on "gh"
+    depends_on "glab"
 
     def install
       libexec.install "badgetizr", "utils.sh"
+      libexec.install "providers"
       (bin/"badgetizr").write_env_script libexec/"badgetizr", UTILS_PATH: libexec/"utils.sh"
     end
     
