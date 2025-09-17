@@ -3,7 +3,7 @@
 # The script publish.sh is usefull to:
 # - Generate the sha256 for Homebrew formula
 # - Update the workflow with the right new version
-# - Update the Readme.md for the best developer experience during integration
+# - Update documentation files (README.md and related docs) for the best developer experience during integration
 # It will create a tag, update the formula and create a PR.
 
 # Configuration
@@ -12,6 +12,10 @@ FORMULA_PATH="Formula/badgetizr.rb"
 WORKFLOW_PATH=".github/workflows/badgetizr.yml"
 UTILS_PATH="utils.sh"
 README_PATH="README.md"
+BADGES_PATH="BADGES.md"
+TROUBLESHOOTING_PATH="TROUBLESHOOTING.md"
+CONTRIBUTING_PATH="CONTRIBUTING.md"
+PUBLISHING_PATH="PUBLISHING.md"
 VERSION="$1"
 
 red='\e[1;31m'
@@ -52,10 +56,12 @@ sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"$VERSION\"|" "$UTILS_PATH
 sed -i '' -E \
   -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-darkgreen\\?logo=homebrew.*)@\1${VERSION}\2@" \
   -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=github.*)@\1${VERSION}\2@" \
+  -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-pink\\?logo=gitlab.*)@\1${VERSION}\2@" \
   "$README_PATH"
 sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "$WORKFLOW_PATH" "$README_PATH"
+sed -i '' "s|archive/refs/tags/[0-9]\+\.[0-9]\+\.[0-9]\+\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|" "$README_PATH"
 
-git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH"
+git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH" "$BADGES_PATH" "$TROUBLESHOOTING_PATH" "$CONTRIBUTING_PATH" "$PUBLISHING_PATH"
 git commit -m "Bump version to $VERSION for -v option"
 git push
 # Step 1: Create the release

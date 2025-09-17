@@ -78,3 +78,39 @@ else
     echo "🔴 Unsupported Operating System: $OSTYPE"
     exit 1
 fi
+
+echo ""
+echo "🔍 Platform-specific CLI tools needed:"
+
+# Detect and provide platform-specific installation advice
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "📝 For your macOS system:"
+    if ! is_command_exists gh; then
+        echo "   - Install GitHub CLI: brew install gh"
+    else
+        echo "   ✅ GitHub CLI (gh) already installed"
+    fi
+
+    if ! is_command_exists glab; then
+        echo "   - Install GitLab CLI: brew install glab"
+        echo "     Or download from: https://gitlab.com/gitlab-org/cli/-/releases"
+    else
+        echo "   ✅ GitLab CLI (glab) already installed"
+    fi
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "📝 For your Linux system:"
+    if ! is_command_exists gh; then
+        echo "   - Install GitHub CLI: https://github.com/cli/cli/blob/trunk/docs/install_linux.md"
+    else
+        echo "   ✅ GitHub CLI (gh) already installed"
+    fi
+
+    if ! is_command_exists glab; then
+        echo "   - Install GitLab CLI: https://gitlab.com/gitlab-org/cli/-/releases"
+    else
+        echo "   ✅ GitLab CLI (glab) already installed"
+    fi
+fi
+
+echo ""
+echo "🚀 Setup complete! Run './badgetizr --help' to get started."

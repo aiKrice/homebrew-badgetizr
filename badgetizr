@@ -1,16 +1,18 @@
 #!/bin/bash
 
-if [ -f "$(dirname "$0")/../libexec/utils.sh" ]; then
-  UTILS_PATH="$(dirname "$0")/../libexec/utils.sh"
-elif [ -f "$(dirname "$0")/utils.sh" ]; then
-  UTILS_PATH="$(dirname "$0")/utils.sh"
-else
-  echo "Error: utils.sh not found!"
-  exit 1
-fi
+# Detect base path for all files (works in dev and Homebrew)
+detect_base_path() {
+    if [ -f "$(dirname "$0")/utils.sh" ]; then
+        echo "$(dirname "$0")"
+    else
+        echo "$(dirname "$0")/../libexec"
+    fi
+}
 
-# Charge utils.sh
-source "$UTILS_PATH"
+# load extra files
+BASE_PATH=$(detect_base_path)
+source "$BASE_PATH/utils.sh"
+source "$BASE_PATH/providers/provider_utils.sh"
 
 config_file=".badgetizr.yml"
 
@@ -59,6 +61,12 @@ while getopts "c:hv-:" opt; do
                 pr-id)
                     ci_badge_pull_request_id="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
                     ;;
+                provider=*)
+                    forced_provider="${OPTARG#*=}"
+                    ;;
+                provider)
+                    forced_provider="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
                 version)
                     echo "$BADGETIZR_VERSION"
                     exit 0
@@ -82,6 +90,33 @@ while getopts "c:hv-:" opt; do
             ;;
     esac
 done
+
+# Determine provider (forced or auto-detected)
+if [[ -n "$forced_provider" ]]; then
+    PROVIDER="$forced_provider"
+    echo "🔧 Forced provider: $PROVIDER"
+else
+    PROVIDER=$(detect_provider)
+    echo "🔍 Detected provider: $PROVIDER"
+fi
+
+# Load the provider
+if [[ "$PROVIDER" != "github" && "$PROVIDER" != "gitlab" ]]; then
+    echo "❌ Error: Unsupported provider '$PROVIDER'. Supported: github, gitlab"
+    exit 1
+fi
+
+# Check if required CLI is installed
+if ! check_provider_cli "$PROVIDER"; then
+    exit 1
+fi
+
+load_provider "$PROVIDER"
+
+# Test provider authentication
+if ! test_provider_auth; then
+    exit 1
+fi
 
 if [ -z "$ci_badge_pull_request_id" ]; then
     echo "🔴 Error: --pr-id is mandatory." >&2
@@ -132,8 +167,8 @@ else
     dynamic_badge_enabled="false"
 fi
 
-pull_request_body=$(gh pr view $ci_badge_pull_request_id --json body -q '.body')
-pull_request_title=$(gh pr view $ci_badge_pull_request_id --json title -q '.title')
+pull_request_title=$(get_pr_info "$ci_badge_pull_request_id" "title")
+pull_request_body=$(get_pr_info "$ci_badge_pull_request_id" "body")
 
 # Extract current badges from the pull request body
 pull_request_body=$(echo "$pull_request_body" | awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' | tr -d '\r')          
@@ -190,12 +225,39 @@ if [ "$wip_badge_enabled" = "true" ]; then
         wip_badge="![Static Badge](https://img.shields.io/badge/${wip_badge_label}-${wip_badge_color}?logo=$wip_badge_logo&logoColor=white)"
         all_badges=$(echo $all_badges $wip_badge)
 
-        add_label_to_pull_request "$wip_badge_labelized" "$wip_badge_color"
+        # Add pr/mr label if labelized is set
+        if [[ -n "$wip_badge_labelized" && "$wip_badge_labelized" != "null" ]]; then
+            if ! add_pr_label "$ci_badge_pull_request_id" "$wip_badge_labelized"; then
+                # Label doesn't exist, create it with appropriate color
+                hex_color=""
+                case "$wip_badge_color" in
+                    "yellow") hex_color="fbca04" ;;
+                    "orange") hex_color="d93f0b" ;;
+                    "red") hex_color="d73a49" ;;
+                    "green"|"forestgreen") hex_color="28a745" ;;
+                    "blue") hex_color="0366d6" ;;
+                    "purple") hex_color="6f42c1" ;;
+                    "grey"|"gray") hex_color="586069" ;;
+                    "black") hex_color="24292e" ;;
+                    *) hex_color="fbca04" ;;  # Default to yellow for WIP
+                esac
+
+                if create_pr_label "$wip_badge_labelized" "$hex_color" "Auto-created by Badgetizr"; then
+                    add_pr_label "$ci_badge_pull_request_id" "$wip_badge_labelized"
+                fi
+            fi
+        fi
     else
-        remove_label_from_pull_request "$wip_badge_labelized"
+        # PR is no longer WIP, remove label if configured
+        if [[ -n "$wip_badge_labelized" && "$wip_badge_labelized" != "null" ]]; then
+            remove_pr_label "$ci_badge_pull_request_id" "$wip_badge_labelized"
+        fi
     fi
 else
-    remove_label_from_pull_request "$wip_badge_labelized"
+    # WIP badge disabled, remove label if configured
+    if [[ -n "$wip_badge_labelized" && "$wip_badge_labelized" != "null" ]]; then
+        remove_pr_label "$ci_badge_pull_request_id" "$wip_badge_labelized"
+    fi
 fi
 
 # Dynamic Badge
@@ -226,5 +288,6 @@ all_badges=$(printf "<!--begin:badgetizr--> \n%s\n<!--end:badgetizr-->" "$all_ba
 
 # Build new body
 new_pull_request_body=$(printf "%s\n%s" "$all_badges" "$pull_request_body")
-# Send the new body
-gh pr edit $ci_badge_pull_request_id -b "$new_pull_request_body"
+
+# Update PR description
+update_pr_description "$ci_badge_pull_request_id" "$new_pull_request_body"

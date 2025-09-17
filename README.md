@@ -1,14 +1,11 @@
-
 <h1 align="center">
     <img src="logo.png" alt="Badgetizr Logo" width="120"/>
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/1.6.1-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/1.6.1-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-![Static Badge](https://img.shields.io/badge/passed-darkgreen?logo=github&logoColor=white&label=Github&labelColor=black)
-![Static Badge](https://img.shields.io/badge/soon-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)
-
+![Static Badge](https://img.shields.io/badge/2.0.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.0.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/1.6.1-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
 </h1>
 
 <h2 align="center">
@@ -21,80 +18,72 @@
 
 ---
 
-## What is Badgetizr ?
-Badgetizr is a tool that will add badges to your pull requests to increase your team's productivity. It is fully customizable and you can add (almost) as many badges as you want. With Badgetizr on your CI, you will be able to save time by:
-- Stop adding a link to your ticket in the description of the PR if you add the id of it in the title of the PR.
-- Reminding that some tasks are still missing to do in the PR.
-- Stop adding a visual indicator if your PR is a WIP.
-- Having a badge to know the status of the CI pipeline without having to click on it, scrolling down to the bottom of the page _(coming soon)_.
+## Table of Contents
 
-## To read before going further: I need your ⭐ !
-_📣 I would like to put this tool available with Homebrew and Apt-Get. To succeed, I need a maximum of star on this repository (according to the submission of Homebrew, min = 75stars). By using Homebrew or apt-get, I will be able to simplify the installation process by skipping the configure step below 🚀. Thank you for your help!_
+- [What is Badgetizr?](#what-is-badgetizr)
+- [Multi-Platform Support](#multi-platform-support)
+- [Installation](#installation)
+  - [Homebrew (macOS)](#homebrew-macos)
+  - [GitHub Actions](#github-actions)
+  - [GitLab CI](#gitlab-ci)
+  - [Manual Installation](#manual-installation)
+- [Usage](#usage)
+  - [Command Line Options](#command-line-options)
+  - [Basic Examples](#basic-examples)
+  - [Provider Detection](#provider-detection)
+- [Configuration](#configuration)
+- [Badges](#badges)
+- [Contributing](#contributing)
+- [Publishing (for maintainers)](#publishing-for-maintainers)
+- [Troubleshooting](#troubleshooting)
 
-## Roadmap to V2
-- [x] Add option to use a custom configuration file
-- [ ] Make the badge_ci badge dynamic (success, failure, pending)
-- [x] Add a beautiful icon for this repository
-- [x] Improve the Readme.md file
-- [x] Add the tools to Homebrew tap
-- [ ] Add the tool to Apt-Get
-- [x] Add the tools to Github Actions
-- [ ] Support natively Gitlab with `glab` CLI
-- [ ] Add the tool to Homebrew (Bonus)
+---
 
-To see how to contribute, please refer to the section [Contributing](#contributing).
+## What is Badgetizr?
 
-## I like coffee ☕.
-If your productivity has increased, my mission is done 🎉. This means I can go back to my coffee and enjoy it 🤤. If you want to support me, you can buy me a coffee, you will be mentioned in the README.md file as a backer ❤️. It will also motivate me to continue to work on this tool and improve it. 
-<a href='https://ko-fi.com/Q5Q7PPTYK' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+Badgetizr automatically adds customizable badges to your GitHub and GitLab pull/merge requests to boost team productivity. With support for multiple badge types and full CI/CD integration, it helps teams:
 
-## Installation via Homebrew (MacOS)
-For now, only Github Pull Requests are supported. You have to export the environment variables `GITHUB_TOKEN` such as:
+- 🎯 **Track ticket references** automatically from PR titles
+- ⚠️ **Identify work-in-progress** pull requests clearly
+- 📊 **Monitor CI/CD status** without clicking through pipelines
+- ✅ **Visualize completion status** of checklists and tasks
+- 🎯 **Highlight target branches** for better merge awareness
+
+## Multi-Platform Support
+
+✅ **GitHub** - Full support via GitHub CLI
+✅ **GitLab** - Full support via GitLab CLI
+✅ **GitHub Actions** - Native integration
+✅ **GitLab CI** - Native integration
+
+## Installation
+
+### Homebrew (macOS)
+
 ```bash
-export GITHUB_TOKEN="your_github_token"
+# Add the tap and install
+brew tap aiKrice/badgetizr
+brew install aiKrice/badgetizr/badgetizr
+
+# Configure authentication
+export GITHUB_TOKEN="your_github_token"     # For GitHub
+export GITLAB_TOKEN="your_gitlab_token"     # For GitLab
 ```
 
-Then you can run the configure script and the badgetizr script:
-```bash
-$ brew tap aiKrice/badgetizr
-$ brew install aiKrice/badgetizr/badgetizr
-# edit the .badgetizr.yml file to your needs
-$ export GITHUB_TOKEN="your_github_token"
-```
+### GitHub Actions
 
-## Installation via Apt-Get (Linux)
-Coming soon...
+Add this to your workflow (`.github/workflows/*.yml`):
 
-## Installation manually (for MacOS and Linux)
-```bash
-$ git clone https://github.com/aiKrice/badgetizr.git --branch master
-$ cd badgetizr
-$ ./configure
-```
-In the rest of the documentation, I will consider that you have installed the tool in your `$PATH` and remove the `.sh` extension from the binary name.
-
-## Usage (CLI)
-```bash
-$ badgetizr #[options]
-```
-To see the different options available, you can use the `--help` option:
-```bash
-$ badgetizr --help
-```
-
-## Usage GithubAction
-Instead of using the CLI, you can directly use the github action in your workflow.
 ```yaml
 jobs:
   badgetizr:
-    runs-on: ubuntu-latest #works also on macos-latest
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@1.6.1
+        uses: aiKrice/homebrew-badgetizr@2.0.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -103,161 +92,210 @@ jobs:
           pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 ```
+
+### GitLab CI
+
+Add this to your `.gitlab-ci.yml`:
+
+```yaml
+badgetizr:
+  stage: build
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl bash yq jq
+    - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.71.1/downloads/glab_1.71.1_linux_amd64.tar.gz" | tar -xz -C /tmp
+    - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
+    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/1.6.1.tar.gz | tar -xz
+    - cd homebrew-badgetizr-*
+  script:
+    - |
+      ./badgetizr -c .badgetizr.yml \
+      --pr-id=$CI_MERGE_REQUEST_IID \
+      --pr-destination-branch=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME \
+      --pr-build-number=$CI_PIPELINE_ID \
+      --pr-build-url=https://gitlab.com/$CI_PROJECT_PATH/-/jobs/$CI_PIPELINE_ID \
+      --provider=gitlab
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
+```
+
+### Manual Installation
+
+```bash
+# Download latest release
+curl -sSL https://github.com/aiKrice/homebrew-badgetizr/releases/latest/download/badgetizr.tar.gz | tar -xz --strip-components=1
+
+# Install dependencies (yq, jq) - supports macOS and Linux only
+./configure
+
+# Install platform-specific CLI tools
+# For GitHub:
+brew install gh                    # macOS/Linux
+
+# For GitLab:
+# Download from: https://gitlab.com/gitlab-org/cli/-/releases
+
+# Configure authentication
+export GITHUB_TOKEN="your_github_token"     # For GitHub
+export GITLAB_TOKEN="your_gitlab_token"     # For GitLab
+```
+
+## Usage
+
+### Command Line Options
+
+```bash
+badgetizr [options]
+```
+
+#### Required Options
+
+| Option | Description |
+|--------|-------------|
+| `--pr-id <id>` | Specify the pull/merge request ID |
+
+#### Optional Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-c <file>`, `--configuration <file>` | Path to configuration file | `.badgetizr.yml` |
+| `--pr-destination-branch <branch>` | Target branch (required for branch badge) | - |
+| `--pr-build-number <number>` | Build number (required for CI badge) | - |
+| `--pr-build-url <url>` | Build URL (required for CI badge) | - |
+| `--provider <provider>` | Force provider (`github` or `gitlab`) | Auto-detected |
+| `-v`, `--version` | Display version | - |
+| `-h`, `--help` | Display help | - |
+
+### Basic Examples
+
+```bash
+# Minimal usage (auto-detects GitHub/GitLab)
+badgetizr --pr-id=123
+
+# With custom configuration
+badgetizr -c custom.yml --pr-id=123
+
+# Force specific provider
+badgetizr --provider=gitlab --pr-id=123
+
+# Complete example with all options
+badgetizr \
+  --pr-id=123 \
+  --pr-destination-branch=main \
+  --pr-build-number=456 \
+  --pr-build-url="https://github.com/owner/repo/actions/runs/456" \
+  --provider=github
+```
+
+### Provider Detection
+
+Badgetizr automatically detects your platform:
+
+- **GitHub**: Uses `gh` CLI with `GITHUB_TOKEN` or `GH_TOKEN`
+- **GitLab**: Uses `glab` CLI with `GITLAB_TOKEN`
+- **Auto-detection**: Based on `git remote get-url origin`
+- **Manual override**: Use `--provider=github` or `--provider=gitlab`
 
 ## Configuration
-By default, the configuration file used is `.badgetizr.yml`. You can also specify a configuration file to use by using the `-c` option.
-```bash
-$ badgetizr -c my_config.yml
-```
-You can look to the `.badgetizr.yml.example` file at the root of the repository to see the different configuration options available.
 
-If you want to use a custom icon for your badges, you can use the `icon` option and specify the icon name (badge ci only). All icons are available at [simpleicons.org](https://simpleicons.org/).
+Badgetizr uses a YAML configuration file to define which badges to display and their settings.
+
+### Configuration File
+
+- **Default location**: `.badgetizr.yml` in your project root
+- **Custom location**: Use `-c path/to/config.yml`
+- **Example file**: See `.badgetizr.yml.example` in the repository
+
+```bash
+# Use default configuration
+badgetizr --pr-id=123
+
+# Use custom configuration
+badgetizr -c my-config.yml --pr-id=123
+```
 
 ## Badges
 
-### Badge Ticket [![Static Badge](https://img.shields.io/badge/JIRA-GH--1234-blue?logo=jirasoftware&color=blue&labelColor=grey)](https://yourproject.atlassian.net/browse/badge)
-#### Status
- `Disabled` by default.
+Badgetizr supports multiple badge types that can be customized to track different aspects of your pull requests.
 
-#### Description 
+📖 **[Complete Badge Documentation](BADGES.md)**
 
-The badge ticket is a badge that will be displayed on your pull request if you have a Jira ticket or a Youtrack ticket in your pull request title or overall, something you would like to extract from the pull request title.
-To do so, you have to define a pattern that will be used to extract the data (ie: ticket id). This pattern will be used with the `sed` command with the `-n -E` options and the `p` flag and will extract the first occurrence of the pattern found in the string. Badgetizr will process the pattern like this: `sed -n -E "s/${ticket_badge_pattern}/\1/p"'`. You have to provide a regex group with ()
+### Quick Overview
 
-#### Configuration:
-- `color`: The color of the badge (default: `blue`).
-- `label`: The label of the badge (default: `JIRA`).
-- `logo`: The logo of the badge (default: `jirasoftware`).
-- `sed_pattern`: The pattern to use to extract the ticket id from the pull request title (default: `.*\(([^)]+)\).*`, will match something like `feat(ABC-123):  My Pull Request Title` -> `ABC-123`).
-- `url`: The url of the badge (default: `https://yourproject.atlassian.net/browse/%s`, will be `https://yourproject.atlassian.net/browse/ABC-123`). You don't need to escape the `-` and ` ` characters, they will be automatically escaped.
+| Badge Type | Default Status | Purpose | Preview |
+|-----------|----------------|---------|---------|
+| 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) |
+| ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) |
+| 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-green) |
+| 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) |
+| 🚀 **CI** | Disabled | Shows build information with links to CI runs | ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github) |
 
-### Badge Wip ![Static Badge](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer&logoColor=white)
+### Configuration
 
-#### Status
-`Enabled` by default.
+Badgetizr uses a YAML configuration file to define badge settings:
 
-#### Description
-The badge wip is a badge that will be displayed on your pull request if the pull request title contains the word `WIP` whatever the case.
-
-#### Configuration:
-- `color`: The color of the badge (default: `yellow`)
-- `label`: The label of the badge (default: `WIP`)
-- `logo`: The logo of the badge (default: `vlcmediaplayer`)
-- `labelized`: (Optional) GitHub label to automatically manage for WIP status
-
-#### WIP Label Management
-When `labelized` is set, the WIP badge will automatically add/remove a GitHub label:
-
-**Behavior:**
-- PR title with "WIP" → Badge displayed + Label added
-- PR title without "WIP" → No badge + Label removed
-- Missing label → Auto-created with yellow color
-
-**Example:**
-```yaml
-badge_wip:
-  enabled: "true"
-  settings:
-    color: "yellow"
-    label: "WIP"
-    logo: "vlcmediaplayer"
-    labelized: "work in progress"
-```
-
-**Note:** This automatic label management is currently only available for the WIP badge.
-
-### Badge Dynamic ![Static Badge](https://img.shields.io/badge/Task_2-Done-grey?label=Task%202&labelColor=grey&color=darkgreen)
-#### Status
-`Disabled` by default.
-
-#### Description
-The badge dynamic is a badge that will be displayed on your pull request if the pull request body contains a pattern. You can define multiple patterns and each pattern will be displayed with a badge.
-
-#### Configuration:
-- `color`: The color of the badge (default: `grey`).
-- `label`: The label of the badge (default: `Task 2`).
-- `value`: The value of the badge (default: `Done`).
-- `sed_pattern`: The pattern which will be applied against the pull request body (default: `no pattern`). A regex group `()` must be present or it will trigger a sed error. See .badgetizr.yml.example file.
-
-example:
-```yaml
-- sed_pattern: "(- [ ] Task 1)"
-  label: "Task 1"
-  value: "Not done"
-  color: "orange"
-```
-will display: ![Static Badge](https://img.shields.io/badge/Task_1-Not_done-orange) if the checkbox is not checked.
-
-In this case you can also use this to display a badge if the checkbox is checked.
-example:
-```yaml
-- sed_pattern: "(- [x] Task 2)"
-  label: "Task 2"
-  value: "Done"
-  color: "green"
-```
-
-will display: ![Static Badge](https://img.shields.io/badge/Task_1-Done-green) if the checkbox is checked.
-
-You don't need to escape the `-` and ` ` characters, they will be automatically escaped.
-
-⚠️ Beware currently the regex has limitations, it is not using sed regex but only bash regex by checking if the pattern is found in the string (like a `contains`). An [opened issue](https://github.com/aiKrice/homebrew-badgetizr/issues/5) has been created and you are welcome to contribute to fix this ❤️.
-
-### Badge Base Branch ![Static Badge](https://img.shields.io/badge/Base_Branch-master-orange?labelColor=grey&color=red)
-
-#### Status
-`Disabled` by default.
-
-#### Description
-The badge base branch is a badge that will be displayed on your pull request to indicate the target branch of the pull request. The default value is `develop`.
-
-#### CLI Parameters
-- `--pr-destination-branch`: The base branch to use to compare the pull request to.
-
-### Badge CI [![Static Badge](https://img.shields.io/badge/My_CI-Build_number-purple?logo=bitrise&logoColor=white&labelColor=purple&color=green)](https://www.google.com)
-#### Status
- `Disabled` by default.
-
-#### Description 
-The `badge ci` is a badge that will be displayed on your pull request to indicate the status of the CI pipeline, the build number and the build url. Currently the status is **static** but it will be **dynamic** in a short future.
-
-#### CLI Parameters:
-- `--pr-build-number`: The build number of the CI pipeline.
-- `--pr-build-url`: The build url of the CI pipeline.
-
-#### Configuration:
-- `color`: The color of the badge (default: `purple`).
-- `label`: The label of the badge (default: `Bitrise`).
-- `logo`: The logo of the badge (default: `bitrise`).
-
-#### Example
-```yaml
-badge_ticket:
-  enabled: "true"
-  settings:
-    color: "black"
-    label: "Github"
-    sed_pattern: '.*\[GH-([0-9]+)\].*'
-    url: "https://github.com/aiKrice/badgetizr/issues/%s"
-    logo: "github"
-```
-will match feat(scope): implement stuff [GH-1234] #will extract 1234
+- **Default location**: `.badgetizr.yml` in your project root
+- **Custom location**: Use `-c path/to/config.yml`
+- **Icons**: All badges support icons from [Simple Icons](https://simpleicons.org/)
 
 ## Contributing
-You are welcome to contribute to this project. The current rules to follow is that each time you are opening a pull request, you have to generate yourself the badge inside the pull request by running the script locally on your machine when your forked the repository.
 
-example:
-```bash
-export GITHUB_TOKEN="your_github_token"
-$ ./configure #optional, just for dependencies
-$ ./badgetizr
-```
+We welcome contributions to Badgetizr! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
+
+🤝 **[Complete Contributing Guide](CONTRIBUTING.md)**
+
+### Quick Start
+
+| Step | Action | Command |
+|------|--------|---------|
+| 1️⃣ **Fork & Clone** | Fork the repository and clone locally | `git clone https://github.com/your-username/homebrew-badgetizr.git` |
+| 2️⃣ **Setup** | Install dependencies and configure tokens | `./configure && export GITHUB_TOKEN="..."` |
+| 3️⃣ **Test** | Test your changes with real PRs | `./badgetizr --pr-id=123` |
+| 4️⃣ **PR Rule** | Run Badgetizr on your own PR | `./badgetizr --pr-id=YOUR_PR_NUMBER` |
+
+### Contributing Areas
+
+- 🐛 **Bug Fixes**: Authentication, badge rendering, configuration parsing
+- ✨ **New Features**: Additional badge types, CI/CD platform support
+- 📚 **Documentation**: README improvements, troubleshooting guides
+- 🧪 **Testing**: Unit tests, integration tests, cross-platform compatibility
 
 ## Publishing (for maintainers)
-To publish the tool, you can run the `publish.sh` script by providing the version you want to release. Please respect the semantic versioning notation.
-```bash
-./publish.sh 1.1.3
-```
-This script will bump everything possible to keep everything up-to-date.
+
+Automated release process for maintainers to publish new versions of Badgetizr.
+
+📦 **[Complete Publishing Guide](PUBLISHING.md)**
+
+### Quick Release
+
+| Step | Action | Command |
+|------|--------|---------|
+| 1️⃣ **Prerequisites** | Clean develop branch + GitHub token | `git status && export GITHUB_TOKEN="..."` |
+| 2️⃣ **Release** | Run automated publish script | `./publish.sh 1.5.6` |
+| 3️⃣ **Verify** | Check release and Homebrew formula | `brew install aiKrice/badgetizr/badgetizr` |
+
+### What It Does
+
+- ✅ **Version Updates**: Updates version in all files and documentation
+- ✅ **Branch Management**: Handles develop → master → tag → release flow
+- ✅ **Homebrew Formula**: Calculates SHA256 and updates formula automatically
+- ✅ **Cleanup**: Backmerges to develop and cleans temporary files
+
+## Troubleshooting
+
+Having issues? Check our comprehensive troubleshooting guide.
+
+🔧 **[Complete Troubleshooting Guide](TROUBLESHOOTING.md)**
+
+### Quick Help
+
+**Authentication issues**:
+- GitHub: `gh auth login` or set `GITHUB_TOKEN`
+- GitLab: `glab auth login` or set `GITLAB_TOKEN`
+
+**No badges showing**: Check configuration file and PR content matches badge criteria
+
+**Command not found**: Install via Homebrew or run `./configure` for dependencies
