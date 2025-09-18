@@ -74,6 +74,12 @@ provider_create_pr_label() {
     fi
 }
 
+provider_get_destination_branch() {
+    local pr_id="$1"
+
+    gh pr view "$pr_id" --json baseRefName --jq '.baseRefName' 2>/dev/null
+}
+
 provider_test_auth() {
     echo "🔐 Testing GitHub authentication..."
 

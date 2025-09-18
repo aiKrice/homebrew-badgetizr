@@ -232,6 +232,7 @@ Badgetizr supports multiple badge types that can be customized to track differen
 |-----------|----------------|---------|---------|
 | 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) |
 | ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) |
+| 🚨 **Hotfix** | Disabled | Automatically detects PRs targeting main/master | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) |
 | 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-green) |
 | 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) |
 | 🚀 **CI** | Disabled | Shows build information with links to CI runs | ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github) |
@@ -243,6 +244,78 @@ Badgetizr uses a YAML configuration file to define badge settings:
 - **Default location**: `.badgetizr.yml` in your project root
 - **Custom location**: Use `-c path/to/config.yml`
 - **Icons**: All badges support icons from [Simple Icons](https://simpleicons.org/)
+
+#### Multiple Configurations
+
+Badgetizr supports different configuration files for different contexts:
+
+```bash
+# Feature development
+badgetizr -c .badgetizr-feature.yml --pr-id=123
+
+# Hotfix releases
+badgetizr -c .badgetizr-hotfix.yml --pr-id=124
+
+# Release candidates
+badgetizr -c .badgetizr-release.yml --pr-id=125
+```
+
+**Example configurations:**
+
+**`.badgetizr-hotfix.yml`** - Minimal badges for urgent fixes:
+```yaml
+badge_wip:
+  enabled: "true"
+badge_base_branch:
+  enabled: "true"  # Show target branch clearly
+  settings:
+    base_branch: "main"
+    color: "red"
+    label: "HOTFIX"
+# Other badges disabled for speed
+```
+
+**`.badgetizr-release.yml`** - Full validation for releases:
+```yaml
+badge_wip:
+  enabled: "true"
+badge_dynamic:
+  enabled: "true"
+  settings:
+    patterns:
+      - sed_pattern: "(- \\[x\\] Changelog updated)"
+        label: "Changelog"
+        value: "Updated"
+        color: "green"
+      - sed_pattern: "(- \\[x\\] Version bumped)"
+        label: "Version"
+        value: "Bumped"
+        color: "blue"
+      - sed_pattern: "(- \\[x\\] Tests passing)"
+        label: "Tests"
+        value: "Passing"
+        color: "green"
+```
+
+**`.badgetizr-feature.yml`** - Standard development workflow:
+```yaml
+badge_wip:
+  enabled: "true"
+badge_ticket:
+  enabled: "true"
+  settings:
+    sed_pattern: '.*\[FEAT-([0-9]+)\].*'
+    label: "Feature"
+    url: "https://yourproject.atlassian.net/browse/FEAT-%s"
+badge_dynamic:
+  enabled: "true"
+  settings:
+    patterns:
+      - sed_pattern: "(- \\[x\\] Unit tests added)"
+        label: "Tests"
+        value: "Added"
+        color: "green"
+```
 
 ## Contributing
 
