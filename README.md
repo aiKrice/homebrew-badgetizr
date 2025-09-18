@@ -3,9 +3,9 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/2.0.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/2.0.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/1.6.1-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.0.1-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.0.1-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/2.0.1-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
 </h1>
 
 <h2 align="center">
@@ -36,6 +36,7 @@
 - [Contributing](#contributing)
 - [Publishing (for maintainers)](#publishing-for-maintainers)
 - [Troubleshooting](#troubleshooting)
+- [Support the Project](#support-the-project)
 
 ---
 
@@ -83,7 +84,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.0.0
+        uses: aiKrice/homebrew-badgetizr@2.0.1
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -98,6 +99,8 @@ jobs:
 
 Add this to your `.gitlab-ci.yml`:
 
+**Live example**: [badgetizr-integration GitLab project](https://gitlab.com/chris-saez/badgetizr-integration)
+
 ```yaml
 badgetizr:
   stage: build
@@ -106,7 +109,7 @@ badgetizr:
     - apk add --no-cache curl bash yq jq
     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.71.1/downloads/glab_1.71.1_linux_amd64.tar.gz" | tar -xz -C /tmp
     - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
-    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/1.6.1.tar.gz | tar -xz
+    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/2.0.0.tar.gz | tar -xz
     - cd homebrew-badgetizr-*
   script:
     - |
@@ -299,3 +302,15 @@ Having issues? Check our comprehensive troubleshooting guide.
 **No badges showing**: Check configuration file and PR content matches badge criteria
 
 **Command not found**: Install via Homebrew or run `./configure` for dependencies
+
+## Support the Project
+
+If Badgetizr has helped improve your team's productivity and you'd like to support its continued development, consider buying me a coffee! ☕
+
+<div align="center">
+  <a href='https://ko-fi.com/Q5Q7PPTYK' target='_blank'>
+    <img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' />
+  </a>
+</div>
+
+Your support helps maintain and improve Badgetizr for the community. Thank you! 🙏
