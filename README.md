@@ -228,14 +228,15 @@ Badgetizr supports multiple badge types that can be customized to track differen
 
 ### Quick Overview
 
-| Badge Type | Default Status | Purpose | Preview |
-|-----------|----------------|---------|---------|
-| 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) |
-| ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) |
-| 🚨 **Hotfix** | Disabled | Automatically detects PRs targeting main/master | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) |
-| 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-green) |
-| 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) |
-| 🚀 **CI** | Disabled | Shows build information with links to CI runs | ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github) |
+| Badge Type | Default Status | Purpose | Preview | Labelized |
+|-----------|----------------|---------|---------|-----------|
+| 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) | - |
+| ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) | ✅ |
+| 🚨 **Hotfix** | Disabled | Automatically detects PRs targeting main/master | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) | ✅ |
+| 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-green) | - |
+| 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) | - |
+| 🚀 **CI** | Disabled | Shows build information with links to CI runs | ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github) | - |
+| ✅ **Ready for Approval** | Disabled | Shows badge when all checkboxes are completed | ![Ready](https://img.shields.io/badge/Ready-green?logo=checkmark) | ✅ |
 
 ### Configuration
 

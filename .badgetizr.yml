@@ -57,3 +57,11 @@ badge_dynamic:
         label: "GitLab Test"
         value: "Missing"
         color: "orange"
+
+badge_ready_for_approval:
+  enabled: "true"
+  settings:
+    color: "green"
+    label: "Ready"
+    logo: "checkmark"
+    labelized: "Ready for Approval"

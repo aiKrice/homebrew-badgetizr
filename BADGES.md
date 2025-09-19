@@ -245,3 +245,65 @@ badge_ci:
 - **CLI Parameter**: `--pr-build-number` (required when enabled)
 - **CLI Parameter**: `--pr-build-url` (required when enabled)
 - **Behavior**: Badge links directly to the CI run URL
+
+### ✅ Ready for Approval Badge
+
+Automatically tracks checkbox completion status in PR descriptions and displays a badge when all checkboxes are completed. Also manages labels accordingly.
+
+**Status**: Disabled by default
+**Example**: When all checkboxes are checked → ![Ready](https://img.shields.io/badge/Ready-green?logo=checkmark) + Label "Ready for Approval" is added
+
+#### Configuration
+
+```yaml
+badge_ready_for_approval:
+  enabled: "true"
+  settings:
+    color: "green"
+    label: "Ready"
+    logo: "checkmark"
+    labelized: "Ready for Approval"  # Optional: auto-manage GitHub/GitLab labels
+```
+
+#### Settings
+
+| Setting | Description | Default | Required |
+|---------|-------------|---------|----------|
+| `color` | Badge color | `green` | No |
+| `label` | Badge text | `Ready` | No |
+| `logo` | Simple Icons slug | `checkmark` | No |
+| `labelized` | Auto-manage platform labels | - | No |
+
+#### Detection Logic
+
+- **Scans PR body** for checkbox patterns: `- [ ]` (unchecked) and `- [x]` (checked)
+- **All checkboxes checked**: Badge displayed + Label added (green color)
+- **Unchecked checkboxes exist**: Badge hidden + Label removed
+- **No configuration needed**: Checkbox detection is automatic
+
+#### Label Management
+
+When `labelized` is configured, automatically adds/removes the specified label:
+- **All checkboxes completed**: Label added with green color
+- **Pending checkboxes**: Label removed
+- **Missing labels**: Auto-created with green color and appropriate description
+
+#### Use Cases
+
+**Task Completion Tracking**:
+```markdown
+## Checklist
+- [x] Code reviewed
+- [ ] Tests added
+- [x] Documentation updated
+```
+Result: Label "Ready for Approval" removed (1 unchecked item)
+
+**Ready for Review**:
+```markdown
+## Checklist
+- [x] Code reviewed
+- [x] Tests added
+- [x] Documentation updated
+```
+Result: Label "Ready for Approval" added (all items completed)
