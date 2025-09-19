@@ -87,6 +87,47 @@ When `labelized` is configured, automatically adds/removes the specified label o
 - **No WIP**: Badge hidden + Label removed
 - **Missing labels**: Auto-created with appropriate colors
 
+### 🚨 Hotfix Badge
+
+Automatically detects when a PR targets `main` or `master` branches and displays a hotfix warning badge.
+
+**Status**: Disabled by default
+**Example**: PR to `main` → ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red)
+
+#### Configuration
+
+```yaml
+badge_hotfix:
+  enabled: "true"
+  settings:
+    color: "red"
+    text_color: "white"
+    label: "HOTFIX"
+    labelized: "Hotfix"  # Optional: auto-manage GitHub/GitLab labels
+```
+
+#### Settings
+
+| Setting | Description | Default | Required |
+|---------|-------------|---------|----------|
+| `color` | Badge background color | `red` | No |
+| `text_color` | Badge text color | `white` | No |
+| `label` | Badge text | `HOTFIX` | No |
+| `labelized` | Auto-manage platform labels | - | No |
+
+#### Detection Logic
+
+- **Automatic detection**: Badge appears when PR targets `main` or `master` branch
+- **No configuration needed**: Branch detection is hardcoded for simplicity
+- **Cross-platform**: Works on both GitHub and GitLab
+
+#### Label Management
+
+When `labelized` is configured, automatically adds/removes the specified label:
+- **Hotfix detected**: Badge shown + Red label added
+- **Regular PR**: Badge hidden + Label removed
+- **Label color**: Always red (non-customizable for consistency)
+
 ### 📊 Dynamic Badges
 
 Creates badges based on patterns found in PR descriptions, perfect for tracking task completion.

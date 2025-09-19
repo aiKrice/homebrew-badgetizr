@@ -131,6 +131,12 @@ if [[ -f "$config_file" && -s "$config_file" ]]; then
     wip_badge_logo=$(yq e '.badge_wip.settings.logo // "vlcmediaplayer"' "$config_file")
     wip_badge_labelized=$(yq e '.badge_wip.settings.labelized // ""' "$config_file")
 
+    hotfix_badge_enabled=$(yq e '.badge_hotfix.enabled // "false"' "$config_file")
+    hotfix_badge_color=$(yq e '.badge_hotfix.settings.color // "red"' "$config_file")
+    hotfix_badge_text_color=$(yq e '.badge_hotfix.settings.text_color // "white"' "$config_file")
+    hotfix_badge_label=$(yq e '.badge_hotfix.settings.label // "HOTFIX"' "$config_file")
+    hotfix_badge_labelized=$(yq e '.badge_hotfix.settings.labelized // ""' "$config_file")
+
     branch_badge_enabled=$(yq e '.badge_base_branch.enabled // "false"' "$config_file")
     branch_badge_base_branch=$(yq e '.badge_base_branch.settings.base_branch // "develop"' "$config_file")
     branch_badge_color=$(yq e '.badge_base_branch.settings.color // "orange"' "$config_file")
@@ -157,6 +163,11 @@ else
     wip_badge_color="yellow"
     wip_badge_logo="vlcmediaplayer"
 
+    hotfix_badge_enabled="false"
+    hotfix_badge_color="red"
+    hotfix_badge_text_color="white"
+    hotfix_badge_label="HOTFIX"
+
     branch_badge_enabled="true"
     branch_badge_base_branch="develop"
     branch_badge_color="orange"
@@ -169,6 +180,7 @@ fi
 
 pull_request_title=$(get_pr_info "$ci_badge_pull_request_id" "title")
 pull_request_body=$(get_pr_info "$ci_badge_pull_request_id" "body")
+destination_branch=$(get_destination_branch "$ci_badge_pull_request_id")
 
 # Extract current badges from the pull request body
 pull_request_body=$(echo "$pull_request_body" | awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' | tr -d '\r')          
@@ -216,6 +228,34 @@ if [ "$branch_badge_enabled" = "true" ]; then
     if [[ "$ci_badge_destination_branch" != "$branch_badge_base_branch" ]];then
         branch_badge="![Static Badge](https://img.shields.io/badge/$branch_badge_label_for_badge-$ci_badge_destination_branch-$branch_badge_color?labelColor=grey&color=$branch_badge_color)"
         all_badges=$(echo $all_badges $branch_badge)
+    fi
+fi
+
+# Hotfix Badge
+if [ "$hotfix_badge_enabled" = "true" ]; then
+    if [[ "$destination_branch" == "main" || "$destination_branch" == "master" ]]; then
+        hotfix_badge="![Static Badge](https://img.shields.io/badge/${hotfix_badge_label}-${hotfix_badge_color}?logoColor=${hotfix_badge_text_color}&color=${hotfix_badge_color})"
+        all_badges=$(echo $all_badges $hotfix_badge)
+
+        # Add pr/mr label if labelized is set
+        if [[ -n "$hotfix_badge_labelized" && "$hotfix_badge_labelized" != "null" ]]; then
+            if ! add_pr_label "$ci_badge_pull_request_id" "$hotfix_badge_labelized"; then
+                # Create hotfix label with red color (non-customizable)
+                if create_pr_label "$hotfix_badge_labelized" "d73a49" "Auto-created by Badgetizr for hotfix detection"; then
+                    add_pr_label "$ci_badge_pull_request_id" "$hotfix_badge_labelized"
+                fi
+            fi
+        fi
+    else
+        # PR is not targeting main/master, remove label if configured
+        if [[ -n "$hotfix_badge_labelized" && "$hotfix_badge_labelized" != "null" ]]; then
+            remove_pr_label "$ci_badge_pull_request_id" "$hotfix_badge_labelized"
+        fi
+    fi
+else
+    # Hotfix badge disabled, remove label if configured
+    if [[ -n "$hotfix_badge_labelized" && "$hotfix_badge_labelized" != "null" ]]; then
+        remove_pr_label "$ci_badge_pull_request_id" "$hotfix_badge_labelized"
     fi
 fi
 

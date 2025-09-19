@@ -1,54 +1,66 @@
-badge_ci:
-  enabled: "false"
-  settings:
-    color: "purple"
-    label: "Bitrise"
-    logo: "bitrise"
-
-badge_ticket:
-  enabled: "true"
-  settings:
-    color: "black"
-    label: "Github"
-    sed_pattern: '.*\[GH-([0-9]+)\].*'
-    url: "https://github.com/aiKrice/badgetizr/issues/%s"
-    logo: "github"
-
-badge_base_branch:
-  enabled: "false"
-  settings:
-    color: "orange"
-    label: "Base Branch"
-    base_branch: "develop"
+# Badgetizr Configuration Example
+# All settings shown with their default values
 
 badge_wip:
-  enabled: "true"
+  enabled: "true"  # Default: enabled
   settings:
     color: "yellow"
     label: "WIP"
     logo: "vlcmediaplayer"
+    # labelized: "work in progress"  # Optional: auto-manage GitHub/GitLab labels
+
+badge_hotfix:
+  enabled: "false"  # Default: disabled
+  settings:
+    color: "red"
+    text_color: "white"
+    label: "HOTFIX"
+    # labelized: "Hotfix"  # Optional: auto-manage GitHub/GitLab labels
+
+badge_ticket:
+  enabled: "false"  # Default: disabled
+  settings:
+    color: "blue"
+    label: "JIRA"
+    logo: "jirasoftware"
+    sed_pattern: '.*\(([^)]+)\).*'  # Matches: feat(ABC-123): description
+    url: "https://yourproject.atlassian.net/browse/%s"
+
+badge_base_branch:
+  enabled: "false"  # Default: disabled
+  settings:
+    base_branch: "develop"
+    color: "orange"
+    label: "Target"
+
+badge_ci:
+  enabled: "false"  # Default: disabled
+  settings:
+    color: "purple"
+    label: "CI"
+    logo: "bitrise"
 
 badge_dynamic:
-  enabled: "true"
+  enabled: "false"  # Default: disabled
   settings:
     patterns:
       - badge_1:
-        sed_pattern: '(- \[ \] Task 1)'
-        label: "Task 1"
-        value: "Missing"
+        sed_pattern: '(- \[ \] Tests added)'
+        label: "Tests"
+        value: "Pending"
         color: "orange"
       - badge_2:
-        sed_pattern: '(- \[x\] Task 1)'
-        label: "Task 1"
-        value: "Completed"
-        color: "forestgreen"
+        sed_pattern: '(- \[x\] Tests added)'
+        label: "Tests"
+        value: "Done"
+        color: "green"
       - badge_3:
-        sed_pattern: '(- \[x\] Task 2)'
-        label: "Task 2"
+        sed_pattern: '(- \[ \] Documentation updated)'
+        label: "Docs"
         value: "Missing"
-        color: "orange"
+        color: "red"
       - badge_4:
-        sed_pattern: '(- [ ] Task 2)'
-        label: "Task 2"
-        value: "Completed"
-        color: "forestgreen"
+        sed_pattern: '(- \[x\] Documentation updated)'
+        label: "Docs"
+        value: "Updated"
+        color: "green"
