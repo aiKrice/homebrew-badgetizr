@@ -61,7 +61,7 @@ badge_dynamic:
 badge_ready_for_approval:
   enabled: "true"
   settings:
-    color: "green"
+    color: "darkgreen"
     label: "Ready"
     logo: "checkmark"
     labelized: "Ready for Approval"

@@ -158,7 +158,7 @@ if [[ -f "$config_file" && -s "$config_file" ]]; then
     dynamic_badge_enabled=$(yq e '.badge_dynamic.enabled // "false"' "$config_file")
 
     ready_for_approval_badge_enabled=$(yq e '.badge_ready_for_approval.enabled // "false"' "$config_file")
-    ready_for_approval_badge_color=$(yq e '.badge_ready_for_approval.settings.color // "green"' "$config_file")
+    ready_for_approval_badge_color=$(yq e '.badge_ready_for_approval.settings.color // "darkgreen"' "$config_file")
     ready_for_approval_badge_label=$(yq e '.badge_ready_for_approval.settings.label // "Ready"' "$config_file")
     ready_for_approval_badge_logo=$(yq e '.badge_ready_for_approval.settings.logo // "checkmark"' "$config_file")
     ready_for_approval_badge_labelized=$(yq e '.badge_ready_for_approval.settings.labelized // ""' "$config_file")
@@ -333,7 +333,7 @@ fi
 # Ready for Approval Badge
 if [ "$ready_for_approval_badge_enabled" = "true" ]; then
     # Count unchecked checkboxes in PR body
-    unchecked_count=$(echo "$pull_request_body" | grep -c "- \[ \]" || echo "0")
+    unchecked_count=$(printf "%s\n" "$pull_request_body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
 
     if [[ $unchecked_count -gt 0 ]]; then
         echo "🔲 Found $unchecked_count unchecked checkbox(es), PR not ready for approval"
