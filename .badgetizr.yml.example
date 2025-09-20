@@ -64,3 +64,11 @@ badge_dynamic:
         label: "Docs"
         value: "Updated"
         color: "green"
+
+badge_ready_for_approval:
+  enabled: "false"  # Default: disabled
+  settings:
+    color: "darkgreen"
+    label: "Ready"
+    logo: "checkmark"
+    labelized: "Ready for Approval"  # Optional: auto-manage GitHub/GitLab labels

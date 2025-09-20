@@ -156,6 +156,12 @@ if [[ -f "$config_file" && -s "$config_file" ]]; then
     ticket_badge_logo=$(yq e '.badge_ticket.settings.logo // "jirasoftware"' "$config_file")
 
     dynamic_badge_enabled=$(yq e '.badge_dynamic.enabled // "false"' "$config_file")
+
+    ready_for_approval_badge_enabled=$(yq e '.badge_ready_for_approval.enabled // "false"' "$config_file")
+    ready_for_approval_badge_color=$(yq e '.badge_ready_for_approval.settings.color // "darkgreen"' "$config_file")
+    ready_for_approval_badge_label=$(yq e '.badge_ready_for_approval.settings.label // "Ready"' "$config_file")
+    ready_for_approval_badge_logo=$(yq e '.badge_ready_for_approval.settings.logo // "checkmark"' "$config_file")
+    ready_for_approval_badge_labelized=$(yq e '.badge_ready_for_approval.settings.labelized // ""' "$config_file")
 else
     echo "🔵 $config_file not found. Using default values."
     wip_badge_enabled="true"
@@ -176,6 +182,7 @@ else
     ci_badge_enabled="false"
     ticket_badge_enabled="false"
     dynamic_badge_enabled="false"
+    ready_for_approval_badge_enabled="false"
 fi
 
 pull_request_title=$(get_pr_info "$ci_badge_pull_request_id" "title")
@@ -321,6 +328,42 @@ if [ "$dynamic_badge_enabled" = "true" ]; then
         dynamic_badge="![Static Badge](https://img.shields.io/badge/$default_label-$value-grey?label=$override_label&labelColor=grey&color=${color})"
         all_badges=$(echo $all_badges $dynamic_badge)
     done
+fi
+
+# Ready for Approval Badge
+if [ "$ready_for_approval_badge_enabled" = "true" ]; then
+    # Count unchecked checkboxes in PR body
+    unchecked_count=$(printf "%s\n" "$pull_request_body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
+
+    if [[ $unchecked_count -gt 0 ]]; then
+        echo "🔲 Found $unchecked_count unchecked checkbox(es), PR not ready for approval"
+
+        # Remove ready for approval label if configured
+        if [[ -n "$ready_for_approval_badge_labelized" && "$ready_for_approval_badge_labelized" != "null" ]]; then
+            remove_pr_label "$ci_badge_pull_request_id" "$ready_for_approval_badge_labelized"
+        fi
+    else
+        echo "✅ All checkboxes are checked, PR ready for approval"
+
+        # Create ready for approval badge
+        ready_for_approval_badge="![Static Badge](https://img.shields.io/badge/${ready_for_approval_badge_label}-${ready_for_approval_badge_color}?logo=$ready_for_approval_badge_logo&logoColor=white&color=${ready_for_approval_badge_color})"
+        all_badges=$(echo $all_badges $ready_for_approval_badge)
+
+        # Add ready for approval label if configured
+        if [[ -n "$ready_for_approval_badge_labelized" && "$ready_for_approval_badge_labelized" != "null" ]]; then
+            if ! add_pr_label "$ci_badge_pull_request_id" "$ready_for_approval_badge_labelized"; then
+                # Label doesn't exist, create it with green color
+                if create_pr_label "$ready_for_approval_badge_labelized" "28a745" "Auto-created by Badgetizr for approval tracking"; then
+                    add_pr_label "$ci_badge_pull_request_id" "$ready_for_approval_badge_labelized"
+                fi
+            fi
+        fi
+    fi
+else
+    # Ready for approval badge disabled, remove label if configured
+    if [[ -n "$ready_for_approval_badge_labelized" && "$ready_for_approval_badge_labelized" != "null" ]]; then
+        remove_pr_label "$ci_badge_pull_request_id" "$ready_for_approval_badge_labelized"
+    fi
 fi
 
 # Add delimiter for next replacement
