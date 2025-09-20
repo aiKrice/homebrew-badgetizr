@@ -52,6 +52,10 @@ test_provider_auth() {
     provider_test_auth "$@"
 }
 
+get_destination_branch() {
+    provider_get_destination_branch "$@"
+}
+
 check_provider_cli() {
     local provider="$1"
 

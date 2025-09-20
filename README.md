@@ -3,9 +3,9 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/2.0.1-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/2.0.1-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/2.0.1-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.1.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.1.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/2.1.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
 </h1>
 
 <h2 align="center">
@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.0.1
+        uses: aiKrice/homebrew-badgetizr@2.1.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -228,13 +228,15 @@ Badgetizr supports multiple badge types that can be customized to track differen
 
 ### Quick Overview
 
-| Badge Type | Default Status | Purpose | Preview |
-|-----------|----------------|---------|---------|
-| 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) |
-| ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) |
-| 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-green) |
-| 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) |
-| 🚀 **CI** | Disabled | Shows build information with links to CI runs | ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github) |
+| Badge Type | Default Status | Purpose | Preview | Labelized |
+|-----------|----------------|---------|---------|-----------|
+| 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) | - |
+| ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) | ✅ |
+| 🚨 **Hotfix** | Disabled | Automatically detects PRs targeting main/master | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) | ✅ |
+| 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-darkgreen) | - |
+| 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) | - |
+| 🚀 **CI** | Disabled | Shows build information with links to CI runs | ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github) | - |
+| ✅ **Ready for Approval** | Disabled | Shows badge when all checkboxes are completed | ![Ready](https://img.shields.io/badge/Ready-darkgreen?logo=checkmark) | ✅ |
 
 ### Configuration
 
@@ -243,6 +245,78 @@ Badgetizr uses a YAML configuration file to define badge settings:
 - **Default location**: `.badgetizr.yml` in your project root
 - **Custom location**: Use `-c path/to/config.yml`
 - **Icons**: All badges support icons from [Simple Icons](https://simpleicons.org/)
+
+#### Multiple Configurations
+
+Badgetizr supports different configuration files for different contexts:
+
+```bash
+# Feature development
+badgetizr -c .badgetizr-feature.yml --pr-id=123
+
+# Hotfix releases
+badgetizr -c .badgetizr-hotfix.yml --pr-id=124
+
+# Release candidates
+badgetizr -c .badgetizr-release.yml --pr-id=125
+```
+
+**Example configurations:**
+
+**`.badgetizr-hotfix.yml`** - Minimal badges for urgent fixes:
+```yaml
+badge_wip:
+  enabled: "true"
+badge_base_branch:
+  enabled: "true"  # Show target branch clearly
+  settings:
+    base_branch: "main"
+    color: "red"
+    label: "HOTFIX"
+# Other badges disabled for speed
+```
+
+**`.badgetizr-release.yml`** - Full validation for releases:
+```yaml
+badge_wip:
+  enabled: "true"
+badge_dynamic:
+  enabled: "true"
+  settings:
+    patterns:
+      - sed_pattern: "(- \\[x\\] Changelog updated)"
+        label: "Changelog"
+        value: "Updated"
+        color: "green"
+      - sed_pattern: "(- \\[x\\] Version bumped)"
+        label: "Version"
+        value: "Bumped"
+        color: "blue"
+      - sed_pattern: "(- \\[x\\] Tests passing)"
+        label: "Tests"
+        value: "Passing"
+        color: "green"
+```
+
+**`.badgetizr-feature.yml`** - Standard development workflow:
+```yaml
+badge_wip:
+  enabled: "true"
+badge_ticket:
+  enabled: "true"
+  settings:
+    sed_pattern: '.*\[FEAT-([0-9]+)\].*'
+    label: "Feature"
+    url: "https://yourproject.atlassian.net/browse/FEAT-%s"
+badge_dynamic:
+  enabled: "true"
+  settings:
+    patterns:
+      - sed_pattern: "(- \\[x\\] Unit tests added)"
+        label: "Tests"
+        value: "Added"
+        color: "green"
+```
 
 ## Contributing
 

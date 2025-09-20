@@ -16,7 +16,7 @@ badge_ticket:
     logo: "github"
 
 badge_base_branch:
-  enabled: "false"
+  enabled: "true"
   settings:
     color: "orange"
     label: "Base Branch"
@@ -30,6 +30,14 @@ badge_wip:
     logo: "vlcmediaplayer"
     labelized: "Work In Progress"
 
+badge_hotfix:
+  enabled: "true"
+  settings:
+    color: "red"
+    text_color: "white"
+    label: "HOTFIX"
+    labelized: "🔥 Hotfix"
+
 badge_dynamic:
   enabled: "true"
   settings:
@@ -40,17 +48,20 @@ badge_dynamic:
         value: "Missing"
         color: "orange"
       - badge_2:
-        sed_pattern: '(- \[x\] The PR starts by)'
-        label: "Github Issue"
-        value: "Filled"
-        color: "forestgreen"
-      - badge_3:
         sed_pattern: '(- \[ \] I have added WIP)'
         label: "WIP Test"
         value: "Missing"
         color: "orange"
-      - badge_4:
-        sed_pattern: '(- \[x\] I have added WIP)'
-        label: "WIP Test"
-        value: "Completed"
-        color: "forestgreen"
+      - badge_3:
+        sed_pattern: '(- \[ \] I have tested on the)'
+        label: "GitLab Test"
+        value: "Missing"
+        color: "orange"
+
+badge_ready_for_approval:
+  enabled: "true"
+  settings:
+    color: "darkgreen"
+    label: "Ready"
+    logo: "checkmark"
+    labelized: "Ready for Approval"

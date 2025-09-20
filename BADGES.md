@@ -87,6 +87,47 @@ When `labelized` is configured, automatically adds/removes the specified label o
 - **No WIP**: Badge hidden + Label removed
 - **Missing labels**: Auto-created with appropriate colors
 
+### 🚨 Hotfix Badge
+
+Automatically detects when a PR targets `main` or `master` branches and displays a hotfix warning badge.
+
+**Status**: Disabled by default
+**Example**: PR to `main` → ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red)
+
+#### Configuration
+
+```yaml
+badge_hotfix:
+  enabled: "true"
+  settings:
+    color: "red"
+    text_color: "white"
+    label: "HOTFIX"
+    labelized: "Hotfix"  # Optional: auto-manage GitHub/GitLab labels
+```
+
+#### Settings
+
+| Setting | Description | Default | Required |
+|---------|-------------|---------|----------|
+| `color` | Badge background color | `red` | No |
+| `text_color` | Badge text color | `white` | No |
+| `label` | Badge text | `HOTFIX` | No |
+| `labelized` | Auto-manage platform labels | - | No |
+
+#### Detection Logic
+
+- **Automatic detection**: Badge appears when PR targets `main` or `master` branch
+- **No configuration needed**: Branch detection is hardcoded for simplicity
+- **Cross-platform**: Works on both GitHub and GitLab
+
+#### Label Management
+
+When `labelized` is configured, automatically adds/removes the specified label:
+- **Hotfix detected**: Badge shown + Red label added
+- **Regular PR**: Badge hidden + Label removed
+- **Label color**: Always red (non-customizable for consistency)
+
 ### 📊 Dynamic Badges
 
 Creates badges based on patterns found in PR descriptions, perfect for tracking task completion.
@@ -204,3 +245,65 @@ badge_ci:
 - **CLI Parameter**: `--pr-build-number` (required when enabled)
 - **CLI Parameter**: `--pr-build-url` (required when enabled)
 - **Behavior**: Badge links directly to the CI run URL
+
+### ✅ Ready for Approval Badge
+
+Automatically tracks checkbox completion status in PR descriptions and displays a badge when all checkboxes are completed. Also manages labels accordingly.
+
+**Status**: Disabled by default
+**Example**: When all checkboxes are checked → ![Ready](https://img.shields.io/badge/Ready-green?logo=checkmark) + Label "Ready for Approval" is added
+
+#### Configuration
+
+```yaml
+badge_ready_for_approval:
+  enabled: "true"
+  settings:
+    color: "green"
+    label: "Ready"
+    logo: "checkmark"
+    labelized: "Ready for Approval"  # Optional: auto-manage GitHub/GitLab labels
+```
+
+#### Settings
+
+| Setting | Description | Default | Required |
+|---------|-------------|---------|----------|
+| `color` | Badge color | `green` | No |
+| `label` | Badge text | `Ready` | No |
+| `logo` | Simple Icons slug | `checkmark` | No |
+| `labelized` | Auto-manage platform labels | - | No |
+
+#### Detection Logic
+
+- **Scans PR body** for checkbox patterns: `- [ ]` (unchecked) and `- [x]` (checked)
+- **All checkboxes checked**: Badge displayed + Label added (green color)
+- **Unchecked checkboxes exist**: Badge hidden + Label removed
+- **No configuration needed**: Checkbox detection is automatic
+
+#### Label Management
+
+When `labelized` is configured, automatically adds/removes the specified label:
+- **All checkboxes completed**: Label added with green color
+- **Pending checkboxes**: Label removed
+- **Missing labels**: Auto-created with green color and appropriate description
+
+#### Use Cases
+
+**Task Completion Tracking**:
+```markdown
+## Checklist
+- [x] Code reviewed
+- [ ] Tests added
+- [x] Documentation updated
+```
+Result: Label "Ready for Approval" removed (1 unchecked item)
+
+**Ready for Review**:
+```markdown
+## Checklist
+- [x] Code reviewed
+- [x] Tests added
+- [x] Documentation updated
+```
+Result: Label "Ready for Approval" added (all items completed)
