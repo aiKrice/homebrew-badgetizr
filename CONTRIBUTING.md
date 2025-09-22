@@ -46,6 +46,12 @@ We welcome contributions to Badgetizr! Whether you're fixing bugs, adding featur
 - Check that configuration parsing handles edge cases
 - Test authentication with different token types
 
+#### GitLab Integration Testing
+For detailed instructions on testing Badgetizr with GitLab CI/CD:
+- **Full GitLab testing guide**: See [`GITLAB-TESTING.md`](./GITLAB-TESTING.md) in this repository
+- **Test project**: Use the [GitLab test project](https://gitlab.com/chris-saez/badgetizr-integration) for integration testing
+- **CI/CD Pipeline**: Follow the provided `.gitlab-ci.yml` template to test merge request workflows
+
 ### Pull Request Process
 
 **Important**: When opening a pull request, you must generate badges in your own PR by running Badgetizr locally:
