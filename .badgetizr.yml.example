@@ -36,7 +36,6 @@ badge_base_branch:
 badge_ci:
   enabled: "false"  # Default: disabled
   settings:
-    color: "purple"
     label: "CI"
     logo: "bitrise"
 
@@ -72,3 +71,4 @@ badge_ready_for_approval:
     label: "Ready"
     logo: "checkmark"
     labelized: "Ready for Approval"  # Optional: auto-manage GitHub/GitLab labels
+

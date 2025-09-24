@@ -67,6 +67,18 @@ while getopts "c:hv-:" opt; do
                 provider)
                     forced_provider="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
                     ;;
+                ci-status=*)
+                    ci_status_badge_status="${OPTARG#*=}"
+                    ;;
+                ci-status)
+                    ci_status_badge_status="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
+                ci-text=*)
+                    ci_status_badge_text="${OPTARG#*=}"
+                    ;;
+                ci-text)
+                    ci_status_badge_text="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
                 version)
                     echo "$BADGETIZR_VERSION"
                     exit 0
@@ -143,10 +155,10 @@ if [[ -f "$config_file" && -s "$config_file" ]]; then
     branch_badge_label=$(yq e '.badge_base_branch.settings.label // "Target branch"' "$config_file")
 
     ci_badge_enabled=$(yq e '.badge_ci.enabled // "false"' "$config_file")
-    ci_badge_label_color=$(yq e '.badge_ci.settings.label_color // "purple"' "$config_file")
-    ci_badge_color=$(yq e '.badge_ci.settings.color // "purple"' "$config_file")
     ci_badge_label=$(yq e '.badge_ci.settings.label // "CI"' "$config_file")
-    ci_badge_logo=$(yq e '.badge_ci.settings.logo // "🤖"' "$config_file")
+    ci_badge_logo=$(yq e '.badge_ci.settings.logo // "github"' "$config_file")
+    ci_badge_color=$(yq e '.badge_ci.settings.color // "purple"' "$config_file")
+    ci_badge_label_color=$(yq e '.badge_ci.settings.label_color // "black"' "$config_file")
 
     ticket_badge_enabled=$(yq e '.badge_ticket.enabled // "false"' "$config_file")
     ticket_badge_pattern=$(yq e '.badge_ticket.settings.sed_pattern // ".*\\(([^)]+)\\).*"' "$config_file")
@@ -162,6 +174,7 @@ if [[ -f "$config_file" && -s "$config_file" ]]; then
     ready_for_approval_badge_label=$(yq e '.badge_ready_for_approval.settings.label // "Ready"' "$config_file")
     ready_for_approval_badge_logo=$(yq e '.badge_ready_for_approval.settings.logo // "checkmark"' "$config_file")
     ready_for_approval_badge_labelized=$(yq e '.badge_ready_for_approval.settings.labelized // ""' "$config_file")
+
 else
     echo "🔵 $config_file not found. Using default values."
     wip_badge_enabled="true"
@@ -208,21 +221,6 @@ if [ "$ticket_badge_enabled" = "true" ]; then
     fi
 fi
 
-# CI Badge
-if [ "$ci_badge_enabled" = "true" ]; then
-    if [ -z "$ci_badge_build_number" ]; then
-        echo "🔴 Error: --pr-build-number is mandatory. Use -h for help." >&2
-        exit 1
-    fi
-
-    if [ -z "$ci_badge_build_url" ]; then
-        echo "🔴 Error: --pr-build-url is mandatory. Use -h for help." >&2
-        exit 1
-    fi
-
-    ci_badge="[![Static Badge](https://img.shields.io/badge/$ci_badge_label-$ci_badge_build_number-purple?logo=$ci_badge_logo&logoColor=white&labelColor=$ci_badge_label_color&color=$ci_badge_color)]($ci_badge_build_url)"
-    all_badges=$(echo $all_badges $ci_badge)
-fi
 
 # Target Branch Badge 
 if [ "$branch_badge_enabled" = "true" ]; then
@@ -334,8 +332,9 @@ fi
 if [ "$ready_for_approval_badge_enabled" = "true" ]; then
     # Count unchecked checkboxes in PR body
     unchecked_count=$(printf "%s\n" "$pull_request_body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
+    unchecked_count=$(echo "$unchecked_count" | tr -d '[:space:]')
 
-    if [[ $unchecked_count -gt 0 ]]; then
+    if [[ "$unchecked_count" -gt 0 ]]; then
         echo "🔲 Found $unchecked_count unchecked checkbox(es), PR not ready for approval"
 
         # Remove ready for approval label if configured
@@ -364,6 +363,78 @@ else
     if [[ -n "$ready_for_approval_badge_labelized" && "$ready_for_approval_badge_labelized" != "null" ]]; then
         remove_pr_label "$ci_badge_pull_request_id" "$ready_for_approval_badge_labelized"
     fi
+fi
+
+# CI Badge (unified with status support)
+if [ "$ci_badge_enabled" = "true" ]; then
+    # pr-build-url is always mandatory for CI badge
+    if [ -z "$ci_badge_build_url" ]; then
+        echo "🔴 Error: --pr-build-url is mandatory when CI badge is enabled." >&2
+        exit 1
+    fi
+
+    # If ci-status is provided, we're in status mode
+    if [[ -n "$ci_status_badge_status" ]]; then
+        # Validate status value (only 4 allowed)
+        case "$ci_status_badge_status" in
+            "started")
+                ci_color="yellow"
+                ;;
+            "passed")
+                ci_color="darkgreen"
+                ;;
+            "warning")
+                ci_color="orange"
+                ;;
+            "failed")
+                ci_color="red"
+                ;;
+            *)
+                echo "❌ Error: Invalid CI status '$ci_status_badge_status'. Allowed: started, passed, warning, failed" >&2
+                exit 1
+                ;;
+        esac
+
+        # Determine badge text based on status
+        if [[ "$ci_status_badge_status" == "started" || "$ci_status_badge_status" == "warning" ]]; then
+            # For intermediate statuses, use custom text if provided, otherwise use status
+            if [[ -n "$ci_status_badge_text" ]]; then
+                ci_text="$ci_status_badge_text"
+            else
+                ci_text="$ci_status_badge_status"
+            fi
+        else
+            # For passed/failed, use build number if available, otherwise custom text, otherwise status
+            if [[ -n "$ci_badge_build_number" ]]; then
+                ci_text="$ci_badge_build_number"
+            elif [[ -n "$ci_status_badge_text" ]]; then
+                ci_text="$ci_status_badge_text"
+            else
+                ci_text="$ci_status_badge_status"
+            fi
+        fi
+
+        echo "🔄 Updating CI badge: $ci_status_badge_status ($ci_text)"
+    else
+        # Legacy mode: no status provided, use build number (backward compatibility)
+        if [ -z "$ci_badge_build_number" ]; then
+            echo "🔴 Error: --pr-build-number is mandatory when no --ci-status is provided." >&2
+            exit 1
+        fi
+        ci_color="$ci_badge_color"
+        ci_text="$ci_badge_build_number"
+        echo "🔄 Creating CI badge: build $ci_text"
+    fi
+
+    # Escape text and label for URL
+    ci_text_escaped=$(echo "$ci_text" | sed -E 's/ /_/g; s/-/--/g')
+    ci_label_escaped=$(echo "$ci_badge_label" | sed -E 's/ /_/g; s/-/--/g')
+
+    # Create unified CI badge (always clickable)
+    ci_badge="[![Static Badge](https://img.shields.io/badge/${ci_text_escaped}-ignored?label=${ci_label_escaped}&logo=${ci_badge_logo}&logoColor=white&labelColor=${ci_badge_label_color}&color=${ci_color})]($ci_badge_build_url)"
+    all_badges=$(echo $all_badges $ci_badge)
+
+    echo "✅ CI badge added to badges collection"
 fi
 
 # Add delimiter for next replacement

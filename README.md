@@ -3,9 +3,9 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/2.1.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/2.1.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/2.1.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.2.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.2.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/2.2.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
 </h1>
 
 <h2 align="center">
@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.1.0
+        uses: aiKrice/homebrew-badgetizr@2.2.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -129,7 +129,9 @@ badgetizr:
 
 ```bash
 # Download latest release
-curl -sSL https://github.com/aiKrice/homebrew-badgetizr/releases/latest/download/badgetizr.tar.gz | tar -xz --strip-components=1
+TAG=$(curl -s https://api.github.com/repos/aiKrice/homebrew-badgetizr/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+curl -L -o badgetizr-latest.tar.gz "https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/$TAG.tar.gz"
+tar -xz --strip-components=1 -f badgetizr-latest.tar.gz
 
 # Install dependencies (yq, jq) - supports macOS and Linux only
 ./configure
@@ -166,8 +168,10 @@ badgetizr [options]
 |--------|-------------|---------|
 | `-c <file>`, `--configuration <file>` | Path to configuration file | `.badgetizr.yml` |
 | `--pr-destination-branch <branch>` | Target branch (required for branch badge) | - |
-| `--pr-build-number <number>` | Build number (required for CI badge) | - |
+| `--pr-build-number <number>` | Build number (for passed/failed statuses or static builds) | - |
 | `--pr-build-url <url>` | Build URL (required for CI badge) | - |
+| `--ci-status <status>` | CI status: `started`, `passed`, `warning`, `failed` | - |
+| `--ci-text <text>` | Custom text for CI badge | - |
 | `--provider <provider>` | Force provider (`github` or `gitlab`) | Auto-detected |
 | `-v`, `--version` | Display version | - |
 | `-h`, `--help` | Display help | - |
@@ -235,7 +239,7 @@ Badgetizr supports multiple badge types that can be customized to track differen
 | 🚨 **Hotfix** | Disabled | Automatically detects PRs targeting main/master | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) | ✅ |
 | 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-darkgreen) | - |
 | 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) | - |
-| 🚀 **CI** | Disabled | Shows build information with links to CI runs | ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github) | - |
+| 🚀 **CI** | Disabled | Shows CI status and build info with clickable links | ![Build-456](https://img.shields.io/badge/456-ignored?label=Build&color=darkgreen&logo=github) | - |
 | ✅ **Ready for Approval** | Disabled | Shows badge when all checkboxes are completed | ![Ready](https://img.shields.io/badge/Ready-darkgreen?logo=checkmark) | ✅ |
 
 ### Configuration

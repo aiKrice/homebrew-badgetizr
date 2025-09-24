@@ -17,13 +17,41 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
-      - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.1.0
+      - name: Run Badgetizr - Started
+        uses: aiKrice/homebrew-badgetizr@2.2.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
           pr_destination_branch: ${{ github.event.pull_request.base.ref }}
           pr_build_number: ${{ github.run_id }}
           pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "started"
+          ci_text: "Running Badgetizr"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Badgetizr - Success
+        if: success()
+        uses: aiKrice/homebrew-badgetizr@2.2.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "passed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Badgetizr - Failed
+        if: failure()
+        uses: aiKrice/homebrew-badgetizr@2.2.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "failed"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
