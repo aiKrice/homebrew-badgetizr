@@ -20,6 +20,12 @@ inputs:
   pr_build_url:
     description: '(Mandatory when CI badge is enabled) Specify the pull request build url'
     required: false
+  ci_status:
+    description: '(Mandatory when CI status badge is enabled) CI status: started, passed, warning, failed'
+    required: false
+  ci_text:
+    description: '(Optional) Custom text for CI status badge. Defaults to status value'
+    required: false
 runs:
   using: 'composite'
   steps:
@@ -57,20 +63,28 @@ runs:
         pr_destination_branch="${{ inputs.pr_destination_branch }}"
         pr_build_number="${{ inputs.pr_build_number }}"
         pr_build_url="${{ inputs.pr_build_url }}"
+        ci_status="${{ inputs.ci_status }}"
+        ci_text="${{ inputs.ci_text }}"
 
-        options=""
+        args=("-c" "$configuration")
         if [ -n "$pr_id" ]; then
-          options="$options --pr-id=$pr_id"
+          args+=("--pr-id=$pr_id")
         fi
         if [ -n "$pr_destination_branch" ]; then
-          options="$options --pr-destination-branch $pr_destination_branch"
+          args+=("--pr-destination-branch" "$pr_destination_branch")
         fi
         if [ -n "$pr_build_number" ]; then
-          options="$options --pr-build-number $pr_build_number"
+          args+=("--pr-build-number" "$pr_build_number")
         fi
         if [ -n "$pr_build_url" ]; then
-          options="$options --pr-build-url $pr_build_url"
+          args+=("--pr-build-url" "$pr_build_url")
+        fi
+        if [ -n "$ci_status" ]; then
+          args+=("--ci-status=$ci_status")
+        fi
+        if [ -n "$ci_text" ]; then
+          args+=("--ci-text" "$ci_text")
         fi
 
-        ./badgetizr -c $configuration $options
+        ./badgetizr "${args[@]}"
       shell: bash

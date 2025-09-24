@@ -2,6 +2,21 @@
 
 Complete guide to all badge types supported by Badgetizr.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Configuration File](#configuration-file)
+- [Available Badge Types](#available-badge-types)
+  - [🎫 Ticket Badge](#-ticket-badge)
+  - [⚠️ Work In Progress (WIP) Badge](#%EF%B8%8F-work-in-progress-wip-badge)
+  - [🚨 Hotfix Badge](#-hotfix-badge)
+  - [📊 Dynamic Badges](#-dynamic-badges)
+  - [🌿 Branch Badge](#-branch-badge)
+  - [🚀 CI Badge](#-ci-badge)
+  - [✅ Ready for Approval Badge](#-ready-for-approval-badge)
+- [Badge Styling](#badge-styling)
+- [Troubleshooting](#troubleshooting)
+
 ## Overview
 
 Badgetizr supports multiple badge types that can be enabled and customized individually. All badges support custom icons from [Simple Icons](https://simpleicons.org/) - use the icon slug from the website in your configuration.
@@ -216,10 +231,10 @@ badge_base_branch:
 
 ### 🚀 CI Badge
 
-Displays build information and provides direct links to CI pipeline runs.
+Displays CI status and build information with direct links to CI pipeline runs. Supports both static builds and dynamic status updates during pipeline execution.
 
 **Status**: Disabled by default
-**Example**: ![CI-Build-123](https://img.shields.io/badge/CI-Build%20123-purple?logo=github)
+**Example**: ![Build-456](https://img.shields.io/badge/456-ignored?label=Build&color=darkgreen&logo=github)
 
 #### Configuration
 
@@ -227,24 +242,140 @@ Displays build information and provides direct links to CI pipeline runs.
 badge_ci:
   enabled: "true"
   settings:
-    color: "purple"
-    label: "CI"
+    label_color: "black"
+    label: "Build"
     logo: "github"
+    color: "darkgreen"  # Used for static builds when no status provided
 ```
 
 #### Settings
 
 | Setting | Description | Default | Required |
 |---------|-------------|---------|----------|
-| `color` | Badge color | `purple` | No |
-| `label` | Badge text | `CI` | No |
-| `logo` | Simple Icons slug | `bitrise` | No |
+| `color` | Badge color for static builds | `purple` | No |
+| `label_color` | Label background color | `black` | No |
+| `label` | Badge label text | `CI` | No |
+| `logo` | Simple Icons slug | `github` | No |
 
-#### Requirements
+#### CLI Parameters
 
-- **CLI Parameter**: `--pr-build-number` (required when enabled)
-- **CLI Parameter**: `--pr-build-url` (required when enabled)
-- **Behavior**: Badge links directly to the CI run URL
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `--pr-build-url` | Build URL (badge is always clickable) | Yes |
+| `--pr-build-number` | Build number (for static or passed/failed) | No |
+| `--ci-status` | Status: `started`, `passed`, `warning`, `failed` | No |
+| `--ci-text` | Custom text for badge | No |
+
+#### Usage Examples
+
+##### Command Line Usage
+
+```bash
+# Static build badge (shows build number)
+badgetizr --pr-id=123 \
+  --pr-build-number=456 \
+  --pr-build-url="https://ci.example.com/builds/456"
+
+# CI status with custom text (intermediate steps)
+badgetizr --pr-id=123 \
+  --ci-status=started \
+  --ci-text="Installing Dependencies" \
+  --pr-build-url="https://ci.example.com/builds/456"
+
+# CI final status with build number
+badgetizr --pr-id=123 \
+  --ci-status=passed \
+  --pr-build-number=456 \
+  --pr-build-url="https://ci.example.com/builds/456"
+
+# CI final status with custom text (no build number)
+badgetizr --pr-id=123 \
+  --ci-status=failed \
+  --ci-text="Tests Failed" \
+  --pr-build-url="https://ci.example.com/builds/456"
+```
+
+##### GitHub Actions Workflow
+
+```yaml
+name: CI Pipeline with Status Updates
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # CI Started
+      - name: Update CI Status - Started
+        uses: aiKrice/homebrew-badgetizr@latest
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "started"
+          ci_text: "Installing Dependencies"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build steps
+      - name: Install Dependencies
+        run: npm install
+
+      # Update status during tests
+      - name: Update CI Status - Testing
+        uses: aiKrice/homebrew-badgetizr@latest
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "started"
+          ci_text: "Running Tests"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Tests
+        run: npm test
+
+      # Final status with build number
+      - name: CI Success
+        if: success()
+        uses: aiKrice/homebrew-badgetizr@latest
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          pr_build_number: ${{ github.run_id }}
+          ci_status: "passed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: CI Failed
+        if: failure()
+        uses: aiKrice/homebrew-badgetizr@latest
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          pr_build_number: ${{ github.run_id }}
+          ci_status: "failed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+#### Status Colors
+
+- `started` → ![yellow](https://img.shields.io/badge/status-yellow-yellow)
+- `passed` → ![darkgreen](https://img.shields.io/badge/status-darkgreen-darkgreen)
+- `warning` → ![orange](https://img.shields.io/badge/status-orange-orange)
+- `failed` → ![red](https://img.shields.io/badge/status-red-red)
+
+#### Badge Behavior
+
+**Text Display Logic:**
+- **started/warning**: Uses `--ci-text` if provided, otherwise status name
+- **passed/failed**: Uses `--pr-build-number` if provided, otherwise `--ci-text`, otherwise status name
+- **Static mode**: Uses `--pr-build-number` (required) with configured color
+
+**Badge is always clickable** and links to `--pr-build-url`
 
 ### ✅ Ready for Approval Badge
 
