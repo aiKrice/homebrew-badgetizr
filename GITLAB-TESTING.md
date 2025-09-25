@@ -1,6 +1,12 @@
-# Testing Badgetizr on GitLab
+<h1 align="center">
+    <img src="logo.png" alt="Badgetizr Logo" width="120"/>
+    <br/>
+    Testing Badgetizr on GitLab
+</h1>
 
-This guide explains how to test Badgetizr on GitLab using GitLab CI/CD pipelines.
+<p align="center">
+    This guide explains how to test Badgetizr on GitLab using GitLab CI/CD pipelines.
+</p>
 
 ## Prerequisites
 
