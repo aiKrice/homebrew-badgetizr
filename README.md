@@ -13,7 +13,7 @@
 </h2>
 
 <div id="header" align="center">
-  <img src="badgetizr_screen.png" width="1000"/>
+  <img src="badgetizr.gif" width="800"/>
 </div>
 
 ---
@@ -109,7 +109,7 @@ badgetizr:
     - apk add --no-cache curl bash yq jq
     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.71.1/downloads/glab_1.71.1_linux_amd64.tar.gz" | tar -xz -C /tmp
     - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
-    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/2.0.0.tar.gz | tar -xz
+    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/2.2.0.tar.gz | tar -xz
     - cd homebrew-badgetizr-*
   script:
     - |
