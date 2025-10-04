@@ -82,7 +82,7 @@ git tag -a "$VERSION" -m "Release $VERSION"
 git push origin "$VERSION" --no-verify
 fail_if_error "Failed to push tag $VERSION"
 echo "🟢 [Step 3/6] Tag pushed, creating GitHub release..."
-gh release create $VERSION --title "Release $VERSION" --generate-notes --verify-tag --latest
+gh release create $VERSION --title "$VERSION" --generate-notes --verify-tag --latest
 fail_if_error "Failed to create GitHub release"
 echo "🟢 [Step 3/6] GitHub release created successfully"
 echo "📦 GitHub Marketplace: Release will appear automatically (action.yml detected)"
