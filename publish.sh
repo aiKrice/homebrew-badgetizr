@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# The script publish.sh is usefull to:
+# The script publish.sh is useful to:
 # - Generate the sha256 for Homebrew formula
 # - Update the workflow with the right new version
 # - Update documentation files (README.md and related docs) for the best developer experience during integration
@@ -16,6 +16,7 @@ BADGES_PATH="BADGES.md"
 TROUBLESHOOTING_PATH="TROUBLESHOOTING.md"
 CONTRIBUTING_PATH="CONTRIBUTING.md"
 PUBLISHING_PATH="PUBLISHING.md"
+GITLAB_TESTING_PATH="GITLAB-TESTING.md"
 VERSION="$1"
 
 red='\e[1;31m'
@@ -42,7 +43,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 if [ -z "$GITHUB_TOKEN" ]; then
-  echo -e "❌ Please provide a ${cyan}GthubToken${reset} Exemple export GITHUB_TOKEN=...."
+  echo -e "❌ Please provide a ${cyan}GitHub Token${reset} Example: export GITHUB_TOKEN=...."
   exit 1
 fi 
 
@@ -51,6 +52,7 @@ fail_if_error "Failed to switch develop. Please stash changes."
 git pull
 fail_if_error "Failed to pull develop. Please stash changes."
 
+echo "🟡 [Step 1/6] Bumping version to ${cyan}$VERSION${reset} in all files..."
 # Changing the version for -v option
 sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"$VERSION\"|" "$UTILS_PATH"
 sed -i '' -E \
@@ -59,53 +61,59 @@ sed -i '' -E \
   -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-pink\\?logo=gitlab.*)@\1${VERSION}\2@" \
   "$README_PATH"
 sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "$WORKFLOW_PATH" "$README_PATH"
-sed -i '' "s|archive/refs/tags/[0-9]\+\.[0-9]\+\.[0-9]\+\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|g" "$README_PATH"
+sed -i '' "s|archive/refs/tags/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|g" "$README_PATH" "$GITLAB_TESTING_PATH"
+sed -i '' "s|BADGETIZR_VERSION: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION: \"${VERSION}\"|g" "$README_PATH" "$GITLAB_TESTING_PATH"
 
-git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH" "$BADGES_PATH" "$TROUBLESHOOTING_PATH" "$CONTRIBUTING_PATH" "$PUBLISHING_PATH"
+git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH" "$BADGES_PATH" "$TROUBLESHOOTING_PATH" "$CONTRIBUTING_PATH" "$PUBLISHING_PATH" "$GITLAB_TESTING_PATH"
 git commit -m "Bump version to $VERSION for -v option"
 git push
-# Step 1: Create the release
-echo "🟡 [Step 1/5] Switching to master..."
+echo "🟢 [Step 1/6] Version bumped and pushed to develop."
+
+echo "🟡 [Step 2/6] Switching to master..."
 git switch master
 git pull
 git merge develop --no-ff --no-edit --no-verify
 fail_if_error "Failed to merge develop into master"
-echo "🟢 [Step 1/5] Master is updated."
+echo "🟢 [Step 2/6] Master is updated."
 git push --no-verify
 
-echo "🟡 [Step 2/5] Creating the release tag ${cyan}$VERSION${reset}..."
+echo "🟡 [Step 3/6] Creating the release tag ${cyan}$VERSION${reset}..."
 git tag -a "$VERSION" -m "Release $VERSION"
 git push origin "$VERSION" --no-verify
-gh release create $VERSION --generate-notes --verify-tag
-echo "🟢 [Step 2/5] Github release created"
+fail_if_error "Failed to push tag $VERSION"
+echo "🟢 [Step 3/6] Tag pushed, creating GitHub release..."
+gh release create $VERSION --title "Release $VERSION" --generate-notes --verify-tag --latest
+fail_if_error "Failed to create GitHub release"
+echo "🟢 [Step 3/6] GitHub release created successfully"
+echo "📦 GitHub Marketplace: Release will appear automatically (action.yml detected)"
 
-# Step 2: Download the archive and calculate SHA256 for Homebrew
+# Download the archive and calculate SHA256 for Homebrew
 ARCHIVE_URL="https://github.com/$REPOSITORY/archive/refs/tags/$VERSION.tar.gz"
-echo "🟡 [Step 3/5] Downloading the archive $ARCHIVE_URL..."
+echo "🟡 [Step 4/6] Downloading the archive $ARCHIVE_URL..."
 
 curl -L -o "badgetizr-$VERSION.tar.gz" "$ARCHIVE_URL" > /dev/null
 fail_if_error "Failed to download the archive"
-echo "🟢 [Step 3/5] Archive downloaded."
+echo "🟢 [Step 4/6] Archive downloaded."
 SHA256=$(shasum -a 256 "badgetizr-$VERSION.tar.gz" | awk '{print $1}')
 echo -e "🟢 SHA256 generated: ${cyan}$SHA256${reset}"
 
-# Step 3: Update the formula
+# Update the formula
 sed -i "" -E \
   -e "s#(url \").*(\".*)#\1$ARCHIVE_URL\2#" \
   -e "s#(sha256 \").*(\".*)#\1$SHA256\2#" \
   "$FORMULA_PATH"
 
-# Step 4: Commit and push
-echo "🟡 [Step 4/5] Commiting the bump of the files..."
+# Commit and push
+echo "🟡 [Step 5/6] Committing the bump of the files..."
 git add "$FORMULA_PATH"
 git commit -m "Bump version $VERSION"
 fail_if_error "Failed to commit the bump"
 git push --no-verify
 fail_if_error "Failed to push the bump"
-echo "🟢 [Step 4/5] Bump pushed."
+echo "🟢 [Step 5/6] Bump pushed."
 
-# Step 5: Backmerge to develop
-echo "🟡 [Step 5/5] Switching to develop..."
+# Backmerge to develop
+echo "🟡 [Step 6/6] Switching to develop..."
 git switch develop
 fail_if_error "Failed to switch to develop. Please check if you have to stash some changes."
 git pull
@@ -113,7 +121,7 @@ fail_if_error "Failed to pull develop"
 git merge master --no-ff --no-edit --no-verify
 fail_if_error "Failed to backmerge to develop"
 git push --no-verify
-echo "🟢 [Step 5/5] Develop is updated."
+echo "🟢 [Step 6/6] Develop is updated."
 
 rm badgetizr-$VERSION.tar.gz
 echo "🚀 Done"

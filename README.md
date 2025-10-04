@@ -3,9 +3,9 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/2.2.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/2.2.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/2.2.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.3.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.3.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/2.3.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
 </h1>
 
 <h2 align="center">
@@ -13,7 +13,7 @@
 </h2>
 
 <div id="header" align="center">
-  <img src="badgetizr_screen.png" width="1000"/>
+  <img src="badgetizr.gif" width="800"/>
 </div>
 
 ---
@@ -69,6 +69,7 @@ brew install aiKrice/badgetizr/badgetizr
 # Configure authentication
 export GITHUB_TOKEN="your_github_token"     # For GitHub
 export GITLAB_TOKEN="your_gitlab_token"     # For GitLab
+export GITLAB_HOST="gitlab.example.com"     # For self-managed GitLab (optional)
 ```
 
 ### GitHub Actions
@@ -84,7 +85,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.2.0
+        uses: aiKrice/homebrew-badgetizr@2.3.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -101,29 +102,46 @@ Add this to your `.gitlab-ci.yml`:
 
 **Live example**: [badgetizr-integration GitLab project](https://gitlab.com/chris-saez/badgetizr-integration)
 
+**Works for both GitLab.com and self-managed instances:**
+
 ```yaml
 badgetizr:
   stage: build
   image: alpine:latest
+  variables:
+    BADGETIZR_VERSION: "2.3.0"
+    GLAB_VERSION: "1.72.0"
+    # Auto-detects: gitlab.com for SaaS, your instance for self-managed
+    GITLAB_HOST: "${CI_SERVER_HOST}"
+    BUILD_URL: "https://${CI_SERVER_HOST}/${CI_PROJECT_PATH}/-/pipelines/${CI_PIPELINE_ID}"
+    CONFIG_PATH: "../.badgetizr.yml"
+    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   before_script:
     - apk add --no-cache curl bash yq jq
-    - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.71.1/downloads/glab_1.71.1_linux_amd64.tar.gz" | tar -xz -C /tmp
+    - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
     - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
-    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/2.0.0.tar.gz | tar -xz
+    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/${BADGETIZR_VERSION}.tar.gz | tar -xz
     - cd homebrew-badgetizr-*
+    - export GITLAB_HOST="${CI_SERVER_HOST}"
   script:
     - |
-      ./badgetizr -c .badgetizr.yml \
+      ./badgetizr -c ${CONFIG_PATH} \
       --pr-id=$CI_MERGE_REQUEST_IID \
       --pr-destination-branch=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME \
       --pr-build-number=$CI_PIPELINE_ID \
-      --pr-build-url=https://gitlab.com/$CI_PROJECT_PATH/-/jobs/$CI_PIPELINE_ID \
+      --pr-build-url=${BUILD_URL} \
       --provider=gitlab
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  variables:
-    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
 ```
+
+**Key features:**
+- ✅ **Universal**: Works for GitLab.com and self-managed instances automatically
+- ✅ **Centralized variables**: Easy to update versions and paths
+- ✅ **Auto-detection**: `CI_SERVER_HOST` adapts to your environment
+- ✅ **Customizable**: Modify variables at the top for your setup
+
+**For custom ports or URLs**: Replace `BUILD_URL` with your specific format (e.g., using `$CI_SERVER_PORT` or `$CI_SERVER_URL`)
 
 ### Manual Installation
 
@@ -146,6 +164,7 @@ brew install gh                    # macOS/Linux
 # Configure authentication
 export GITHUB_TOKEN="your_github_token"     # For GitHub
 export GITLAB_TOKEN="your_gitlab_token"     # For GitLab
+export GITLAB_HOST="gitlab.example.com"     # For self-managed GitLab (optional)
 ```
 
 ## Usage
@@ -203,6 +222,7 @@ Badgetizr automatically detects your platform:
 
 - **GitHub**: Uses `gh` CLI with `GITHUB_TOKEN` or `GH_TOKEN`
 - **GitLab**: Uses `glab` CLI with `GITLAB_TOKEN`
+  - For self-managed GitLab: Set `GITLAB_HOST` environment variable
 - **Auto-detection**: Based on `git remote get-url origin`
 - **Manual override**: Use `--provider=github` or `--provider=gitlab`
 

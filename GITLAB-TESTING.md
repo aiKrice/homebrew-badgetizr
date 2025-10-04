@@ -1,12 +1,19 @@
-# Testing Badgetizr on GitLab
+<h1 align="center">
+    <img src="logo.png" alt="Badgetizr Logo" width="120"/>
+    <br/>
+    Testing Badgetizr on GitLab
+</h1>
 
-This guide explains how to test Badgetizr on GitLab using GitLab CI/CD pipelines.
+<p align="center">
+    This guide explains how to test Badgetizr on GitLab using GitLab CI/CD pipelines.
+</p>
 
 ## Prerequisites
 
-1. **GitLab Project**: You need a GitLab repository where you can create merge requests
+1. **GitLab Project**: You need a GitLab repository where you can create merge requests (GitLab.com or self-managed)
 2. **GitLab Access Token**: A personal access token with `api` scope to interact with merge requests
 3. **Project Variables**: Configure `GITLAB_ACCESS_TOKEN` in your GitLab project settings
+4. **Self-Managed Only**: If using self-managed GitLab, you'll need to configure `GITLAB_HOST`
 
 ## Setup Instructions
 
@@ -27,26 +34,37 @@ This guide explains how to test Badgetizr on GitLab using GitLab CI/CD pipelines
 
 Create a `.gitlab-ci.yml` file in your repository root with the following content:
 
-> **⚠️ Important**: Replace `{BRANCH}` with the actual GitHub branch you want to test (e.g., `feat/GH-4_implement_build_status_badges`, `main`, `develop`, etc.)
+> **⚠️ Important**: Replace `{BRANCH}` with the actual GitHub branch you want to test (e.g., `feat/GH-4_implement_build_status_badges`, `master`, `develop`, etc.)
+
+**Universal configuration (works for both GitLab.com and self-managed):**
 
 ```yaml
 badgetizr:
   stage: build
   image: alpine:latest
+  variables:
+    GLAB_VERSION: "1.72.0"
+    BRANCH: "{BRANCH}"  # Replace with: master, develop, feat/your-feature, etc.
+    # Auto-detects: gitlab.com for SaaS, your instance for self-managed
+    GITLAB_HOST: "${CI_SERVER_HOST}"
+    BUILD_URL: "https://${CI_SERVER_HOST}/${CI_PROJECT_PATH}/-/pipelines/${CI_PIPELINE_ID}"
+    CONFIG_PATH: "../.badgetizr.yml"  # Relative or absolute path (default: .badgetizr.yml if not specified)
+    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   before_script:
     - apk add --no-cache curl bash yq jq
-    - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.72.0/downloads/glab_1.72.0_linux_amd64.tar.gz" | tar -xz -C /tmp
+    - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
     - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
-    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/heads/{BRANCH}.tar.gz | tar -xz
+    - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/heads/${BRANCH}.tar.gz | tar -xz
     - cd homebrew-badgetizr-*
+    - export GITLAB_HOST="${CI_SERVER_HOST}"
   script:
     # Started status
     - |
-      ./badgetizr -c .badgetizr.yml \
+      ./badgetizr -c ${CONFIG_PATH} \
       --pr-id=$CI_MERGE_REQUEST_IID \
       --pr-destination-branch=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME \
       --pr-build-number=$CI_PIPELINE_ID \
-      --pr-build-url="https://gitlab.com/$CI_PROJECT_PATH/-/pipelines/$CI_PIPELINE_ID" \
+      --pr-build-url="${BUILD_URL}" \
       --ci-status=started \
       --ci-text="Running Badgetizr" \
       --provider=gitlab
@@ -56,11 +74,11 @@ badgetizr:
 
     # Success status
     - |
-      ./badgetizr -c .badgetizr.yml \
+      ./badgetizr -c ${CONFIG_PATH} \
       --pr-id=$CI_MERGE_REQUEST_IID \
       --pr-destination-branch=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME \
       --pr-build-number=$CI_PIPELINE_ID \
-      --pr-build-url="https://gitlab.com/$CI_PROJECT_PATH/-/pipelines/$CI_PIPELINE_ID" \
+      --pr-build-url="${BUILD_URL}" \
       --ci-status=passed \
       --provider=gitlab
   after_script:
@@ -68,19 +86,28 @@ badgetizr:
     - |
       if [ "$CI_JOB_STATUS" = "failed" ]; then
         cd homebrew-badgetizr-*
-        ./badgetizr -c .badgetizr.yml \
+        ./badgetizr -c ${CONFIG_PATH} \
         --pr-id=$CI_MERGE_REQUEST_IID \
         --pr-destination-branch=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME \
         --pr-build-number=$CI_PIPELINE_ID \
-        --pr-build-url="https://gitlab.com/$CI_PROJECT_PATH/-/pipelines/$CI_PIPELINE_ID" \
+        --pr-build-url="${BUILD_URL}" \
         --ci-status=failed \
         --provider=gitlab
       fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  variables:
-    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
 ```
+
+**Key features:**
+- ✅ **Universal**: Works for GitLab.com and self-managed instances automatically
+- ✅ **Centralized variables**: Easy to update versions, branch, and paths
+- ✅ **Auto-detection**: `CI_SERVER_HOST` adapts to your environment (`gitlab.com` or your instance)
+- ✅ **CI status progression**: Shows `started` → `passed` or `failed` badges
+
+**Customization options:**
+- **Custom ports**: Modify `BUILD_URL` with `$CI_SERVER_PORT` if needed
+- **Different config**: Change `CONFIG_PATH` to use a different config location (accepts relative or absolute paths, defaults to `.badgetizr.yml` if not specified)
+- **Branch version**: Update `BRANCH` variable to test different Badgetizr versions
 
 ### 3. Create Configuration File
 
@@ -116,7 +143,7 @@ badge_ready_for_approval:
 
 1. Create a new branch in your GitLab repository
 2. Make some changes and push the branch
-3. Create a merge request targeting your main branch
+3. Create a merge request targeting your master branch
 
 ### 2. Watch the Pipeline
 
@@ -150,7 +177,7 @@ To test the failure scenario, you can temporarily modify the pipeline to force a
 
 Common branches you might want to test:
 
-- **Latest stable**: `main` or `master`
+- **Latest stable**: `master`
 - **Development**: `develop`
 - **Feature branch**: `feat/GH-4_implement_build_status_badges`
 - **Specific version**: `v1.5.4`
@@ -176,6 +203,29 @@ When everything works correctly, you should see:
 - Check the pipeline logs for authentication errors
 - Ensure the token has `api` scope
 - Common error: `401 Unauthorized` usually means the token is protected or invalid
+
+### Self-Managed GitLab Issues
+
+#### Authentication fails for self-managed instance
+- Ensure `GITLAB_HOST` is set correctly (e.g., `export GITLAB_HOST=$CI_SERVER_HOST`)
+- Check that your `GITLAB_TOKEN` has the correct permissions
+- Verify your GitLab instance is accessible from the runner
+- Test authentication manually: `curl -H "Authorization: Bearer $GITLAB_TOKEN" https://your-gitlab-host/api/v4/user`
+
+#### Config file not found
+- Use `../.badgetizr.yml` (relative to the extracted archive directory)
+- The path must be relative to where `cd homebrew-badgetizr-*` changes to
+
+#### Build URLs don't work
+- Use `$CI_SERVER_HOST` instead of hardcoded hostnames
+- For custom ports: use `$CI_SERVER_URL` or construct with `$CI_SERVER_PORT`
+- Example: `https://$CI_SERVER_HOST:8443/$CI_PROJECT_PATH/-/pipelines/$CI_PIPELINE_ID`
+
+#### Firewall/Network issues
+If using self-managed GitLab with strict firewall rules, ensure these domains are allowed:
+- `gitlab.com` (for downloading glab CLI)
+- `github.com` (for downloading badgetizr)
+- `objects.githubusercontent.com` (for GitHub redirects)
 
 ### Wrong branch downloaded
 - Double-check you replaced `{BRANCH}` with the actual branch name

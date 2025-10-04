@@ -122,13 +122,30 @@ provider_test_auth() {
         export GITLAB_TOKEN="$GL_TOKEN"
     fi
 
+    # Determine GitLab host (supports self-managed instances)
+    local gitlab_host="${GITLAB_HOST:-gitlab.com}"
+    echo "🔍 Using GitLab host: $gitlab_host"
+
+    # Configure glab for self-managed instances
+    if [[ "$gitlab_host" != "gitlab.com" ]]; then
+        echo "🔧 Configuring glab for self-managed GitLab instance..."
+        export GITLAB_HOST="$gitlab_host"
+        glab auth status --hostname "$gitlab_host" >/dev/null 2>&1 || {
+            echo "⚙️  Authenticating glab with $gitlab_host..."
+            echo "$GITLAB_TOKEN" | glab auth login --hostname "$gitlab_host" --stdin >/dev/null 2>&1
+        }
+    fi
+
     # Test with GitLab API directly
-    if curl -s -H "Authorization: Bearer $GITLAB_TOKEN" "https://gitlab.com/api/v4/user" >/dev/null 2>&1; then
+    if curl -s -H "Authorization: Bearer $GITLAB_TOKEN" "https://${gitlab_host}/api/v4/user" >/dev/null 2>&1; then
         echo "✅ GitLab authentication is working"
         return 0
     else
         echo "❌ GitLab authentication failed. Please run: glab auth login"
         echo "   Or set a valid GITLAB_TOKEN environment variable"
+        if [[ "$gitlab_host" != "gitlab.com" ]]; then
+            echo "   For self-managed GitLab, ensure GITLAB_HOST is set correctly"
+        fi
         return 1
     fi
 }
