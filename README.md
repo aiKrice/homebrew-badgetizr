@@ -3,10 +3,10 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/2.5.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/2.5.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/2.5.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
-[![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/graph/badge.svg?token=4NSN7QGO0E)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
+![Static Badge](https://img.shields.io/badge/2.3.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.3.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/2.3.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.3.0-purple?logo=bitrise&logoColor=white&label=Bitrise)
 </h1>
 
 <h2 align="center">
@@ -27,6 +27,7 @@
   - [Homebrew (macOS)](#homebrew-macos)
   - [GitHub Actions](#github-actions)
   - [GitLab CI](#gitlab-ci)
+  - [Bitrise CI](#bitrise-ci)
   - [Manual Installation](#manual-installation)
 - [Usage](#usage)
   - [Command Line Options](#command-line-options)
@@ -57,6 +58,7 @@ Badgetizr automatically adds customizable badges to your GitHub and GitLab pull/
 ✅ **GitLab** - Full support via GitLab CLI
 ✅ **GitHub Actions** - Native integration
 ✅ **GitLab CI** - Native integration
+✅ **Bitrise CI** - Custom step for macOS and Linux
 
 ## Installation
 
@@ -86,7 +88,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.5.0
+        uses: aiKrice/homebrew-badgetizr@2.3.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -110,7 +112,7 @@ badgetizr:
   stage: build
   image: alpine:latest
   variables:
-    BADGETIZR_VERSION: "2.5.0"
+    BADGETIZR_VERSION: "2.3.0"
     GLAB_VERSION: "1.72.0"
     # Auto-detects: gitlab.com for SaaS, your instance for self-managed
     GITLAB_HOST: "${CI_SERVER_HOST}"
@@ -118,7 +120,7 @@ badgetizr:
     CONFIG_PATH: "../.badgetizr.yml"
     GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   before_script:
-    - apk add --no-cache curl bash yq
+    - apk add --no-cache curl bash yq jq
     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
     - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
     - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/${BADGETIZR_VERSION}.tar.gz | tar -xz
@@ -144,6 +146,95 @@ badgetizr:
 
 **For custom ports or URLs**: Replace `BUILD_URL` with your specific format (e.g., using `$CI_SERVER_PORT` or `$CI_SERVER_URL`)
 
+### Bitrise CI
+
+Add the Badgetizr custom step to your Bitrise workflow. Works on both macOS and Linux stacks.
+
+**Step 1: Add the custom step to your workflow**
+
+In your Bitrise workflow editor or `bitrise.yml`, add the step from this repository:
+
+```yaml
+workflows:
+  primary:
+    steps:
+      - git-clone: {}
+      # ... your other steps ...
+      - git::https://github.com/aiKrice/homebrew-badgetizr.git@2.3.0:
+          title: Run Badgetizr
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - configuration: .badgetizr.yml
+            - pr_destination_branch: $BITRISEIO_GIT_BRANCH_DEST
+            - pr_build_number: $BITRISE_BUILD_NUMBER
+            - pr_build_url: $BITRISE_BUILD_URL
+            - github_token: $GITHUB_TOKEN  # For GitHub PRs
+            # - gitlab_token: $GITLAB_TOKEN  # For GitLab MRs (uncomment if needed)
+            # - gitlab_host: gitlab.example.com  # For self-managed GitLab (optional)
+```
+
+**Step 2: Configure secrets**
+
+Add your authentication tokens to Bitrise Secrets:
+
+- **For GitHub**: Add `GITHUB_TOKEN` with your GitHub Personal Access Token
+- **For GitLab**: Add `GITLAB_TOKEN` with your GitLab Personal Access Token
+
+**Available inputs:**
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `pr_id` | Pull/Merge request ID | ✅ Yes | - |
+| `configuration` | Path to config file | No | `.badgetizr.yml` |
+| `pr_destination_branch` | Target branch | No* | - |
+| `pr_build_number` | Build number | No* | - |
+| `pr_build_url` | Build URL | No* | - |
+| `ci_status` | CI status (started/passed/warning/failed) | No | - |
+| `ci_text` | Custom CI badge text | No | - |
+| `provider` | Force provider (github/gitlab) | No | Auto-detected |
+| `github_token` | GitHub authentication token | No** | - |
+| `gitlab_token` | GitLab authentication token | No** | - |
+| `gitlab_host` | GitLab instance hostname | No | gitlab.com |
+| `badgetizr_version` | Badgetizr version to use | No | 2.3.0 |
+
+\* Required depending on which badges are enabled in your configuration
+\*\* At least one token (github_token or gitlab_token) is required based on your provider
+
+**Key features:**
+- ✅ **Multi-platform**: Works on both macOS and Linux Bitrise stacks
+- ✅ **Auto-setup**: Automatically installs dependencies (yq, jq, gh/glab CLI)
+- ✅ **Flexible**: Supports both GitHub and GitLab workflows
+- ✅ **Version control**: Pin to specific badgetizr versions
+
+**Example for GitHub pull requests:**
+
+```yaml
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@2.3.0:
+    title: Add PR Badges
+    inputs:
+      - pr_id: $BITRISE_PULL_REQUEST
+      - pr_destination_branch: $BITRISEIO_GIT_BRANCH_DEST
+      - pr_build_number: $BITRISE_BUILD_NUMBER
+      - pr_build_url: $BITRISE_BUILD_URL
+      - github_token: $GITHUB_TOKEN
+      - provider: github
+```
+
+**Example for GitLab merge requests:**
+
+```yaml
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@2.3.0:
+    title: Add MR Badges
+    inputs:
+      - pr_id: $BITRISE_PULL_REQUEST
+      - pr_destination_branch: $BITRISEIO_GIT_BRANCH_DEST
+      - pr_build_number: $BITRISE_BUILD_NUMBER
+      - pr_build_url: $BITRISE_BUILD_URL
+      - gitlab_token: $GITLAB_TOKEN
+      - gitlab_host: gitlab.com
+      - provider: gitlab
+```
+
 ### Manual Installation
 
 ```bash
@@ -152,7 +243,7 @@ TAG=$(curl -s https://api.github.com/repos/aiKrice/homebrew-badgetizr/releases/l
 curl -L -o badgetizr-latest.tar.gz "https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/$TAG.tar.gz"
 tar -xz --strip-components=1 -f badgetizr-latest.tar.gz
 
-# Install dependencies (yq) - supports macOS and Linux only
+# Install dependencies (yq, jq) - supports macOS and Linux only
 ./configure
 
 # Install platform-specific CLI tools
@@ -364,36 +455,6 @@ We welcome contributions to Badgetizr! Whether you're fixing bugs, adding featur
 - ✨ **New Features**: Additional badge types, CI/CD platform support
 - 📚 **Documentation**: README improvements, troubleshooting guides
 - 🧪 **Testing**: Unit tests, integration tests, cross-platform compatibility
-
-### Running Tests
-
-Badgetizr includes a comprehensive test suite using [bats-core](https://github.com/bats-core/bats-core).
-
-**Install bats-core:**
-```bash
-# Homebrew
-brew install bats-core
-
-# npm
-npm install -g bats
-```
-
-**Run all tests:**
-```bash
-./run_tests.sh
-```
-
-**Run specific test file:**
-```bash
-bats tests/test_utils.bats
-```
-
-**Test with Homebrew:**
-```bash
-brew test badgetizr
-```
-
-📖 **[Complete Test Documentation](tests/README.md)**
 
 ## Publishing (for maintainers)
 
