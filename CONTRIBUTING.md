@@ -20,7 +20,27 @@ We welcome contributions to Badgetizr! Whether you're fixing bugs, adding featur
    export GITLAB_TOKEN="your_gitlab_token"     # For GitLab testing
    ```
 
-3. **Test your changes locally**:
+3. **Install test dependencies**:
+   ```bash
+   # Install bats-core for running tests
+   brew install bats-core   # macOS/Linux with Homebrew
+   # or
+   npm install -g bats      # Using npm
+   ```
+
+4. **Run unit tests**:
+   ```bash
+   # Run all tests
+   ./run_tests.sh
+
+   # Run specific test file
+   bats tests/test_utils.bats
+
+   # Run with verbose output
+   bats -t tests/
+   ```
+
+5. **Test your changes locally**:
    ```bash
    # Test with a GitHub PR
    ./badgetizr --pr-id=123
@@ -41,6 +61,21 @@ We welcome contributions to Badgetizr! Whether you're fixing bugs, adding featur
 - Ensure backwards compatibility with existing configurations
 
 ### Testing Requirements
+
+#### Unit Tests
+All code changes should include or update unit tests:
+- Write tests for new functions and features
+- Update existing tests when modifying behavior
+- Ensure all tests pass before submitting a PR
+- Tests are located in the `tests/` directory
+- Use bats-core framework for bash testing
+
+**Run tests before submitting:**
+```bash
+./run_tests.sh
+```
+
+#### Integration Tests
 - Test your changes with real PRs on both GitHub and GitLab
 - Verify badge generation works correctly
 - Check that configuration parsing handles edge cases

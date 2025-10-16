@@ -1,0 +1,49 @@
+# Test configuration file for bats tests
+
+badge_wip:
+  enabled: "true"
+  settings:
+    label: "Work in Progress"
+    color: "yellow"
+    logo: "vlcmediaplayer"
+
+badge_hotfix:
+  enabled: "false"
+  settings:
+    color: "red"
+    text_color: "white"
+    label: "HOTFIX"
+
+badge_base_branch:
+  enabled: "true"
+  settings:
+    base_branch: "develop"
+    color: "orange"
+    label: "Target branch"
+
+badge_ci:
+  enabled: "false"
+  settings:
+    label: "CI"
+    logo: "github"
+    color: "purple"
+    label_color: "black"
+
+badge_ticket:
+  enabled: "false"
+  settings:
+    sed_pattern: '.*\(([^)]+)\).*'
+    url: "https://yourproject.atlassian.net/browse/"
+    color: "blue"
+    label: "Jira"
+    logo: "jirasoftware"
+
+badge_dynamic:
+  enabled: "false"
+
+badge_ready_for_approval:
+  enabled: "false"
+  settings:
+    color: "darkgreen"
+    label: "Ready"
+    logo: "checkmark"
