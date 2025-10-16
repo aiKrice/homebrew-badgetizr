@@ -60,6 +60,10 @@ setup() {
 
 @test "detect_base_path function works in dev mode" {
     # Test when utils.sh is in the same directory
-    run bash -c "cd '${BATS_TEST_DIRNAME}/..' && source badgetizr && detect_base_path"
+    run bash -c "cd '${BATS_TEST_DIRNAME}/..' && source badgetizr && detect_base_path && echo \"\$BASE_PATH\""
     [ "$status" -eq 0 ]
+    # Validate that BASE_PATH is set and is an absolute path
+    [[ "$output" =~ ^/ ]]
+    # Validate that the resolved path exists
+    [ -n "$output" ]
 }

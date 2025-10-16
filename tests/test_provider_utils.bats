@@ -13,6 +13,11 @@ setup() {
     declare -f detect_provider > /dev/null
 }
 
+teardown() {
+    # Clean up any mock functions to prevent test pollution
+    unset -f git 2>/dev/null || true
+}
+
 @test "detect_provider returns github for github.com URLs" {
     # Mock git remote command to return a GitHub URL
     git() {
