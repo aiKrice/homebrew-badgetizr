@@ -119,7 +119,7 @@ setup() {
 
 @test "Checkbox counting - no checkboxes" {
     body="This is a PR body without checkboxes"
-    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
+    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || true)
     [ "$unchecked_count" -eq 0 ]
 }
 
@@ -149,6 +149,6 @@ setup() {
     body="- [x] Task 1
 - [x] Task 2
 - [x] Task 3"
-    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
+    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || true)
     [ "$unchecked_count" -eq 0 ]
 }
