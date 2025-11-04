@@ -17,7 +17,20 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y kcov bats yq jq
+          sudo apt-get install -y bats yq jq cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
+
+      - name: Install kcov
+        run: |
+          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
+          tar xzf v42.tar.gz
+          cd kcov-42
+          mkdir build
+          cd build
+          cmake ..
+          make
+          sudo make install
+          cd ../..
+          rm -rf kcov-42 v42.tar.gz
 
       - name: Install GitHub CLI
         run: |
