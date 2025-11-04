@@ -54,10 +54,16 @@ jobs:
       - name: Debug coverage files
         run: |
           echo "=== Coverage directory structure ==="
-          find coverage -type f -name "*.xml" -o -name "*.html" | head -20
+          ls -la coverage/
           echo ""
-          echo "=== Looking for cobertura.xml ==="
-          find coverage -name "cobertura.xml" -o -name "*.xml"
+          echo "=== All files recursively ==="
+          find coverage -type f | head -30
+          echo ""
+          echo "=== XML files specifically ==="
+          find coverage -name "*.xml" -exec ls -lh {} \;
+          echo ""
+          echo "=== Checking wildcard path ==="
+          ls -lh ./coverage/*/cobertura.xml 2>&1 || echo "No cobertura.xml found with wildcard"
 
       - name: Generate coverage report
         run: |
@@ -97,9 +103,10 @@ jobs:
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
-          directory: coverage
+          files: ./coverage/*/cobertura.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
           verbose: true
+          disable_search: true
         continue-on-error: true
