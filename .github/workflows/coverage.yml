@@ -1,0 +1,84 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y kcov bats yq jq
+
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Install GitLab CLI
+        run: |
+          curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.36.0/downloads/glab_1.36.0_Linux_x86_64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/bin/glab /usr/local/bin/
+          glab version
+
+      - name: Run tests with coverage
+        run: |
+          mkdir -p coverage
+          kcov --exclude-pattern=/usr,/tmp --cobertura coverage bats tests
+        continue-on-error: false
+
+      - name: Generate coverage report
+        run: |
+          if [ -f coverage/index.html ]; then
+            COVERAGE=$(grep -oP 'percent_covered">\K[0-9.]+' coverage/index.html | head -1 || echo "0")
+            echo "COVERAGE_PERCENT=$COVERAGE" >> $GITHUB_ENV
+            echo "### Coverage Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Coverage: ${COVERAGE}%**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Full report available in artifacts." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Coverage report not generated"
+            echo "COVERAGE_PERCENT=0" >> $GITHUB_ENV
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Check coverage threshold
+        run: |
+          THRESHOLD=70
+          COVERAGE=${{ env.COVERAGE_PERCENT }}
+          echo "Coverage: ${COVERAGE}%"
+          echo "Threshold: ${THRESHOLD}%"
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️  Warning: Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+            # Don't fail the build, just warn
+          else
+            echo "✅ Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
+          fi
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/kcov-merged/cobertura.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+        continue-on-error: true
