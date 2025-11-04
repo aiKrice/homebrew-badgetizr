@@ -51,6 +51,14 @@ jobs:
           kcov --exclude-pattern=/usr,/tmp --cobertura coverage bats tests
         continue-on-error: false
 
+      - name: Debug coverage files
+        run: |
+          echo "=== Coverage directory structure ==="
+          find coverage -type f -name "*.xml" -o -name "*.html" | head -20
+          echo ""
+          echo "=== Looking for cobertura.xml ==="
+          find coverage -name "cobertura.xml" -o -name "*.xml"
+
       - name: Generate coverage report
         run: |
           if [ -f coverage/index.html ]; then
@@ -89,7 +97,7 @@ jobs:
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: coverage/kcov-merged/cobertura.xml
+          directory: coverage
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
