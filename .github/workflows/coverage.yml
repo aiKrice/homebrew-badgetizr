@@ -14,10 +14,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache kcov
+        id: cache-kcov
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/kcov
+          key: kcov-v42-${{ runner.os }}
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats yq jq gh kcov
+          sudo apt-get install -y bats yq jq gh cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
+
+      - name: Install kcov
+        if: steps.cache-kcov.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
+          tar xzf v42.tar.gz
+          cd kcov-42
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local ..
+          make
+          make install
+          cd ../..
+          rm -rf kcov-42 v42.tar.gz
+
+      - name: Add kcov to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install GitLab CLI
         run: |
