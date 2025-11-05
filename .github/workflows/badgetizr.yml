@@ -24,13 +24,6 @@ jobs:
           path: ~/.local/bin/kcov
           key: kcov-v42-${{ runner.os }}
 
-      - name: Cache yq
-        id: cache-yq
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/yq
-          key: yq-latest-${{ runner.os }}
-
       - name: Cache glab
         id: cache-glab
         uses: actions/cache@v4
@@ -41,13 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats jq gh cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
-
-          # Install mikefarah/yq (Go version) - required for badgetizr
-          if [ ! -f /usr/local/bin/yq ]; then
-            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-            sudo chmod +x /usr/local/bin/yq
-          fi
+          sudo apt-get install -y bats jq cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
 
       - name: Install kcov
         if: steps.cache-kcov.outputs.cache-hit != 'true'
