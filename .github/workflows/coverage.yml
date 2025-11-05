@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
@@ -21,7 +21,7 @@ jobs:
 
       - name: Install GitLab CLI
         run: |
-          curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.36.0/downloads/glab_1.36.0_Linux_x86_64.tar.gz | tar -xz -C /tmp
+          curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.76.2/downloads/glab_1.76.2_Linux_x86_64.tar.gz | tar -xz -C /tmp
           sudo mv /tmp/bin/glab /usr/local/bin/
           glab version
 

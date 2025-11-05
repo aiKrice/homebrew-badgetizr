@@ -222,7 +222,7 @@ gh: command not found
 1. **Missing glab installation**:
    ```yaml
    before_script:
-     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.71.1/downloads/glab_1.71.1_linux_amd64.tar.gz" | tar -xz -C /tmp
+     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.76.2/downloads/glab_1.76.2_linux_amd64.tar.gz" | tar -xz -C /tmp
      - mv /tmp/bin/glab /usr/local/bin/glab
    ```
 
