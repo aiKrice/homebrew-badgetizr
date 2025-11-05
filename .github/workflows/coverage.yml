@@ -14,12 +14,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Cache kcov
+        id: cache-kcov
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/bin/kcov
+          key: kcov-v42-${{ runner.os }}
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y bats yq jq cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
 
       - name: Install kcov
+        if: steps.cache-kcov.outputs.cache-hit != 'true'
         run: |
           wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
           tar xzf v42.tar.gz
