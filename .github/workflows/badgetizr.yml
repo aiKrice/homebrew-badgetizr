@@ -30,15 +30,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug - Check yq version
-        run: |
-          echo "=== YQ DEBUG INFO ==="
-          echo "yq path: $(which yq)"
-          echo "yq version:"
-          yq --version
-          echo "yq help (first 10 lines):"
-          yq --help | head -10
-
       - name: Cache kcov
         id: cache-kcov
         uses: actions/cache@v4
