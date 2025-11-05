@@ -37,13 +37,6 @@ jobs:
           path: ~/.local/bin/kcov
           key: kcov-v42-${{ runner.os }}
 
-      - name: Cache glab
-        id: cache-glab
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/glab
-          key: glab-v1.76.2-${{ runner.os }}
-
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -65,16 +58,6 @@ jobs:
 
       - name: Add kcov to PATH
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install GitLab CLI
-        if: steps.cache-glab.outputs.cache-hit != 'true'
-        run: |
-          curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.76.2/downloads/glab_1.76.2_linux_amd64.tar.gz | tar -xz -C /tmp
-          sudo mv /tmp/bin/glab /usr/local/bin/
-          sudo chmod +x /usr/local/bin/glab
-
-      - name: Verify glab installation
-        run: glab version
 
       - name: Badgetizr - Running Unit Tests
         uses: aiKrice/homebrew-badgetizr@2.3.0
