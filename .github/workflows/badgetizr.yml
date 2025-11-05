@@ -24,14 +24,30 @@ jobs:
           path: ~/.local/bin/kcov
           key: kcov-v42-${{ runner.os }}
 
+      - name: Cache yq
+        id: cache-yq
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/yq
+          key: yq-latest-${{ runner.os }}
+
+      - name: Cache glab
+        id: cache-glab
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/glab
+          key: glab-v1.76.2-${{ runner.os }}
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y bats jq gh cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
 
           # Install mikefarah/yq (Go version) - required for badgetizr
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+          if [ ! -f /usr/local/bin/yq ]; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
 
       - name: Install kcov
         if: steps.cache-kcov.outputs.cache-hit != 'true'
@@ -51,10 +67,14 @@ jobs:
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install GitLab CLI
+        if: steps.cache-glab.outputs.cache-hit != 'true'
         run: |
           curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.76.2/downloads/glab_1.76.2_linux_amd64.tar.gz | tar -xz -C /tmp
           sudo mv /tmp/bin/glab /usr/local/bin/
-          glab version
+          sudo chmod +x /usr/local/bin/glab
+
+      - name: Verify glab installation
+        run: glab version
 
       - name: Badgetizr - Running Unit Tests
         uses: aiKrice/homebrew-badgetizr@2.3.0
