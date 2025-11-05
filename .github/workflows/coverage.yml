@@ -21,7 +21,7 @@ jobs:
 
       - name: Install GitLab CLI
         run: |
-          curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.76.2/downloads/glab_1.76.2_Linux_x86_64.tar.gz | tar -xz -C /tmp
+          curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.76.2/downloads/glab_1.76.2_linux_amd64.tar.gz | tar -xz -C /tmp
           sudo mv /tmp/bin/glab /usr/local/bin/
           glab version
 
