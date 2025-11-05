@@ -17,6 +17,19 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
+      - name: Badgetizr - Installing Dependencies
+        uses: aiKrice/homebrew-badgetizr@2.3.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "started"
+          ci_text: "Installing Dependencies"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cache kcov
         id: cache-kcov
         uses: actions/cache@v4
