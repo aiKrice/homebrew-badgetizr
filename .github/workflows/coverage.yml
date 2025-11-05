@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats yq jq gh
+          sudo apt-get install -y bats yq jq gh kcov
 
       - name: Install GitLab CLI
         run: |
@@ -26,9 +26,9 @@ jobs:
           glab version
 
       - name: Run tests with coverage
-        uses: sudo-bot/action-kcov@latest
-        with:
-          cli-args: --exclude-pattern=/usr,/tmp coverage bats tests
+        run: |
+          mkdir -p coverage
+          kcov --exclude-pattern=/usr,/tmp coverage bats tests
 
       - name: Debug coverage files
         run: |
