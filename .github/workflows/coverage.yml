@@ -14,38 +14,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Cache kcov
-        id: cache-kcov
-        uses: actions/cache@v3
-        with:
-          path: /usr/local/bin/kcov
-          key: kcov-v42-${{ runner.os }}
-
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats yq jq cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
-
-      - name: Install kcov
-        if: steps.cache-kcov.outputs.cache-hit != 'true'
-        run: |
-          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
-          tar xzf v42.tar.gz
-          cd kcov-42
-          mkdir build
-          cd build
-          cmake ..
-          make
-          sudo make install
-          cd ../..
-          rm -rf kcov-42 v42.tar.gz
-
-      - name: Install GitHub CLI
-        run: |
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y gh
+          sudo apt-get install -y bats yq jq gh
 
       - name: Install GitLab CLI
         run: |
@@ -54,10 +26,9 @@ jobs:
           glab version
 
       - name: Run tests with coverage
-        run: |
-          mkdir -p coverage
-          kcov --exclude-pattern=/usr,/tmp --cobertura coverage bats tests
-        continue-on-error: false
+        uses: sudo-bot/action-kcov@latest
+        with:
+          cli-args: --exclude-pattern=/usr,/tmp coverage bats tests
 
       - name: Debug coverage files
         run: |
