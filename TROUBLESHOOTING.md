@@ -173,12 +173,17 @@ gh: command not found
 **Solutions**:
 1. **Install dependencies**:
    ```bash
-   # Run the configure script
+   # Run the configure script (recommended)
    ./configure
 
    # Or install manually:
-   brew install gh yq  # macOS
-   apt-get install gh yq  # Ubuntu
+   # macOS
+   brew install gh yq
+
+   # Ubuntu/Linux (install mikefarah/yq, NOT apt-get yq)
+   sudo apt-get install gh
+   sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+   sudo chmod +x /usr/local/bin/yq
    ```
 
 ## Provider Detection Issues
