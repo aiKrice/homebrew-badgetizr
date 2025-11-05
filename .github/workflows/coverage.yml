@@ -60,13 +60,19 @@ jobs:
           ls -la coverage/
           echo ""
           echo "=== All files recursively ==="
-          find coverage -type f | head -30
+          find coverage -type f
           echo ""
           echo "=== XML files specifically ==="
-          find coverage -name "*.xml" -exec ls -lh {} \;
+          find coverage -name "*.xml"
           echo ""
-          echo "=== Checking wildcard path ==="
-          ls -lh ./coverage/*/cobertura.xml 2>&1 || echo "No cobertura.xml found with wildcard"
+          echo "=== Show content of each XML file found ==="
+          find coverage -name "*.xml" -exec echo "File: {}" \; -exec ls -lh {} \;
+          echo ""
+          echo "=== Cobertura files ==="
+          find coverage -name "*cobertura*"
+          echo ""
+          echo "=== ANY .xml file path ==="
+          find coverage -name "*.xml" | while read file; do echo "FOUND XML: $file"; done
 
       - name: Generate coverage report
         run: |
