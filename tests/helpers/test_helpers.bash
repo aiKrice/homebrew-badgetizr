@@ -18,6 +18,10 @@ setup_test_env() {
 
     # Setup PATH to include mocks
     export PATH="$PROJECT_ROOT/tests/mocks:$PATH"
+
+    # Set default mock auth to success
+    export MOCK_AUTH_SUCCESS="true"
+    export MOCK_GLAB_AUTH_SUCCESS="true"
 }
 
 # Cleanup test environment
@@ -57,7 +61,7 @@ create_temp_config() {
 get_default_test_config() {
     cat <<EOF
 badge_ci:
-  enabled: "true"
+  enabled: "false"
   settings:
     label_color: "black"
     label: "Build"
@@ -65,7 +69,7 @@ badge_ci:
     color: darkgreen
 
 badge_ticket:
-  enabled: "true"
+  enabled: "false"
   settings:
     color: "black"
     label: "Issue"
@@ -74,7 +78,7 @@ badge_ticket:
     logo: "github"
 
 badge_base_branch:
-  enabled: "true"
+  enabled: "false"
   settings:
     color: "orange"
     label: "Base Branch"
@@ -98,6 +102,45 @@ badge_dynamic:
   enabled: "false"
   settings:
     patterns: []
+EOF
+}
+
+# Get CI badge config
+get_ci_badge_config() {
+    cat <<EOF
+badge_ci:
+  enabled: "true"
+  settings:
+    label_color: "black"
+    label: "Build"
+    logo: "github"
+    color: darkgreen
+EOF
+}
+
+# Get ticket badge config
+get_ticket_badge_config() {
+    cat <<EOF
+badge_ticket:
+  enabled: "true"
+  settings:
+    color: "black"
+    label: "Issue"
+    sed_pattern: '.*[([]GH-([0-9]+)[])].*'
+    url: "https://github.com/test/repo/issues/%s"
+    logo: "github"
+EOF
+}
+
+# Get branch badge config
+get_branch_badge_config() {
+    cat <<EOF
+badge_base_branch:
+  enabled: "true"
+  settings:
+    color: "orange"
+    label: "Base Branch"
+    base_branch: "develop"
 EOF
 }
 
@@ -220,13 +263,39 @@ load_pr_description_fixture() {
 simulate_badgetizr_run() {
     local pr_id="$1"
     local config_file="${2:-$TEST_CONFIG}"
-    local additional_args="${3:-}"
+    shift 2
+    # Remaining arguments are additional badgetizr arguments
 
-    # Run badgetizr with mocked environment
-    bash "$BADGETIZR_SCRIPT" \
+    # Export mock environment variables so they're available to subprocesses
+    export MOCK_PR_TITLE MOCK_PR_BODY MOCK_PR_BASE_BRANCH MOCK_PR_HEAD_BRANCH MOCK_PR_STATE MOCK_PR_LABELS
+    export MOCK_AUTH_SUCCESS MOCK_GH_RESPONSES_DIR MOCK_GLAB_RESPONSES_DIR
+    export MOCK_MR_TITLE MOCK_MR_DESCRIPTION MOCK_MR_TARGET_BRANCH MOCK_MR_SOURCE_BRANCH MOCK_MR_STATE MOCK_MR_LABELS
+    export MOCK_GLAB_AUTH_SUCCESS
+
+    # Prepend mocks directory to PATH so our fake gh/glab are found first
+    local MOCK_DIR="$PROJECT_ROOT/tests/mocks"
+
+    # Run badgetizr with mocked environment (capture any stderr/stdout for debugging)
+    local stderr_output
+    stderr_output=$(PATH="$MOCK_DIR:$PATH" bash "$BADGETIZR_SCRIPT" \
         -c "$config_file" \
         --pr-id="$pr_id" \
-        $additional_args
+        "$@" 2>&1)
+
+    local exit_code=$?
+
+    # Output the PR body that was set by the mock
+    # This allows assertions to check the badge content
+    if [ -f "$MOCK_GH_RESPONSES_DIR/pr_body.txt" ]; then
+        cat "$MOCK_GH_RESPONSES_DIR/pr_body.txt"
+    elif [ -f "$MOCK_GLAB_RESPONSES_DIR/mr_description.txt" ]; then
+        cat "$MOCK_GLAB_RESPONSES_DIR/mr_description.txt"
+    else
+        # If no mock file was created, output stderr for debugging
+        echo "$stderr_output"
+    fi
+
+    return $exit_code
 }
 
 # Debug helper: print all mock state
@@ -258,6 +327,9 @@ export -f cleanup_test_env
 export -f load_badgetizr_functions
 export -f create_temp_config
 export -f get_default_test_config
+export -f get_ci_badge_config
+export -f get_ticket_badge_config
+export -f get_branch_badge_config
 export -f mock_git
 export -f unmock_git
 export -f wait_for_file

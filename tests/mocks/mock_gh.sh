@@ -3,7 +3,7 @@
 # Usage: Source this file to override gh commands
 
 # Mock responses storage
-MOCK_GH_RESPONSES_DIR="${MOCK_GH_RESPONSES_DIR:-/tmp/mock_gh_responses}"
+export MOCK_GH_RESPONSES_DIR="${MOCK_GH_RESPONSES_DIR:-/tmp/mock_gh_responses}"
 mkdir -p "$MOCK_GH_RESPONSES_DIR"
 
 # Mock PR info
@@ -82,21 +82,23 @@ gh_pr_view() {
     done
 
     # Return mock data based on field
+    # Note: When used with --jq, we return raw values without quotes
+    # (jq would normally strip quotes from JSON strings)
     case "$field" in
         title)
-            echo "\"$MOCK_PR_TITLE\""
+            echo "$MOCK_PR_TITLE"
             ;;
         body)
-            echo "\"$MOCK_PR_BODY\""
+            echo "$MOCK_PR_BODY"
             ;;
         baseRefName)
-            echo "\"$MOCK_PR_BASE_BRANCH\""
+            echo "$MOCK_PR_BASE_BRANCH"
             ;;
         headRefName)
-            echo "\"$MOCK_PR_HEAD_BRANCH\""
+            echo "$MOCK_PR_HEAD_BRANCH"
             ;;
         state)
-            echo "\"$MOCK_PR_STATE\""
+            echo "$MOCK_PR_STATE"
             ;;
         labels)
             if [ -n "$MOCK_PR_LABELS" ]; then

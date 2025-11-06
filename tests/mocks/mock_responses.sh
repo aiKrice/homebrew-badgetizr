@@ -16,7 +16,7 @@ setup_wip_pr() {
 setup_hotfix_pr() {
     export MOCK_PR_TITLE="[HOTFIX] Fix critical bug"
     export MOCK_PR_BODY="Emergency fix for production issue"
-    export MOCK_PR_BASE_BRANCH="develop"
+    export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/critical-fix"
     export MOCK_PR_STATE="open"
     export MOCK_PR_LABELS=""

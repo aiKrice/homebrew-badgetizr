@@ -51,8 +51,8 @@ assert_badge_type_exists() {
             fi
             ;;
         branch)
-            # Branch badge should have Target branch or Base Branch label
-            if ! echo "$output" | grep -qE "shields.io.*(Target branch|Base Branch)"; then
+            # Branch badge should have Target branch or Base Branch label (with space or underscore)
+            if ! echo "$output" | grep -qE "shields.io.*(Target.branch|Base.Branch)"; then
                 echo "Expected branch badge"
                 return 1
             fi
@@ -80,7 +80,8 @@ assert_badge_has_color() {
     local color="$1"
     local output="${2:-$output}"
 
-    if ! echo "$output" | grep -q "shields.io.*-${color}"; then
+    # Support two formats: -color or color=value
+    if ! echo "$output" | grep -qE "shields.io.*(-${color}|color=${color})"; then
         echo "Expected badge with color: $color"
         echo "Got output: $output"
         return 1

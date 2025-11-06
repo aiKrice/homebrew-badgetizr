@@ -3,7 +3,7 @@
 # Usage: Source this file to override glab commands
 
 # Mock responses storage
-MOCK_GLAB_RESPONSES_DIR="${MOCK_GLAB_RESPONSES_DIR:-/tmp/mock_glab_responses}"
+export MOCK_GLAB_RESPONSES_DIR="${MOCK_GLAB_RESPONSES_DIR:-/tmp/mock_glab_responses}"
 mkdir -p "$MOCK_GLAB_RESPONSES_DIR"
 
 # Mock MR info
