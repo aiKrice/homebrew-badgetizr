@@ -15,6 +15,16 @@ class Badgetizr < Formula
       libexec.install "providers"
       (bin/"badgetizr").write_env_script libexec/"badgetizr", UTILS_PATH: libexec/"utils.sh"
     end
-    
+
+    test do
+      # Test that the binary is installed and executable
+      assert_match version.to_s, shell_output("#{bin}/badgetizr --version")
+
+      # Test help output
+      assert_match "Usage:", shell_output("#{bin}/badgetizr --help")
+
+      # Test error handling when required argument is missing
+      assert_match "Error", shell_output("#{bin}/badgetizr 2>&1", 1)
+    end
   end
   

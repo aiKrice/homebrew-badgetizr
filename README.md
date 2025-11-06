@@ -364,6 +364,36 @@ We welcome contributions to Badgetizr! Whether you're fixing bugs, adding featur
 - 📚 **Documentation**: README improvements, troubleshooting guides
 - 🧪 **Testing**: Unit tests, integration tests, cross-platform compatibility
 
+### Running Tests
+
+Badgetizr includes a comprehensive test suite using [bats-core](https://github.com/bats-core/bats-core).
+
+**Install bats-core:**
+```bash
+# Homebrew
+brew install bats-core
+
+# npm
+npm install -g bats
+```
+
+**Run all tests:**
+```bash
+./run_tests.sh
+```
+
+**Run specific test file:**
+```bash
+bats tests/test_utils.bats
+```
+
+**Test with Homebrew:**
+```bash
+brew test badgetizr
+```
+
+📖 **[Complete Test Documentation](tests/README.md)**
+
 ## Publishing (for maintainers)
 
 Automated release process for maintainers to publish new versions of Badgetizr.

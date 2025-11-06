@@ -15,9 +15,9 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Run Badgetizr - Started
+      - name: Badgetizr - Installing Dependencies
         uses: aiKrice/homebrew-badgetizr@2.3.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
@@ -26,11 +26,130 @@ jobs:
           pr_build_number: ${{ github.run_id }}
           pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           ci_status: "started"
-          ci_text: "Running Badgetizr"
+          ci_text: "Installing Dependencies"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Badgetizr - Success
+      - name: Cache kcov
+        id: cache-kcov
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/kcov
+          key: kcov-v42-${{ runner.os }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats jq cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
+
+      - name: Install kcov
+        if: steps.cache-kcov.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
+          tar xzf v42.tar.gz
+          cd kcov-42
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local ..
+          make
+          make install
+          cd ../..
+          rm -rf kcov-42 v42.tar.gz
+
+      - name: Add kcov to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Badgetizr - Running Unit Tests
+        uses: aiKrice/homebrew-badgetizr@2.3.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "started"
+          ci_text: "Running Unit Tests"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tests with coverage
+        run: |
+          mkdir -p coverage
+          kcov --exclude-pattern=/usr,/tmp coverage bats tests
+
+      - name: Badgetizr - Generating Coverage Report
+        uses: aiKrice/homebrew-badgetizr@2.3.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "started"
+          ci_text: "Generating Coverage Report"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate coverage report
+        run: |
+          if [ -f coverage/index.html ]; then
+            COVERAGE=$(grep -oP 'percent_covered">\K[0-9.]+' coverage/index.html | head -1 || echo "0")
+            echo "COVERAGE_PERCENT=$COVERAGE" >> $GITHUB_ENV
+            echo "### Coverage Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Coverage: ${COVERAGE}%**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Full report available in artifacts." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Coverage report not generated"
+            echo "COVERAGE_PERCENT=0" >> $GITHUB_ENV
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Check coverage threshold
+        run: |
+          THRESHOLD=70
+          COVERAGE=${{ env.COVERAGE_PERCENT }}
+          echo "Coverage: ${COVERAGE}%"
+          echo "Threshold: ${THRESHOLD}%"
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️  Warning: Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+            # Don't fail the build, just warn
+          else
+            echo "✅ Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
+          fi
+
+      - name: Badgetizr - Uploading to Codecov
+        uses: aiKrice/homebrew-badgetizr@2.3.0
+        with:
+          pr_id: ${{ github.event.pull_request.number }}
+          configuration: .badgetizr.yml
+          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
+          pr_build_number: ${{ github.run_id }}
+          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_status: "started"
+          ci_text: "Uploading to Codecov"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/bats.*/cobertura.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+        continue-on-error: true
+
+      - name: Badgetizr - Success
         if: success()
         uses: aiKrice/homebrew-badgetizr@2.3.0
         with:
@@ -43,7 +162,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Badgetizr - Failed
+      - name: Badgetizr - Failed
         if: failure()
         uses: aiKrice/homebrew-badgetizr@2.3.0
         with:

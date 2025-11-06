@@ -173,12 +173,17 @@ gh: command not found
 **Solutions**:
 1. **Install dependencies**:
    ```bash
-   # Run the configure script
+   # Run the configure script (recommended)
    ./configure
 
    # Or install manually:
-   brew install gh yq  # macOS
-   apt-get install gh yq  # Ubuntu
+   # macOS
+   brew install gh yq
+
+   # Ubuntu/Linux (install mikefarah/yq, NOT apt-get yq)
+   sudo apt-get install gh
+   sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+   sudo chmod +x /usr/local/bin/yq
    ```
 
 ## Provider Detection Issues
@@ -222,7 +227,7 @@ gh: command not found
 1. **Missing glab installation**:
    ```yaml
    before_script:
-     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.71.1/downloads/glab_1.71.1_linux_amd64.tar.gz" | tar -xz -C /tmp
+     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v1.76.2/downloads/glab_1.76.2_linux_amd64.tar.gz" | tar -xz -C /tmp
      - mv /tmp/bin/glab /usr/local/bin/glab
    ```
 

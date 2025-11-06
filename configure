@@ -60,8 +60,9 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "Running on: Linux"
     sudo apt-get update
     if ! is_command_exists yq; then
-        echo "🟡 Installing yq..."
-        sudo apt-get install -y yq
+        echo "🟡 Installing yq (mikefarah/yq)..."
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
         echo "🟢 yq successfuly installed"
     else
         echo "🔵 yq is already installed."
