@@ -69,8 +69,12 @@ glab_mr_view() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -F|--format)
+            -F|--format|--output)
                 format="$2"
+                shift 2
+                ;;
+            --repo)
+                # Skip repo argument
                 shift 2
                 ;;
             *)
@@ -110,11 +114,25 @@ TEXT
 glab_mr_update() {
     local mr_number=""
     local new_description=""
+    local label_to_add=""
+    local label_to_remove=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --description|-d)
                 new_description="$2"
+                shift 2
+                ;;
+            --label|-l)
+                label_to_add="$2"
+                shift 2
+                ;;
+            --unlabel)
+                label_to_remove="$2"
+                shift 2
+                ;;
+            --repo)
+                # Skip repo argument
                 shift 2
                 ;;
             *)
@@ -128,6 +146,16 @@ glab_mr_update() {
     if [ -n "$new_description" ]; then
         MOCK_MR_DESCRIPTION="$new_description"
         echo "$new_description" > "$MOCK_GLAB_RESPONSES_DIR/mr_description.txt"
+    fi
+
+    # Track label additions
+    if [ -n "$label_to_add" ]; then
+        echo "$label_to_add" >> "$MOCK_GLAB_RESPONSES_DIR/added_labels.txt"
+    fi
+
+    # Track label removals
+    if [ -n "$label_to_remove" ]; then
+        echo "$label_to_remove" >> "$MOCK_GLAB_RESPONSES_DIR/removed_labels.txt"
     fi
 
     return 0
@@ -218,8 +246,10 @@ glab_label() {
             return 0
             ;;
         list)
-            # Return empty list for now
-            echo "[]"
+            # Return list of created labels
+            if [ -f "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt" ]; then
+                cat "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt"
+            fi
             return 0
             ;;
         *)

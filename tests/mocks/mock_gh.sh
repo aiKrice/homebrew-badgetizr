@@ -186,12 +186,19 @@ gh_label() {
 
     case "$action" in
         create)
-            # Mock label creation
-            local label_name=""
+            # Mock label creation - first positional arg is the label name
+            local label_name="$1"
+            shift
+
+            # Parse remaining options
             while [[ $# -gt 0 ]]; do
                 case "$1" in
                     --name|-n)
                         label_name="$2"
+                        shift 2
+                        ;;
+                    --color|--description)
+                        # Skip these options and their values
                         shift 2
                         ;;
                     *)
@@ -199,7 +206,10 @@ gh_label() {
                         ;;
                 esac
             done
-            echo "$label_name" >> "$MOCK_GH_RESPONSES_DIR/created_labels.txt"
+
+            if [ -n "$label_name" ]; then
+                echo "$label_name" >> "$MOCK_GH_RESPONSES_DIR/created_labels.txt"
+            fi
             return 0
             ;;
         list)
