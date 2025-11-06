@@ -51,8 +51,9 @@ runs:
           fi
 
           if ! command -v yq &> /dev/null; then
-            echo "yq not found. Installing..."
-            sudo apt-get install -y yq
+            echo "yq not found. Installing mikefarah/yq..."
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
           fi
         fi
       shell: bash

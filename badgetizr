@@ -112,6 +112,13 @@ else
     echo "🔍 Detected provider: $PROVIDER"
 fi
 
+# Check mandatory parameter first (before authentication)
+if [ -z "$ci_badge_pull_request_id" ]; then
+    echo "🔴 Error: --pr-id is mandatory." >&2
+    show_help
+    exit 1
+fi
+
 # Load the provider
 if [[ "$PROVIDER" != "github" && "$PROVIDER" != "gitlab" ]]; then
     echo "❌ Error: Unsupported provider '$PROVIDER'. Supported: github, gitlab"
@@ -127,12 +134,6 @@ load_provider "$PROVIDER"
 
 # Test provider authentication
 if ! test_provider_auth; then
-    exit 1
-fi
-
-if [ -z "$ci_badge_pull_request_id" ]; then
-    echo "🔴 Error: --pr-id is mandatory." >&2
-    show_help
     exit 1
 fi
 

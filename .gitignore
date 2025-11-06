@@ -1,0 +1,26 @@
+# Coverage reports
+coverage/
+coverage.txt
+*.coverage
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Ruby gems (for bashcov)
+.bundle/
+vendor/

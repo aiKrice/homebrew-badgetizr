@@ -3,9 +3,9 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/2.3.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/2.3.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/2.3.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.4.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.4.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/2.4.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
 </h1>
 
 <h2 align="center">
@@ -85,7 +85,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.3.0
+        uses: aiKrice/homebrew-badgetizr@2.4.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -109,7 +109,7 @@ badgetizr:
   stage: build
   image: alpine:latest
   variables:
-    BADGETIZR_VERSION: "2.3.0"
+    BADGETIZR_VERSION: "2.4.0"
     GLAB_VERSION: "1.72.0"
     # Auto-detects: gitlab.com for SaaS, your instance for self-managed
     GITLAB_HOST: "${CI_SERVER_HOST}"
@@ -363,6 +363,36 @@ We welcome contributions to Badgetizr! Whether you're fixing bugs, adding featur
 - ✨ **New Features**: Additional badge types, CI/CD platform support
 - 📚 **Documentation**: README improvements, troubleshooting guides
 - 🧪 **Testing**: Unit tests, integration tests, cross-platform compatibility
+
+### Running Tests
+
+Badgetizr includes a comprehensive test suite using [bats-core](https://github.com/bats-core/bats-core).
+
+**Install bats-core:**
+```bash
+# Homebrew
+brew install bats-core
+
+# npm
+npm install -g bats
+```
+
+**Run all tests:**
+```bash
+./run_tests.sh
+```
+
+**Run specific test file:**
+```bash
+bats tests/test_utils.bats
+```
+
+**Test with Homebrew:**
+```bash
+brew test badgetizr
+```
+
+📖 **[Complete Test Documentation](tests/README.md)**
 
 ## Publishing (for maintainers)
 
