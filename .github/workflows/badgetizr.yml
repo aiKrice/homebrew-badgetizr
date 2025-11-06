@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Badgetizr - Installing Dependencies
-        uses: aiKrice/homebrew-badgetizr@2.3.0
+        uses: aiKrice/homebrew-badgetizr@2.4.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -60,7 +60,7 @@ jobs:
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Badgetizr - Running Unit Tests
-        uses: aiKrice/homebrew-badgetizr@2.3.0
+        uses: aiKrice/homebrew-badgetizr@2.4.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -78,7 +78,7 @@ jobs:
           kcov --exclude-pattern=/usr,/tmp coverage bats tests
 
       - name: Badgetizr - Generating Coverage Report
-        uses: aiKrice/homebrew-badgetizr@2.3.0
+        uses: aiKrice/homebrew-badgetizr@2.4.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -126,7 +126,7 @@ jobs:
           fi
 
       - name: Badgetizr - Uploading to Codecov
-        uses: aiKrice/homebrew-badgetizr@2.3.0
+        uses: aiKrice/homebrew-badgetizr@2.4.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -151,7 +151,7 @@ jobs:
 
       - name: Badgetizr - Success
         if: success()
-        uses: aiKrice/homebrew-badgetizr@2.3.0
+        uses: aiKrice/homebrew-badgetizr@2.4.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -164,7 +164,7 @@ jobs:
 
       - name: Badgetizr - Failed
         if: failure()
-        uses: aiKrice/homebrew-badgetizr@2.3.0
+        uses: aiKrice/homebrew-badgetizr@2.4.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
