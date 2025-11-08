@@ -146,6 +146,12 @@ EOF
 
 # Mock git command
 mock_git() {
+    # Guard against double-mocking
+    if [[ "$(type -t git)" == "function" ]]; then
+        echo "⚠️  Warning: git is already mocked. You may have forgotten to call unmock_git() in a previous test." >&2
+        return 0
+    fi
+
     git() {
         case "$1" in
             remote)
