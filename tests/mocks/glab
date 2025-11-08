@@ -1,0 +1,14 @@
+#!/bin/bash
+# Mock glab CLI wrapper
+# This script wraps the mock_glab.sh functions
+
+# Ensure mock responses directory is set and exported
+export MOCK_GLAB_RESPONSES_DIR="${MOCK_GLAB_RESPONSES_DIR:-/tmp/mock_glab_responses}"
+mkdir -p "$MOCK_GLAB_RESPONSES_DIR"
+
+# Source the mock implementation
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/mock_glab.sh"
+
+# Call the glab function with all arguments
+glab "$@"

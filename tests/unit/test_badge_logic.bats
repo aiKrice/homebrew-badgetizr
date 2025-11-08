@@ -3,7 +3,7 @@
 # Test suite for badge generation logic
 
 setup() {
-    export BASE_PATH="${BATS_TEST_DIRNAME}/.."
+    export BASE_PATH="${BATS_TEST_DIRNAME}/../.."
     source "${BASE_PATH}/utils.sh"
 }
 

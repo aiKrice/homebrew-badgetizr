@@ -1,0 +1,14 @@
+#!/bin/bash
+# Mock gh CLI wrapper
+# This script wraps the mock_gh.sh functions
+
+# Ensure mock responses directory is set and exported
+export MOCK_GH_RESPONSES_DIR="${MOCK_GH_RESPONSES_DIR:-/tmp/mock_gh_responses}"
+mkdir -p "$MOCK_GH_RESPONSES_DIR"
+
+# Source the mock implementation
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/mock_gh.sh"
+
+# Call the gh function with all arguments
+gh "$@"

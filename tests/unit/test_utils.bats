@@ -4,7 +4,7 @@
 
 setup() {
     # Load the utils.sh file
-    source "${BATS_TEST_DIRNAME}/../utils.sh"
+    source "${BATS_TEST_DIRNAME}/../../utils.sh"
 }
 
 @test "BADGETIZR_VERSION is defined" {

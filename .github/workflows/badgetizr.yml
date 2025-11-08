@@ -73,9 +73,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run tests with coverage
-        run: |
-          mkdir -p coverage
-          kcov --exclude-pattern=/usr,/tmp coverage bats tests
+        run: make test-coverage
 
       - name: Badgetizr - Generating Coverage Report
         uses: aiKrice/homebrew-badgetizr@2.4.0
