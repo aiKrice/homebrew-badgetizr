@@ -3,9 +3,10 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/2.4.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/2.4.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/2.4.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.5.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+[![Static Badge](https://img.shields.io/badge/2.5.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/2.5.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+[![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/branch/develop/graph/badge.svg)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
 </h1>
 
 <h2 align="center">
@@ -85,7 +86,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@2.4.0
+        uses: aiKrice/homebrew-badgetizr@2.5.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -109,7 +110,7 @@ badgetizr:
   stage: build
   image: alpine:latest
   variables:
-    BADGETIZR_VERSION: "2.4.0"
+    BADGETIZR_VERSION: "2.5.0"
     GLAB_VERSION: "1.72.0"
     # Auto-detects: gitlab.com for SaaS, your instance for self-managed
     GITLAB_HOST: "${CI_SERVER_HOST}"
