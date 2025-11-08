@@ -20,6 +20,9 @@ MOCK_PR_LABELS="${MOCK_PR_LABELS:-}"
 MOCK_AUTH_SUCCESS="${MOCK_AUTH_SUCCESS:-true}"
 
 # Mock gh command
+# NOTE: This intentionally overrides the system 'gh' command when sourced.
+# This is the desired behavior for testing - it allows us to intercept all
+# gh CLI calls made by the code under test without making real API requests.
 gh() {
     local subcommand="$1"
     shift

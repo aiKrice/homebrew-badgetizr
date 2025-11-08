@@ -20,6 +20,9 @@ MOCK_MR_LABELS="${MOCK_MR_LABELS:-}"
 MOCK_GLAB_AUTH_SUCCESS="${MOCK_GLAB_AUTH_SUCCESS:-true}"
 
 # Mock glab command
+# NOTE: This intentionally overrides the system 'glab' command when sourced.
+# This is the desired behavior for testing - it allows us to intercept all
+# glab CLI calls made by the code under test without making real API requests.
 glab() {
     local subcommand="$1"
     shift

@@ -1,3 +1,8 @@
+# Parallel Test Execution Note:
+# --jobs requires GNU parallel (brew install parallel) or rush (go install github.com/shenwei356/rush@latest)
+# Currently not enabled due to shared mock directories (/tmp/mock_gh_responses, /tmp/mock_glab_responses)
+# that would cause race conditions. Future improvement: use unique temp dirs per test.
+
 .PHONY: test
 test:
 	@echo "Running all tests..."
