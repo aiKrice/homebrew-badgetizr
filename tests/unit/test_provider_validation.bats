@@ -8,7 +8,14 @@ setup() {
     # Load test helpers for assertions
     load '../helpers/test_helpers'
 
+    # Setup test environment (creates temp dirs, etc)
+    setup_test_env
+
     source "$PROJECT_ROOT/providers/provider_utils.sh"
+}
+
+teardown() {
+    cleanup_test_env
 }
 
 @test "load_provider fails with clear error for invalid provider" {
@@ -21,16 +28,13 @@ setup() {
 }
 
 @test "check_provider_cli fails when gh is not available" {
-    # Arrange - Mock command to simulate gh not found
+    # Arrange - Use a subshell where gh command doesn't exist
+    # We unset any existing gh function and ensure command -v fails
     run bash -c '
-        command() {
-            if [[ "$2" == "gh" ]]; then
-                return 1  # gh not found
-            else
-                builtin command "$@"
-            fi
-        }
-        export -f command
+        # Unset any mocked gh function
+        unset -f gh 2>/dev/null || true
+        # Create empty PATH to ensure gh is not found
+        PATH=""
         source "'"$PROJECT_ROOT"'/providers/provider_utils.sh"
         check_provider_cli "github"
     '
@@ -41,16 +45,12 @@ setup() {
 }
 
 @test "check_provider_cli fails when glab is not available" {
-    # Arrange - Mock command to simulate glab not found
+    # Arrange - Use a subshell where glab command doesn't exist
     run bash -c '
-        command() {
-            if [[ "$2" == "glab" ]]; then
-                return 1  # glab not found
-            else
-                builtin command "$@"
-            fi
-        }
-        export -f command
+        # Unset any mocked glab function
+        unset -f glab 2>/dev/null || true
+        # Create empty PATH to ensure glab is not found
+        PATH=""
         source "'"$PROJECT_ROOT"'/providers/provider_utils.sh"
         check_provider_cli "gitlab"
     '
@@ -61,23 +61,23 @@ setup() {
 }
 
 @test "check_provider_cli succeeds when gh is available" {
-    # This test assumes gh is installed on the system or mocked in tests
-    # If gh is in PATH, check should succeed
-    if command -v gh &> /dev/null; then
-        run check_provider_cli "github"
-        [ "$status" -eq 0 ]
-    else
-        skip "gh not available in PATH"
-    fi
+    # Arrange - Use existing mock infrastructure
+    source "$PROJECT_ROOT/tests/mocks/mock_gh.sh"
+
+    # Act
+    run check_provider_cli "github"
+
+    # Assert
+    [ "$status" -eq 0 ]
 }
 
 @test "check_provider_cli succeeds when glab is available" {
-    # This test assumes glab is installed on the system or mocked in tests
-    # If glab is in PATH, check should succeed
-    if command -v glab &> /dev/null; then
-        run check_provider_cli "gitlab"
-        [ "$status" -eq 0 ]
-    else
-        skip "glab not available in PATH"
-    fi
+    # Arrange - Use existing mock infrastructure
+    source "$PROJECT_ROOT/tests/mocks/mock_glab.sh"
+
+    # Act
+    run check_provider_cli "gitlab"
+
+    # Assert
+    [ "$status" -eq 0 ]
 }
