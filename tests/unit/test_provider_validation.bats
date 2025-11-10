@@ -41,7 +41,7 @@ teardown() {
 
     # Assert
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "GitHub CLI (gh) is not installed" ]] || [[ "$output" =~ "Error" ]]
+    [[ "$output" =~ "GitHub CLI (gh) is not installed" ]]
 }
 
 @test "check_provider_cli fails when glab is not available" {
@@ -57,7 +57,7 @@ teardown() {
 
     # Assert
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "GitLab CLI (glab) is not installed" ]] || [[ "$output" =~ "Error" ]]
+    [[ "$output" =~ "GitLab CLI (glab) is not installed" ]]
 }
 
 @test "check_provider_cli succeeds when gh is available" {
