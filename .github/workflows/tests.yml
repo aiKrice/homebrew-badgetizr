@@ -1,0 +1,102 @@
+name: Tests and Coverage
+
+on:
+  workflow_call:
+    outputs:
+      coverage:
+        description: "Coverage percentage"
+        value: ${{ jobs.test.outputs.coverage }}
+  push:
+    branches:
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percentage }}
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Cache kcov
+        id: cache-kcov
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/kcov
+          key: kcov-v42-${{ runner.os }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats jq cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
+
+      - name: Install kcov
+        if: steps.cache-kcov.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
+          tar xzf v42.tar.gz
+          cd kcov-42
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local ..
+          make
+          make install
+          cd ../..
+          rm -rf kcov-42 v42.tar.gz
+
+      - name: Add kcov to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run tests with coverage
+        run: make test-coverage
+
+      - name: Generate coverage report
+        id: coverage
+        run: |
+          if [ -f coverage/index.html ]; then
+            COVERAGE=$(grep -oP 'percent_covered">\K[0-9.]+' coverage/index.html | head -1 || echo "0")
+            echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "COVERAGE_PERCENT=$COVERAGE" >> $GITHUB_ENV
+            echo "### Coverage Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Coverage: ${COVERAGE}%**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Full report available in artifacts." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "percentage=0" >> $GITHUB_OUTPUT
+            echo "COVERAGE_PERCENT=0" >> $GITHUB_ENV
+            echo "Coverage report not generated"
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Check coverage threshold
+        run: |
+          THRESHOLD=70
+          COVERAGE=${{ env.COVERAGE_PERCENT }}
+          echo "Coverage: ${COVERAGE}%"
+          echo "Threshold: ${THRESHOLD}%"
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️  Warning: Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+            # Don't fail the build, just warn
+          else
+            echo "✅ Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
+          fi
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/bats.*/cobertura.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+        continue-on-error: true
