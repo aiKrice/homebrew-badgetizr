@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Badgetizr - Running Tests
         uses: aiKrice/homebrew-badgetizr@2.5.0
@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Badgetizr - Success
         if: needs.tests.result == 'success'
