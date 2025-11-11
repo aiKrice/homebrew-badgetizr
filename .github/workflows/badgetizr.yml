@@ -9,6 +9,10 @@ on:
       - edited
       - closed
 
+concurrency:
+  group: badgetizr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   badgetizr-start:
     runs-on: ubuntu-latest
