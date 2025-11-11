@@ -4,6 +4,7 @@
 
 setup() {
     export PROJECT_ROOT="${BATS_TEST_DIRNAME}/../.."
+    export BASE_PATH="${BATS_TEST_DIRNAME}/../.."
 
     # Load test helpers for assertions
     load '../helpers/test_helpers'
