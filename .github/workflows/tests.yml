@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
+          sudo apt-get install -y bc bats cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
 
       - name: Install kcov
         if: steps.cache-kcov.outputs.cache-hit != 'true'
