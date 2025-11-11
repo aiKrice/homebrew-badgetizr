@@ -37,7 +37,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   tests:
-    needs: badgetizr-start
+    # Always run tests, even for Dependabot PRs (no dependency on badgetizr-start)
+    # For Dependabot: tests run but badges are skipped
+    # For regular PRs: badgetizr-start runs first, then tests
+    if: ${{ always() }}
     uses: ./.github/workflows/tests.yml
     secrets: inherit
 
