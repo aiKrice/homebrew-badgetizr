@@ -1,0 +1,33 @@
+# Dependabot configuration for managing dependency updates
+# Documentation: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Monitor GitHub Actions for version updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    # Group all GitHub Actions updates into a single PR
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    # Add labels to PRs for easy identification
+    labels:
+      - "dependencies"
+      - "github-actions"
+    # Keep PRs up to date with base branch
+    rebase-strategy: "auto"
+    # Limit the number of open PRs
+    open-pull-requests-limit: 5
+    # Add reviewers (optional - uncomment and customize if needed)
+    # reviewers:
+    #   - "aiKrice"
+    # Set commit message prefix
+    commit-message:
+      prefix: "chore"
+      include: "scope"
