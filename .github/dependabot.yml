@@ -24,9 +24,6 @@ updates:
     rebase-strategy: "auto"
     # Limit the number of open PRs
     open-pull-requests-limit: 5
-    # Add reviewers (optional - uncomment and customize if needed)
-    # reviewers:
-    #   - "aiKrice"
     # Set commit message prefix
     commit-message:
       prefix: "chore"
