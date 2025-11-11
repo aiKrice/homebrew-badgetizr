@@ -30,7 +30,7 @@ jobs:
           pr_build_number: ${{ github.run_id }}
           pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           ci_status: "started"
-          ci_text: "Running Tests"
+          ci_text: "Running Tests & Coverage"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
