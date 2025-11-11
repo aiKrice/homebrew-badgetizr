@@ -6,7 +6,7 @@
 ![Static Badge](https://img.shields.io/badge/2.5.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
 [![Static Badge](https://img.shields.io/badge/2.5.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
 [![Static Badge](https://img.shields.io/badge/2.5.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
-[![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/branch/develop/graph/badge.svg)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
+[![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/graph/badge.svg?token=4NSN7QGO0E)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
 </h1>
 
 <h2 align="center">
