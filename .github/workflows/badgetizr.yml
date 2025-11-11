@@ -15,6 +15,8 @@ concurrency:
 
 jobs:
   badgetizr-start:
+    # Skip Dependabot PRs - they have restricted permissions and don't need badges
+    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
     runs-on: ubuntu-latest
 
     steps:
@@ -42,7 +44,8 @@ jobs:
   badgetizr-result:
     needs: tests
     runs-on: ubuntu-latest
-    if: always()
+    # Always run if tests ran, but skip for Dependabot PRs
+    if: ${{ always() && !startsWith(github.head_ref, 'dependabot/') }}
 
     steps:
       - name: Checkout the repository

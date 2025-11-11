@@ -12,12 +12,9 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-    
+    # Only run for aiKrice's PRs, skip Dependabot
+    if: ${{ github.event.pull_request.user.login == 'aiKrice' && !startsWith(github.head_ref, 'dependabot/') }}
+
     runs-on: ubuntu-latest
     permissions:
       contents: write
