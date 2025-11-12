@@ -3,7 +3,7 @@
 # Detect base path for all files (works in dev and Homebrew)
 detect_base_path() {
     if [[ -f "$(dirname "$0")/utils.sh" ]]; then
-        echo "$(dirname "$0")"
+        dirname "$0"
     else
         echo "$(dirname "$0")/../libexec"
     fi
