@@ -216,7 +216,7 @@ if [[ "${ticket_badge_enabled}" = "true" ]]; then
     else
         echo "🟡 Ticket id identified is -> ${ticket_id}"
         ticket_badge_url_for_badge=$(printf "${ticket_badge_url}" "${ticket_id}")
-        ticket_id_for_badge=$(echo ${ticket_id} | sed -E 's/ /_/g; s/-/--/g') 
+        ticket_id_for_badge=$(echo "${ticket_id}" | sed -E 's/ /_/g; s/-/--/g') 
         ticket_badge="[![Static Badge](https://img.shields.io/badge/${ticket_badge_label}-${ticket_id_for_badge}-${ticket_badge_color}?logo=${ticket_badge_logo}&color=${ticket_badge_color}&labelColor=grey)](${ticket_badge_url_for_badge})"
         all_badges=${all_badges}${ticket_badge}
     fi
@@ -230,7 +230,7 @@ if [[ "${branch_badge_enabled}" = "true" ]]; then
         exit 1
     fi
 
-    branch_badge_label_for_badge=$(echo ${branch_badge_label} | sed -E 's/ /_/g; s/-/--/g')
+    branch_badge_label_for_badge=$(echo "${branch_badge_label}" | sed -E 's/ /_/g; s/-/--/g')
     if [[ "${ci_badge_destination_branch}" != "${branch_badge_base_branch}" ]];then
         branch_badge="![Static Badge](https://img.shields.io/badge/${branch_badge_label_for_badge}-${ci_badge_destination_branch}-${branch_badge_color}?labelColor=grey&color=${branch_badge_color})"
         all_badges="${all_badges} ${branch_badge}"
@@ -312,14 +312,14 @@ if [[ "${dynamic_badge_enabled}" = "true" ]]; then
     for ((i=0; i<badge_count; i++)); do
         label=$(yq ".badge_dynamic.settings.patterns[${i}].label // \"Badge_$1\"" "${config_file}")
         pattern=$(yq ".badge_dynamic.settings.patterns[${i}].sed_pattern // \"no_pattern\"" "${config_file}")
- 
-        match=$(echo ${pull_request_body} | sed -n -E "s/${pattern}/\1/p")
+
+        match=$(echo "${pull_request_body}" | sed -n -E "s/${pattern}/\1/p")
         if [[ -z "${match}" ]]; then
             echo "🔵 Match=${match} is empty for badge label: ${label} at position[${i}]. Check your regex: ${pattern} against your PR. The regexp must contain a group (*.)"
             continue
         fi
 
-        default_label=$(echo ${label} | sed -E 's/ /_/g; s/-/--/g')
+        default_label=$(echo "${label}" | sed -E 's/ /_/g; s/-/--/g')
         override_label=$(jq -rn --arg s "${label}" '${s} | @uri')
         value=$(yq ".badge_dynamic.settings.patterns[${i}].value // \"default\"" "${config_file}" | sed -E 's/ /_/g; s/-/--/g')
         color=$(yq ".badge_dynamic.settings.patterns[${i}].color // \"orange\"" "${config_file}")
