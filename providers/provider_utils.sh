@@ -2,7 +2,8 @@
 
 # Provider detection and common interface
 detect_provider() {
-    local remote_url=$(git remote get-url origin 2>/dev/null || echo "")
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null || echo "")
 
     if [[ "${remote_url}" =~ github\.com ]]; then
         echo "github"

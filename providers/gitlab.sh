@@ -15,8 +15,10 @@ provider_get_pr_info() {
             glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
             ;;
         "both")
-            local title=$(glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.title // empty')
-            local body=$(glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d')
+            local title
+            local body
+            title=$(glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.title // empty')
+            body=$(glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d')
             echo "TITLE:${title}"
             echo "BODY:${body}"
             ;;
@@ -84,7 +86,8 @@ provider_create_pr_label() {
     glab label delete "${label_name}" --repo="${CI_PROJECT_PATH}" 2>/dev/null || true
 
     echo "🔧 Creating label: glab label create --name \"${label_name}\" --color \"${gitlab_color}\" --description \"${description}\" --repo=\"${CI_PROJECT_PATH}\""
-    local result=$(glab label create --name "${label_name}" --color "${gitlab_color}" --description "${description}" --repo="${CI_PROJECT_PATH}" 2>&1)
+    local result
+    result=$(glab label create --name "${label_name}" --color "${gitlab_color}" --description "${description}" --repo="${CI_PROJECT_PATH}" 2>&1)
     local exit_code=$?
 
     echo "🐛 glab exit code: ${exit_code}"
