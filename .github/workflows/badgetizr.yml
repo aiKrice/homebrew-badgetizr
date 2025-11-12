@@ -15,11 +15,13 @@ concurrency:
 
 jobs:
   badgetizr-start:
+    # Skip Dependabot PRs - they have restricted permissions and don't need badges
+    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Badgetizr - Running Tests
         uses: aiKrice/homebrew-badgetizr@2.5.0
@@ -35,18 +37,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   tests:
-    needs: badgetizr-start
+    # Always run tests, even for Dependabot PRs (no dependency on badgetizr-start)
+    # For Dependabot: tests run but badges are skipped
+    # For regular PRs: badgetizr-start runs first, then tests
+    if: ${{ always() }}
     uses: ./.github/workflows/tests.yml
     secrets: inherit
 
   badgetizr-result:
     needs: tests
     runs-on: ubuntu-latest
-    if: always()
+    # Always run if tests ran, but skip for Dependabot PRs
+    if: ${{ always() && !startsWith(github.head_ref, 'dependabot/') }}
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Badgetizr - Success
         if: needs.tests.result == 'success'
