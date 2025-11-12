@@ -36,18 +36,45 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v5
+
+      - name: Cache ShellCheck
+        id: cache-shellcheck
+        uses: actions/cache@v4
+        with:
+          path: /usr/bin/shellcheck
+          key: shellcheck-${{ runner.os }}
+
+      - name: Install ShellCheck
+        if: steps.cache-shellcheck.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          echo "Running ShellCheck on all shell scripts..."
+          shellcheck -x badgetizr providers/*.sh
+          echo "✅ ShellCheck passed!"
+
   tests:
+    # Run tests only if ShellCheck passes
     # Always run tests, even for Dependabot PRs (no dependency on badgetizr-start)
     # For Dependabot: tests run but badges are skipped
-    # For regular PRs: badgetizr-start runs first, then tests
+    # For regular PRs: badgetizr-start runs first, then shellcheck, then tests
+    needs: shellcheck
     if: ${{ always() }}
     uses: ./.github/workflows/tests.yml
     secrets: inherit
 
   badgetizr-result:
-    needs: tests
+    needs: [shellcheck, tests]
     runs-on: ubuntu-latest
-    # Always run if tests ran, but skip for Dependabot PRs
+    # Always run if shellcheck or tests ran, but skip for Dependabot PRs
     if: ${{ always() && !startsWith(github.head_ref, 'dependabot/') }}
 
     steps:
@@ -55,7 +82,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Badgetizr - Success
-        if: needs.tests.result == 'success'
+        if: needs.shellcheck.result == 'success' && needs.tests.result == 'success'
         uses: aiKrice/homebrew-badgetizr@2.5.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
@@ -68,7 +95,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Badgetizr - Failed
-        if: needs.tests.result != 'success'
+        if: needs.shellcheck.result != 'success' || needs.tests.result != 'success'
         uses: aiKrice/homebrew-badgetizr@2.5.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
