@@ -215,6 +215,7 @@ if [[ "${ticket_badge_enabled}" = "true" ]]; then
         echo "🟠 No ticket id identified in the PR title. Maybe your pattern is not correct."
     else
         echo "🟡 Ticket id identified is -> ${ticket_id}"
+        # shellcheck disable=SC2059  # ticket_badge_url contains %s placeholder from config
         ticket_badge_url_for_badge=$(printf "${ticket_badge_url}" "${ticket_id}")
         ticket_id_for_badge=$(echo "${ticket_id}" | sed -E 's/ /_/g; s/-/--/g') 
         ticket_badge="[![Static Badge](https://img.shields.io/badge/${ticket_badge_label}-${ticket_id_for_badge}-${ticket_badge_color}?logo=${ticket_badge_logo}&color=${ticket_badge_color}&labelColor=grey)](${ticket_badge_url_for_badge})"
