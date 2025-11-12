@@ -8,32 +8,32 @@ check_yaml_key() {
     local yaml_file="$1"
     local yaml_key="$2"
 
-    if [[ ! -f "$yaml_file" ]]; then
-        echo "🔴 $yaml_file file not found."
+    if [[ ! -f "${yaml_file}" ]]; then
+        echo "🔴 ${yaml_file} file not found."
         exit 1
     fi
 
     local value
-    value=$(yq eval ".$yaml_key" "$yaml_file" 2>/dev/null)
+    value=$(yq eval ".${yaml_key}" "${yaml_file}" 2>/dev/null)
 
-    if [[ -z "$value" ]]; then
-        echo "🔴 $yaml_key is not found in $yaml_file."
+    if [[ -z "${value}" ]]; then
+        echo "🔴 ${yaml_key} is not found in ${yaml_file}."
         exit 2
     fi
 
-    if [[ "$value" == "true" ]]; then
-        echo "🟢 $yaml_key is enabled (true)."
-    elif [[ "$value" == "false" ]]; then
-        echo "🔴 $yaml_key is disabled (false)."
+    if [[ "${value}" == "true" ]]; then
+        echo "🟢 ${yaml_key} is enabled (true)."
+    elif [[ "${value}" == "false" ]]; then
+        echo "🔴 ${yaml_key} is disabled (false)."
     else
-        echo "🔴 $yaml_key has an invalid value ($value)."
+        echo "🔴 ${yaml_key} has an invalid value (${value})."
         exit 3
     fi
 }
 
 
 # Main
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [[ "${OSTYPE}" == "darwin"* ]]; then
     echo "🟡 Running on : macOS"
     
     if ! is_command_exists brew; then
@@ -56,7 +56,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     else
         echo "🔵 jq is already installed."
     fi
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     echo "Running on: Linux"
     sudo apt-get update
     if ! is_command_exists yq; then
@@ -76,7 +76,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "🔵 jq is already installed."
     fi
 else
-    echo "🔴 Unsupported Operating System: $OSTYPE"
+    echo "🔴 Unsupported Operating System: ${OSTYPE}"
     exit 1
 fi
 
@@ -84,7 +84,7 @@ echo ""
 echo "🔍 Platform-specific CLI tools needed:"
 
 # Detect and provide platform-specific installation advice
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [[ "${OSTYPE}" == "darwin"* ]]; then
     echo "📝 For your macOS system:"
     if ! is_command_exists gh; then
         echo "   - Install GitHub CLI: brew install gh"
@@ -98,7 +98,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     else
         echo "   ✅ GitLab CLI (glab) already installed"
     fi
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     echo "📝 For your Linux system:"
     if ! is_command_exists gh; then
         echo "   - Install GitHub CLI: https://github.com/cli/cli/blob/trunk/docs/install_linux.md"

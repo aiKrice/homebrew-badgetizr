@@ -1,34 +1,15 @@
 # ShellCheck configuration for Badgetizr
 # See https://www.shellcheck.net/wiki/ for more information
 
-# Disable specific warnings that are acceptable in this codebase
-
-# SC2034: Variable appears unused - often used for configuration variables
-disable=SC2034
-
-# SC2086: Double quote to prevent globbing and word splitting
-# We enable this check as it's important for security and correctness
-# (This is a comment showing we explicitly want this check enabled)
-
-# SC2155: Declare and assign separately to avoid masking return values
-# We enable this check to ensure proper error handling
-
 # Shell to assume when not specified
 shell=bash
 
-# Set severity threshold - only show warnings and errors (not info/style)
+# Set severity threshold - catch all issues including style
 # Options: error, warning, info, style
-# We use 'style' to be restrictive and catch all issues
 severity=style
 
-# Enable all optional checks
+# Enable all optional checks (includes avoid-nullary-conditions, quote-safe-variables, require-variable-braces)
 enable=all
 
 # Source path for resolving source statements
-# This helps ShellCheck find sourced files
 source-path=SCRIPTDIR
-
-# Additional strict checks
-enable=avoid-nullary-conditions
-enable=quote-safe-variables
-enable=require-variable-braces
