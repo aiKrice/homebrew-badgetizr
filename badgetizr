@@ -100,6 +100,11 @@ while getopts "c:hv-:" opt; do
             echo "Use --help for more information." >&2
             exit 1
             ;;
+        *)
+            echo "Unexpected option: -${opt}" >&2
+            echo "Use --help for more information." >&2
+            exit 1
+            ;;
     esac
 done
 
