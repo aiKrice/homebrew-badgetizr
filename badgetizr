@@ -2,7 +2,7 @@
 
 # Detect base path for all files (works in dev and Homebrew)
 detect_base_path() {
-    if [ -f "$(dirname "$0")/utils.sh" ]; then
+    if [[ -f "$(dirname "$0")/utils.sh" ]]; then
         echo "$(dirname "$0")"
     else
         echo "$(dirname "$0")/../libexec"
@@ -113,7 +113,7 @@ else
 fi
 
 # Check mandatory parameter first (before authentication)
-if [ -z "${ci_badge_pull_request_id}" ]; then
+if [[ -z "${ci_badge_pull_request_id}" ]]; then
     echo "🔴 Error: --pr-id is mandatory." >&2
     show_help
     exit 1
@@ -209,7 +209,7 @@ pull_request_body=$(echo "${pull_request_body}" | awk '/<!--begin:badgetizr-->/ 
 all_badges=
 
 #Ticket Badge
-if [ "${ticket_badge_enabled}" = "true" ]; then
+if [[ "${ticket_badge_enabled}" = "true" ]]; then
     ticket_id=$(echo "${pull_request_title}" | sed -n -E "s/${ticket_badge_pattern}/\1/p")
     if [[ -z "${ticket_id}" ]]; then
         echo "🟠 No ticket id identified in the PR title. Maybe your pattern is not correct."
@@ -224,8 +224,8 @@ fi
 
 
 # Target Branch Badge 
-if [ "${branch_badge_enabled}" = "true" ]; then
-    if [ -z "${ci_badge_destination_branch}" ]; then
+if [[ "${branch_badge_enabled}" = "true" ]]; then
+    if [[ -z "${ci_badge_destination_branch}" ]]; then
         echo "🔴 Error: --pr-destination-branch is mandatory when branch badge is enabled. Use -h for help." >&2
         exit 1
     fi
@@ -238,7 +238,7 @@ if [ "${branch_badge_enabled}" = "true" ]; then
 fi
 
 # Hotfix Badge
-if [ "${hotfix_badge_enabled}" = "true" ]; then
+if [[ "${hotfix_badge_enabled}" = "true" ]]; then
     if [[ "${destination_branch}" == "main" || "${destination_branch}" == "master" ]]; then
         hotfix_badge="![Static Badge](https://img.shields.io/badge/${hotfix_badge_label}-${hotfix_badge_color}?logoColor=${hotfix_badge_text_color}&color=${hotfix_badge_color})"
         all_badges=$(echo ${all_badges} ${hotfix_badge})
@@ -266,7 +266,7 @@ else
 fi
 
 # Wip Badge
-if [ "${wip_badge_enabled}" = "true" ]; then
+if [[ "${wip_badge_enabled}" = "true" ]]; then
     if [[ "${pull_request_title}" =~ [Ww][Ii][Pp] ]]; then
         wip_badge="![Static Badge](https://img.shields.io/badge/${wip_badge_label}-${wip_badge_color}?logo=${wip_badge_logo}&logoColor=white)"
         all_badges=$(echo ${all_badges} ${wip_badge})
@@ -307,7 +307,7 @@ else
 fi
 
 # Dynamic Badge
-if [ "${dynamic_badge_enabled}" = "true" ]; then
+if [[ "${dynamic_badge_enabled}" = "true" ]]; then
     badge_count=$(yq '.badge_dynamic.settings.patterns | length' "${config_file}")
     for ((i=0; i<badge_count; i++)); do
         label=$(yq ".badge_dynamic.settings.patterns[${i}].label // \"Badge_$1\"" "${config_file}")
@@ -330,7 +330,7 @@ if [ "${dynamic_badge_enabled}" = "true" ]; then
 fi
 
 # Ready for Approval Badge
-if [ "${ready_for_approval_badge_enabled}" = "true" ]; then
+if [[ "${ready_for_approval_badge_enabled}" = "true" ]]; then
     # Count unchecked checkboxes in PR body
     unchecked_count=$(printf "%s\n" "${pull_request_body}" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
     unchecked_count=$(echo "${unchecked_count}" | tr -d '[:space:]')
@@ -367,9 +367,9 @@ else
 fi
 
 # CI Badge (unified with status support)
-if [ "${ci_badge_enabled}" = "true" ]; then
+if [[ "${ci_badge_enabled}" = "true" ]]; then
     # pr-build-url is always mandatory for CI badge
-    if [ -z "${ci_badge_build_url}" ]; then
+    if [[ -z "${ci_badge_build_url}" ]]; then
         echo "🔴 Error: --pr-build-url is mandatory when CI badge is enabled." >&2
         exit 1
     fi
@@ -418,7 +418,7 @@ if [ "${ci_badge_enabled}" = "true" ]; then
         echo "🔄 Updating CI badge: ${ci_status_badge_status} (${ci_text})"
     else
         # Legacy mode: no status provided, use build number (backward compatibility)
-        if [ -z "${ci_badge_build_number}" ]; then
+        if [[ -z "${ci_badge_build_number}" ]]; then
             echo "🔴 Error: --pr-build-number is mandatory when no --ci-status is provided." >&2
             exit 1
         fi
