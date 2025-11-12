@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Provider detection and common interface
+# shellcheck disable=SC2154  # BASE_PATH is defined in main badgetizr script
+
 detect_provider() {
     local remote_url
     remote_url=$(git remote get-url origin 2>/dev/null || echo "")
@@ -20,6 +22,7 @@ load_provider() {
     local provider_file="${BASE_PATH}/providers/${provider}.sh"
 
     if [[ -f "${provider_file}" ]]; then
+        # shellcheck disable=SC1090  # provider_file is dynamic (github.sh or gitlab.sh)
         source "${provider_file}"
         echo "🔗 Loaded ${provider} provider"
     else
@@ -50,7 +53,7 @@ create_pr_label() {
 }
 
 test_provider_auth() {
-    provider_test_auth "$@"
+    provider_test_auth
 }
 
 get_destination_branch() {

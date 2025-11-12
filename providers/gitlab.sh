@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # GitLab provider implementation using glab CLI
+# shellcheck disable=SC2154  # CI_PROJECT_PATH is a GitLab CI environment variable
 
 provider_get_pr_info() {
     local mr_id="$1"

@@ -26,6 +26,7 @@ while getopts "c:hv-:" opt; do
             exit 0
             ;;
         v)
+            # shellcheck disable=SC2154  # BADGETIZR_VERSION is defined in utils.sh
             echo "${BADGETIZR_VERSION}"
             exit 0
             ;;
