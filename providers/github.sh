@@ -5,7 +5,6 @@
 provider_get_pr_info() {
     local pr_id="$1"
 
-    # Fetch both title and body in a single call for efficiency
     gh pr view "${pr_id}" --json title,body 2>/dev/null
 }
 
