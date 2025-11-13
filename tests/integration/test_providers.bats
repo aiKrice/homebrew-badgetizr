@@ -37,58 +37,22 @@ teardown() {
     unmock_git
 }
 
-@test "GitHub provider: get_pr_info retrieves PR title" {
+@test "GitHub provider: get_pr_info returns JSON with title and body" {
     # Arrange
     setup_wip_pr
     source "$PROJECT_ROOT/providers/github.sh"
 
     # Act
-    local title=$(provider_get_pr_info 123 "title")
-
-    # Assert
-    [ "$title" = "[WIP] Add new feature" ]
-}
-
-@test "GitHub provider: get_pr_info retrieves PR body" {
-    # Arrange
-    setup_wip_pr
-    source "$PROJECT_ROOT/providers/github.sh"
-
-    # Act
-    local body=$(provider_get_pr_info 123 "body")
-
-    # Assert
-    [ "$body" = "This is a work in progress PR" ]
-}
-
-@test "GitHub provider: get_pr_info retrieves both title and body with 'all'" {
-    # Arrange
-    setup_wip_pr
-    source "$PROJECT_ROOT/providers/github.sh"
-
-    # Act
-    local result=$(provider_get_pr_info 123 "all")
+    local result=$(provider_get_pr_info 123)
 
     # Assert - Should return JSON with both fields
     [[ "$result" =~ "title" ]]
     [[ "$result" =~ "body" ]]
     # Verify it's valid JSON by parsing it
-    local title=$(echo "$result" | jq -r '.title')
-    local body=$(echo "$result" | jq -r '.body')
+    local title=$(jq -r '.title' <<< "$result")
+    local body=$(jq -r '.body' <<< "$result")
     [ "$title" = "[WIP] Add new feature" ]
     [ "$body" = "This is a work in progress PR" ]
-}
-
-@test "GitHub provider: get_pr_info fails with invalid field" {
-    # Arrange
-    source "$PROJECT_ROOT/providers/github.sh"
-
-    # Act
-    run provider_get_pr_info 123 "invalid_field"
-
-    # Assert
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ "Unknown field: invalid_field" ]]
 }
 
 @test "GitHub provider: get_destination_branch retrieves base branch" {
@@ -211,59 +175,23 @@ teardown() {
     unmock_git
 }
 
-@test "GitLab provider: get_pr_info retrieves MR title" {
-    # Arrange
-    export MOCK_MR_TITLE="Add new feature"
-    source "$PROJECT_ROOT/providers/gitlab.sh"
-
-    # Act
-    local title=$(provider_get_pr_info 123 "title")
-
-    # Assert
-    [ "$title" = "Add new feature" ]
-}
-
-@test "GitLab provider: get_pr_info retrieves MR description" {
-    # Arrange
-    export MOCK_MR_DESCRIPTION="Test MR description"
-    source "$PROJECT_ROOT/providers/gitlab.sh"
-
-    # Act
-    local body=$(provider_get_pr_info 123 "body")
-
-    # Assert
-    [ "$body" = "Test MR description" ]
-}
-
-@test "GitLab provider: get_pr_info retrieves both title and body with 'all'" {
+@test "GitLab provider: get_pr_info returns JSON with title and description" {
     # Arrange
     export MOCK_MR_TITLE="Add new feature"
     export MOCK_MR_DESCRIPTION="Test MR description"
     source "$PROJECT_ROOT/providers/gitlab.sh"
 
     # Act
-    local result=$(provider_get_pr_info 123 "all")
+    local result=$(provider_get_pr_info 123)
 
     # Assert - Should return JSON with both fields
     [[ "$result" =~ "title" ]]
     [[ "$result" =~ "description" ]]
     # Verify it's valid JSON by parsing it
-    local title=$(echo "$result" | jq -r '.title')
-    local description=$(echo "$result" | jq -r '.description')
+    local title=$(jq -r '.title' <<< "$result")
+    local description=$(jq -r '.description' <<< "$result")
     [ "$title" = "Add new feature" ]
     [ "$description" = "Test MR description" ]
-}
-
-@test "GitLab provider: get_pr_info fails with invalid field" {
-    # Arrange
-    source "$PROJECT_ROOT/providers/gitlab.sh"
-
-    # Act
-    run provider_get_pr_info 123 "invalid_field"
-
-    # Assert
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ "Unknown field: invalid_field" ]]
 }
 
 @test "GitLab provider: get_destination_branch retrieves target branch" {

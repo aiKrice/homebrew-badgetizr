@@ -206,10 +206,10 @@ else
 fi
 
 # Fetch PR info in a single call for efficiency
-pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}" "all")
-pull_request_title=$(echo "${pr_info_json}" | jq -r '.title // empty')
-pull_request_body_raw=$(echo "${pr_info_json}" | jq -r 'if has("body") then .body elif has("description") then .description else "" end')
-pull_request_body=$(echo "${pull_request_body_raw}" | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d')
+pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}")
+pull_request_title=$(jq -r '.title // empty' <<< "${pr_info_json}")
+pull_request_body_raw=$(jq -r 'if has("body") then .body elif has("description") then .description else "" end' <<< "${pr_info_json}")
+pull_request_body=$(sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d' <<< "${pull_request_body_raw}")
 destination_branch=$(get_destination_branch "${ci_badge_pull_request_id}")
 
 # Extract current badges from the pull request body
