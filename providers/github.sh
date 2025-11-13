@@ -13,10 +13,6 @@ provider_get_pr_info() {
         "body")
             gh pr view "${pr_id}" --json body -q '.body' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
             ;;
-        "both")
-            echo "TITLE:$(gh pr view "${pr_id}" --json title -q '.title')"
-            echo "BODY:$(gh pr view "${pr_id}" --json body -q '.body' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d')"
-            ;;
         *)
             echo "❌ Unknown field: ${field}. You can investigate and open a pull request if you know why."
             return 1

@@ -61,6 +61,18 @@ teardown() {
     [ "$body" = "This is a work in progress PR" ]
 }
 
+@test "GitHub provider: get_pr_info fails with invalid field" {
+    # Arrange
+    source "$PROJECT_ROOT/providers/github.sh"
+
+    # Act
+    run provider_get_pr_info 123 "invalid_field"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Unknown field: invalid_field" ]]
+}
+
 @test "GitHub provider: get_destination_branch retrieves base branch" {
     # Arrange
     export MOCK_PR_BASE_BRANCH="develop"
@@ -203,20 +215,6 @@ teardown() {
 
     # Assert
     [ "$body" = "Test MR description" ]
-}
-
-@test "GitLab provider: get_pr_info retrieves both title and body" {
-    # Arrange
-    export MOCK_MR_TITLE="Test Title"
-    export MOCK_MR_DESCRIPTION="Test Description"
-    source "$PROJECT_ROOT/providers/gitlab.sh"
-
-    # Act
-    local result=$(provider_get_pr_info 123 "both")
-
-    # Assert
-    echo "$result" | grep -q "TITLE:Test Title"
-    echo "$result" | grep -q "BODY:Test Description"
 }
 
 @test "GitLab provider: get_pr_info fails with invalid field" {
@@ -384,4 +382,15 @@ teardown() {
 
     # Cleanup
     unmock_git
+}
+
+@test "check_provider_cli fails with unknown provider" {
+    # Arrange - no setup needed
+
+    # Act
+    run check_provider_cli "google"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" == "❌ Error: Unknown provider 'google'" ]]
 }

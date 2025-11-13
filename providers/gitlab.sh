@@ -15,14 +15,6 @@ provider_get_pr_info() {
             # Get description and remove existing badgetizr comments
             glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
             ;;
-        "both")
-            local title
-            local body
-            title=$(glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.title // empty')
-            body=$(glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d')
-            echo "TITLE:${title}"
-            echo "BODY:${body}"
-            ;;
         *)
             echo "❌ Unknown field: ${field}. You can investigate and open a pull request if you know why."
             return 1
