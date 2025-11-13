@@ -42,43 +42,43 @@ while getopts "c:hv-:" opt; do
                     ci_badge_build_number="${OPTARG#*=}"
                     ;;
                 pr-build-number)
-                    ci_badge_build_number="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # KCOV_EXCL_LINE
+                    ci_badge_build_number="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # LCOV_EXCL_LINE
                     ;;
                 pr-build-url=*)
                     ci_badge_build_url="${OPTARG#*=}"
                     ;;
                 pr-build-url)
-                    ci_badge_build_url="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # KCOV_EXCL_LINE
+                    ci_badge_build_url="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # LCOV_EXCL_LINE
                     ;;
                 pr-destination-branch=*)
                     ci_badge_destination_branch="${OPTARG#*=}"
                     ;;
                 pr-destination-branch)
-                    ci_badge_destination_branch="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # KCOV_EXCL_LINE
+                    ci_badge_destination_branch="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # LCOV_EXCL_LINE
                     ;;
                 pr-id=*)
                     ci_badge_pull_request_id="${OPTARG#*=}"
                     ;;
                 pr-id)
-                    ci_badge_pull_request_id="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # KCOV_EXCL_LINE
+                    ci_badge_pull_request_id="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # LCOV_EXCL_LINE
                     ;;
                 provider=*)
                     forced_provider="${OPTARG#*=}"
                     ;;
                 provider)
-                    forced_provider="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # KCOV_EXCL_LINE
+                    forced_provider="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # LCOV_EXCL_LINE
                     ;;
                 ci-status=*)
                     ci_status_badge_status="${OPTARG#*=}"
                     ;;
                 ci-status)
-                    ci_status_badge_status="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # KCOV_EXCL_LINE
+                    ci_status_badge_status="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # LCOV_EXCL_LINE
                     ;;
                 ci-text=*)
                     ci_status_badge_text="${OPTARG#*=}"
                     ;;
                 ci-text)
-                    ci_status_badge_text="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # KCOV_EXCL_LINE
+                    ci_status_badge_text="${!OPTIND}"; OPTIND=$(( OPTIND + 1 ))  # LCOV_EXCL_LINE
                     ;;
                 version)
                     echo "${BADGETIZR_VERSION}"
