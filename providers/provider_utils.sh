@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # Provider detection and common interface
-detect_provider() {
-    local remote_url=$(git remote get-url origin 2>/dev/null || echo "")
+# shellcheck disable=SC2154  # BASE_PATH is defined in main badgetizr script
 
-    if [[ "$remote_url" =~ github\.com ]]; then
+detect_provider() {
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null || echo "")
+
+    if [[ "${remote_url}" =~ github\.com ]]; then
         echo "github"
-    elif [[ "$remote_url" =~ gitlab\.com ]] || [[ "$remote_url" =~ gitlab\. ]]; then
+    elif [[ "${remote_url}" =~ gitlab\.com ]] || [[ "${remote_url}" =~ gitlab\. ]]; then
         echo "gitlab"
     else
         echo "github"  # Default fallback
@@ -16,13 +19,14 @@ detect_provider() {
 # Load the appropriate provider (uses BASE_PATH from main script)
 load_provider() {
     local provider="$1"
-    local provider_file="$BASE_PATH/providers/${provider}.sh"
+    local provider_file="${BASE_PATH}/providers/${provider}.sh"
 
-    if [[ -f "$provider_file" ]]; then
-        source "$provider_file"
-        echo "🔗 Loaded $provider provider"
+    if [[ -f "${provider_file}" ]]; then
+        # shellcheck disable=SC1090  # provider_file is dynamic (github.sh or gitlab.sh)
+        source "${provider_file}"
+        echo "🔗 Loaded ${provider} provider"
     else
-        echo "❌ Provider $provider not found at $provider_file"
+        echo "❌ Provider ${provider} not found at ${provider_file}"
         exit 1
     fi
 }
@@ -49,7 +53,7 @@ create_pr_label() {
 }
 
 test_provider_auth() {
-    provider_test_auth "$@"
+    provider_test_auth
 }
 
 get_destination_branch() {
@@ -59,7 +63,7 @@ get_destination_branch() {
 check_provider_cli() {
     local provider="$1"
 
-    case "$provider" in
+    case "${provider}" in
         "github")
             if ! command -v gh &> /dev/null; then
                 echo "❌ Error: GitHub CLI (gh) is not installed"
@@ -79,11 +83,11 @@ check_provider_cli() {
             fi
             ;;
         *)
-            echo "❌ Error: Unknown provider '$provider'"
+            echo "❌ Error: Unknown provider '${provider}'"
             return 1
             ;;
     esac
 
-    echo "✅ $provider CLI is available"
+    echo "✅ ${provider} CLI is available"
     return 0
 }

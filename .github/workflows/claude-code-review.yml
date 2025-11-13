@@ -16,6 +16,7 @@ jobs:
     if: ${{ github.event.pull_request.user.login == 'aiKrice' && !startsWith(github.head_ref, 'dependabot/') }}
 
     runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail PR checks if review is cancelled or fails
     permissions:
       contents: write
       pull-requests: write

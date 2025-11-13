@@ -61,6 +61,18 @@ teardown() {
     [ "$body" = "This is a work in progress PR" ]
 }
 
+@test "GitHub provider: get_pr_info fails with invalid field" {
+    # Arrange
+    source "$PROJECT_ROOT/providers/github.sh"
+
+    # Act
+    run provider_get_pr_info 123 "invalid_field"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Unknown field: invalid_field" ]]
+}
+
 @test "GitHub provider: get_destination_branch retrieves base branch" {
     # Arrange
     export MOCK_PR_BASE_BRANCH="develop"
@@ -205,6 +217,18 @@ teardown() {
     [ "$body" = "Test MR description" ]
 }
 
+@test "GitLab provider: get_pr_info fails with invalid field" {
+    # Arrange
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act
+    run provider_get_pr_info 123 "invalid_field"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Unknown field: invalid_field" ]]
+}
+
 @test "GitLab provider: get_destination_branch retrieves target branch" {
     # Arrange
     export MOCK_MR_TARGET_BRANCH="main"
@@ -297,6 +321,19 @@ teardown() {
     grep -q "test-label" "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt"
 }
 
+@test "GitLab provider: create_pr_label fails when label creation errors" {
+    # Arrange
+    export MOCK_GLAB_LABEL_CREATE_SUCCESS="false"
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act
+    run provider_create_pr_label "test-label" "ff0000" "Test label description"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Failed to create label" ]]
+}
+
 # ============================================================================
 # Provider Detection Tests
 # ============================================================================
@@ -345,4 +382,15 @@ teardown() {
 
     # Cleanup
     unmock_git
+}
+
+@test "check_provider_cli fails with unknown provider" {
+    # Arrange - no setup needed
+
+    # Act
+    run check_provider_cli "google"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Unknown provider 'google'" ]]
 }

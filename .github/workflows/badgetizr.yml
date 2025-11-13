@@ -36,18 +36,50 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v5
+
+      - name: Cache ShellCheck
+        id: cache-shellcheck
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/shellcheck
+          key: shellcheck-${{ runner.os }}-v0.11.0
+
+      - name: Install ShellCheck
+        if: steps.cache-shellcheck.outputs.cache-hit != 'true'
+        run: |
+          wget -qO- "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz" | tar -xJv
+          mkdir -p ~/.local/bin
+          mv "shellcheck-v0.11.0/shellcheck" ~/.local/bin/
+          chmod +x ~/.local/bin/shellcheck
+          rm -rf shellcheck-v0.11.0
+
+      - name: Add ShellCheck to PATH
+        run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
+
+      - name: Run ShellCheck
+        run: |
+          echo "Running ShellCheck on all shell scripts..."
+          shellcheck -x badgetizr configure providers/*.sh
+          echo "✅ ShellCheck passed!"
+
   tests:
-    # Always run tests, even for Dependabot PRs (no dependency on badgetizr-start)
-    # For Dependabot: tests run but badges are skipped
-    # For regular PRs: badgetizr-start runs first, then tests
-    if: ${{ always() }}
+    # Run tests only if shellcheck succeeded
+    # ShellCheck runs for all PRs (including Dependabot) as it requires no special permissions
+    # For regular PRs: badgetizr-start runs first, then shellcheck, then tests
+    # For Dependabot PRs: shellcheck runs, then tests (badges are skipped)
+    needs: shellcheck
     uses: ./.github/workflows/tests.yml
     secrets: inherit
 
   badgetizr-result:
-    needs: tests
+    needs: [shellcheck, tests]
     runs-on: ubuntu-latest
-    # Always run if tests ran, but skip for Dependabot PRs
+    # Always run if shellcheck or tests ran, but skip for Dependabot PRs
     if: ${{ always() && !startsWith(github.head_ref, 'dependabot/') }}
 
     steps:
@@ -55,7 +87,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Badgetizr - Success
-        if: needs.tests.result == 'success'
+        if: needs.shellcheck.result == 'success' && needs.tests.result == 'success'
         uses: aiKrice/homebrew-badgetizr@2.5.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
@@ -68,7 +100,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Badgetizr - Failed
-        if: needs.tests.result != 'success'
+        if: needs.shellcheck.result != 'success' || needs.tests.result != 'success'
         uses: aiKrice/homebrew-badgetizr@2.5.0
         with:
           pr_id: ${{ github.event.pull_request.number }}

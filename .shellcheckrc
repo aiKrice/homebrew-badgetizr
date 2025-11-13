@@ -1,0 +1,20 @@
+# ShellCheck configuration for Badgetizr
+# See https://www.shellcheck.net/wiki/ for more information
+
+# Shell to assume when not specified
+shell=bash
+
+# Set severity threshold - catch all issues including style
+# Options: error, warning, info, style
+severity=style
+
+# Enable all optional checks (includes avoid-nullary-conditions, quote-safe-variables, require-variable-braces)
+enable=all
+
+# Disable SC2312 - Pipeline return value masking
+# All our pipelines are data transformations with proper error handling upstream
+# Failures result in empty strings which are handled correctly by the code
+disable=SC2312
+
+# Source path for resolving source statements
+source-path=SCRIPTDIR
