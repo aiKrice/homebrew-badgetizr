@@ -64,7 +64,7 @@ jobs:
       - name: Run ShellCheck
         run: |
           echo "Running ShellCheck on all shell scripts..."
-          shellcheck -x badgetizr providers/*.sh
+          shellcheck -x badgetizr configure providers/*.sh
           echo "✅ ShellCheck passed!"
 
   tests:
