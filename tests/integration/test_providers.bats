@@ -205,6 +205,32 @@ teardown() {
     [ "$body" = "Test MR description" ]
 }
 
+@test "GitLab provider: get_pr_info retrieves both title and body" {
+    # Arrange
+    export MOCK_MR_TITLE="Test Title"
+    export MOCK_MR_DESCRIPTION="Test Description"
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act
+    local result=$(provider_get_pr_info 123 "both")
+
+    # Assert
+    echo "$result" | grep -q "TITLE:Test Title"
+    echo "$result" | grep -q "BODY:Test Description"
+}
+
+@test "GitLab provider: get_pr_info fails with invalid field" {
+    # Arrange
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act
+    run provider_get_pr_info 123 "invalid_field"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Unknown field: invalid_field" ]]
+}
+
 @test "GitLab provider: get_destination_branch retrieves target branch" {
     # Arrange
     export MOCK_MR_TARGET_BRANCH="main"
@@ -295,6 +321,19 @@ teardown() {
     # Assert
     [ -f "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt" ]
     grep -q "test-label" "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt"
+}
+
+@test "GitLab provider: create_pr_label fails when label creation errors" {
+    # Arrange
+    export MOCK_GLAB_LABEL_CREATE_SUCCESS="false"
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act
+    run provider_create_pr_label "test-label" "ff0000" "Test label description"
+
+    # Assert
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Failed to create label" ]]
 }
 
 # ============================================================================
