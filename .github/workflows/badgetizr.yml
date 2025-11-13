@@ -68,11 +68,11 @@ jobs:
           echo "✅ ShellCheck passed!"
 
   tests:
-    # Run tests only if shellcheck succeeded, OR if this is a Dependabot PR (skip shellcheck for them)
-    # For Dependabot: tests run but badges are skipped
+    # Run tests only if shellcheck succeeded
+    # ShellCheck runs for all PRs (including Dependabot) as it requires no special permissions
     # For regular PRs: badgetizr-start runs first, then shellcheck, then tests
+    # For Dependabot PRs: shellcheck runs, then tests (badges are skipped)
     needs: shellcheck
-    if: ${{ needs.shellcheck.result == 'success' || startsWith(github.head_ref, 'dependabot/') }}
     uses: ./.github/workflows/tests.yml
     secrets: inherit
 
