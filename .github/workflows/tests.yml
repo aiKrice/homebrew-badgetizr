@@ -79,7 +79,7 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          THRESHOLD=65
+          THRESHOLD=70
           COVERAGE=${{ env.COVERAGE_PERCENT }}
           echo "Coverage: ${COVERAGE}%"
           echo "Threshold: ${THRESHOLD}%"
