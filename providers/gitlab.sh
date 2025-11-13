@@ -7,13 +7,21 @@ provider_get_pr_info() {
     local mr_id="$1"
     local field="$2"
 
+    # Fetch both title and description in a single call for efficiency
+    local mr_json
+    mr_json=$(glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null)
+
     case "${field}" in
         "title")
-            glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.title // empty'
+            echo "${mr_json}" | jq -r '.title // empty'
             ;;
         "body")
             # Get description and remove existing badgetizr comments
-            glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
+            echo "${mr_json}" | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
+            ;;
+        "all")
+            # Return both as a JSON object for single-call optimization
+            echo "${mr_json}"
             ;;
         *)
             echo "❌ Unknown field: ${field}. You can investigate and open a pull request if you know why."

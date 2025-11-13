@@ -61,6 +61,24 @@ teardown() {
     [ "$body" = "This is a work in progress PR" ]
 }
 
+@test "GitHub provider: get_pr_info retrieves both title and body with 'all'" {
+    # Arrange
+    setup_wip_pr
+    source "$PROJECT_ROOT/providers/github.sh"
+
+    # Act
+    local result=$(provider_get_pr_info 123 "all")
+
+    # Assert - Should return JSON with both fields
+    [[ "$result" =~ "title" ]]
+    [[ "$result" =~ "body" ]]
+    # Verify it's valid JSON by parsing it
+    local title=$(echo "$result" | jq -r '.title')
+    local body=$(echo "$result" | jq -r '.body')
+    [ "$title" = "[WIP] Add new feature" ]
+    [ "$body" = "This is a work in progress PR" ]
+}
+
 @test "GitHub provider: get_pr_info fails with invalid field" {
     # Arrange
     source "$PROJECT_ROOT/providers/github.sh"
@@ -215,6 +233,25 @@ teardown() {
 
     # Assert
     [ "$body" = "Test MR description" ]
+}
+
+@test "GitLab provider: get_pr_info retrieves both title and body with 'all'" {
+    # Arrange
+    export MOCK_MR_TITLE="Add new feature"
+    export MOCK_MR_DESCRIPTION="Test MR description"
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act
+    local result=$(provider_get_pr_info 123 "all")
+
+    # Assert - Should return JSON with both fields
+    [[ "$result" =~ "title" ]]
+    [[ "$result" =~ "description" ]]
+    # Verify it's valid JSON by parsing it
+    local title=$(echo "$result" | jq -r '.title')
+    local description=$(echo "$result" | jq -r '.description')
+    [ "$title" = "Add new feature" ]
+    [ "$description" = "Test MR description" ]
 }
 
 @test "GitLab provider: get_pr_info fails with invalid field" {

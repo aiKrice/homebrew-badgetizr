@@ -6,12 +6,20 @@ provider_get_pr_info() {
     local pr_id="$1"
     local field="$2"
 
+    # Fetch both title and body in a single call for efficiency
+    local pr_json
+    pr_json=$(gh pr view "${pr_id}" --json title,body 2>/dev/null)
+
     case "${field}" in
         "title")
-            gh pr view "${pr_id}" --json title -q '.title'
+            echo "${pr_json}" | jq -r '.title'
             ;;
         "body")
-            gh pr view "${pr_id}" --json body -q '.body' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
+            echo "${pr_json}" | jq -r '.body' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
+            ;;
+        "all")
+            # Return both as a JSON object for single-call optimization
+            echo "${pr_json}"
             ;;
         *)
             echo "❌ Unknown field: ${field}. You can investigate and open a pull request if you know why."

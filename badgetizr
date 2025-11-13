@@ -205,8 +205,11 @@ else
     ready_for_approval_badge_enabled="false"
 fi
 
-pull_request_title=$(get_pr_info "${ci_badge_pull_request_id}" "title")
-pull_request_body=$(get_pr_info "${ci_badge_pull_request_id}" "body")
+# Fetch PR info in a single call for efficiency
+pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}" "all")
+pull_request_title=$(echo "${pr_info_json}" | jq -r '.title // empty')
+pull_request_body_raw=$(echo "${pr_info_json}" | jq -r 'if has("body") then .body elif has("description") then .description else "" end')
+pull_request_body=$(echo "${pull_request_body_raw}" | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d')
 destination_branch=$(get_destination_branch "${ci_badge_pull_request_id}")
 
 # Extract current badges from the pull request body
