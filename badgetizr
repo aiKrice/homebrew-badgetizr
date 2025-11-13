@@ -209,11 +209,10 @@ fi
 pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}")
 pull_request_title=$(jq -r '.title // empty' <<< "${pr_info_json}")
 pull_request_body_raw=$(jq -r 'if has("body") then .body elif has("description") then .description else "" end' <<< "${pr_info_json}")
-pull_request_body=$(sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d' <<< "${pull_request_body_raw}")
 destination_branch=$(get_destination_branch "${ci_badge_pull_request_id}")
 
-# Extract current badges from the pull request body
-pull_request_body=$(awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' <<< "${pull_request_body}" | tr -d '\r')          
+# Remove existing badgetizr badges and carriage returns from PR body
+pull_request_body=$(awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' <<< "${pull_request_body_raw}" | tr -d '\r')          
 
 all_badges=
 
