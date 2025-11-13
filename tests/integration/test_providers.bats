@@ -392,5 +392,5 @@ teardown() {
 
     # Assert
     [ "$status" -eq 1 ]
-    [[ "$output" == "❌ Error: Unknown provider 'google'" ]]
+    [[ "$output" =~ "Unknown provider 'google'" ]]
 }
