@@ -189,36 +189,62 @@ teardown() {
 # Other Badges Escaping Tests (No Query Params)
 # ============================================================================
 
-@test "Ticket badge: label in path uses sed escaping (no query param)" {
+@test "Ticket badge: ticket ID uses jq @uri for URL encoding" {
     # Arrange
     local ticket_label="My-Ticket"
     local ticket_id="ABC-123"
 
-    # Act - Ticket badge uses labels in PATH, not query params
-    local ticket_id_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ticket_id}")
+    # Act - Now uses jq @uri for consistency
+    local ticket_id_escaped=$(jq -rn --arg s "${ticket_id}" '$s | @uri')
 
     # Assert
-    [ "$ticket_id_escaped" = "ABC--123" ]  # Hyphens doubled for shields.io
+    [ "$ticket_id_escaped" = "ABC-123" ]
 
-    # Verify URL - label is in path, not query param, so sed is OK
+    # Verify URL
     local badge_url="https://img.shields.io/badge/${ticket_label}-${ticket_id_escaped}-blue"
-    [[ "$badge_url" =~ "badge/My-Ticket-ABC--123-blue" ]]
+    [[ "$badge_url" =~ "badge/My-Ticket-ABC-123-blue" ]]
 }
 
-@test "Branch badge: label in path uses sed escaping (no query param)" {
+@test "Ticket badge: ticket ID with special characters is URL-encoded" {
+    # Arrange
+    local ticket_id="ABC-123 & more"
+
+    # Act
+    local ticket_id_escaped=$(jq -rn --arg s "${ticket_id}" '$s | @uri')
+
+    # Assert - Critical: & must be %26, space must be %20
+    [[ "$ticket_id_escaped" =~ "%26" ]]
+    [[ "$ticket_id_escaped" =~ "%20" ]]
+    [ "$ticket_id_escaped" = "ABC-123%20%26%20more" ]
+}
+
+@test "Branch badge: label uses jq @uri for URL encoding" {
     # Arrange
     local branch_label="Target Branch"
     local branch_name="develop"
 
-    # Act
-    local branch_label_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${branch_label}")
+    # Act - Now uses jq @uri for consistency
+    local branch_label_escaped=$(jq -rn --arg s "${branch_label}" '$s | @uri')
 
     # Assert
-    [ "$branch_label_escaped" = "Target_Branch" ]
+    [ "$branch_label_escaped" = "Target%20Branch" ]
 
-    # Verify URL - all in path, so sed is OK
+    # Verify URL
     local badge_url="https://img.shields.io/badge/${branch_label_escaped}-${branch_name}-yellow"
-    [[ "$badge_url" =~ "badge/Target_Branch-develop-yellow" ]]
+    [[ "$badge_url" =~ "badge/Target%20Branch-develop-yellow" ]]
+}
+
+@test "Branch badge: label with special characters is URL-encoded" {
+    # Arrange
+    local branch_label="Branch & Target"
+
+    # Act
+    local branch_label_escaped=$(jq -rn --arg s "${branch_label}" '$s | @uri')
+
+    # Assert - Critical: & must be %26, space must be %20
+    [[ "$branch_label_escaped" =~ "%26" ]]
+    [[ "$branch_label_escaped" =~ "%20" ]]
+    [ "$branch_label_escaped" = "Branch%20%26%20Target" ]
 }
 
 # ============================================================================

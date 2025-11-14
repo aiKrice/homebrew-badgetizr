@@ -208,7 +208,7 @@ fi
 # Fetch PR info in a single call for efficiency
 pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}")
 pull_request_title=$(jq -r '.title // empty' <<< "${pr_info_json}")
-pull_request_body_raw=$(jq -r 'if has("body") then .body elif has("description") then .description else "" end' <<< "${pr_info_json}")
+pull_request_body_raw=$(jq -r '.body // .description // ""' <<< "${pr_info_json}")
 destination_branch=$(get_destination_branch "${ci_badge_pull_request_id}")
 
 # Remove existing badgetizr badges and carriage returns from PR body
@@ -225,7 +225,7 @@ if [[ "${ticket_badge_enabled}" = "true" ]]; then
         echo "🟡 Ticket id identified is -> ${ticket_id}"
         # shellcheck disable=SC2059  # ticket_badge_url contains %s placeholder from config
         ticket_badge_url_for_badge=$(printf "${ticket_badge_url}" "${ticket_id}")
-        ticket_id_for_badge=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ticket_id}") 
+        ticket_id_for_badge=$(jq -rn --arg s "${ticket_id}" '$s | @uri') 
         ticket_badge="[![Static Badge](https://img.shields.io/badge/${ticket_badge_label}-${ticket_id_for_badge}-${ticket_badge_color}?logo=${ticket_badge_logo}&color=${ticket_badge_color}&labelColor=grey)](${ticket_badge_url_for_badge})"
         all_badges=${all_badges}${ticket_badge}
     fi
@@ -239,7 +239,7 @@ if [[ "${branch_badge_enabled}" = "true" ]]; then
         exit 1
     fi
 
-    branch_badge_label_for_badge=$(sed -E 's/ /_/g; s/-/--/g' <<< "${branch_badge_label}")
+    branch_badge_label_for_badge=$(jq -rn --arg s "${branch_badge_label}" '$s | @uri')
     if [[ "${ci_badge_destination_branch}" != "${branch_badge_base_branch}" ]];then
         branch_badge="![Static Badge](https://img.shields.io/badge/${branch_badge_label_for_badge}-${ci_badge_destination_branch}-${branch_badge_color}?labelColor=grey&color=${branch_badge_color})"
         all_badges="${all_badges} ${branch_badge}"
