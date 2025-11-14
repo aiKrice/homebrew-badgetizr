@@ -328,13 +328,12 @@ if [[ "${dynamic_badge_enabled}" = "true" ]]; then
             continue
         fi
 
-        default_label=$(jq -rn --arg s "${label}" '$s | @uri')
-        override_label=$(jq -rn --arg s "${label}" '$s | @uri')
+        label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
         value=$(yq ".badge_dynamic.settings.patterns[${i}].value // \"default\"" "${config_file}")
-        value=$(jq -rn --arg s "${value}" '$s | @uri')
+        value_encoded=$(jq -rn --arg s "${value}" '$s | @uri')
         color=$(yq ".badge_dynamic.settings.patterns[${i}].color // \"orange\"" "${config_file}")
-        
-        dynamic_badge="![Static Badge](https://img.shields.io/badge/${default_label}-${value}-grey?label=${override_label}&labelColor=grey&color=${color})"
+
+        dynamic_badge="![Static Badge](https://img.shields.io/badge/${label_encoded}-${value_encoded}-grey?label=${label_encoded}&labelColor=grey&color=${color})"
         all_badges="${all_badges} ${dynamic_badge}"
     done
 fi

@@ -69,22 +69,19 @@ teardown() {
     local value="3/5"
 
     # Expected outputs (all use jq @uri now)
-    local default_label="Github%20Issue"
-    local override_label="Github%20Issue"
-    local value_escaped="3%2F5"
+    local label_expected="Github%20Issue"
+    local value_expected="3%2F5"
 
     # Act - Generate badge URL components
-    local default_label_actual=$(jq -rn --arg s "${label}" '$s | @uri')
-    local override_label_actual=$(jq -rn --arg s "${label}" '$s | @uri')
-    local value_actual=$(jq -rn --arg s "${value}" '$s | @uri')
+    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
+    local value_encoded=$(jq -rn --arg s "${value}" '$s | @uri')
 
     # Assert
-    [ "$default_label_actual" = "$default_label" ]
-    [ "$override_label_actual" = "$override_label" ]
-    [ "$value_actual" = "$value_escaped" ]
+    [ "$label_encoded" = "$label_expected" ]
+    [ "$value_encoded" = "$value_expected" ]
 
-    # Verify complete URL structure
-    local badge_url="https://img.shields.io/badge/${default_label_actual}-${value_actual}-grey?label=${override_label_actual}&labelColor=grey&color=orange"
+    # Verify complete URL structure (label appears in both path and query param)
+    local badge_url="https://img.shields.io/badge/${label_encoded}-${value_encoded}-grey?label=${label_encoded}&labelColor=grey&color=orange"
 
     # URL should contain properly escaped components
     [[ "$badge_url" =~ "badge/Github%20Issue-3%2F5-grey" ]]
@@ -96,16 +93,14 @@ teardown() {
     local label="Status & Progress"
     local value="Ready"
 
-    # Act (now uses jq @uri for everything)
-    local default_label=$(jq -rn --arg s "${label}" '$s | @uri')
-    local override_label=$(jq -rn --arg s "${label}" '$s | @uri')
+    # Act
+    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
 
-    # Assert - Critical: & must be %26 everywhere
-    [[ "$default_label" =~ "%26" ]]
-    [[ "$override_label" =~ "%26" ]]
+    # Assert - Critical: & must be %26
+    [[ "$label_encoded" =~ "%26" ]]
 
-    # Verify URL
-    local badge_url="https://img.shields.io/badge/${default_label}-${value}-grey?label=${override_label}"
+    # Verify URL (label appears in both path and query param)
+    local badge_url="https://img.shields.io/badge/${label_encoded}-${value}-grey?label=${label_encoded}"
     [[ "$badge_url" =~ "badge/Status%20%26%20Progress" ]]
     [[ "$badge_url" =~ "label=Status%20%26%20Progress" ]]
 }
@@ -115,10 +110,10 @@ teardown() {
     local label="Test=Value"
 
     # Act
-    local override_label=$(jq -rn --arg s "${label}" '$s | @uri')
+    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
 
-    # Assert - Critical: = must be %3D everywhere
-    [[ "$override_label" =~ "%3D" ]]
+    # Assert - Critical: = must be %3D
+    [[ "$label_encoded" =~ "%3D" ]]
 }
 
 @test "Dynamic badge: value with special characters is URL-encoded" {
