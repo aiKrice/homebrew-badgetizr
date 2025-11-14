@@ -328,9 +328,10 @@ if [[ "${dynamic_badge_enabled}" = "true" ]]; then
             continue
         fi
 
-        default_label=$(sed -E 's/ /_/g; s/-/--/g' <<< "${label}")
-        override_label=$(jq -rn --arg s "${label}" '${s} | @uri')
-        value=$(yq ".badge_dynamic.settings.patterns[${i}].value // \"default\"" "${config_file}" | sed -E 's/ /_/g; s/-/--/g')
+        default_label=$(jq -rn --arg s "${label}" '$s | @uri')
+        override_label=$(jq -rn --arg s "${label}" '$s | @uri')
+        value=$(yq ".badge_dynamic.settings.patterns[${i}].value // \"default\"" "${config_file}")
+        value=$(jq -rn --arg s "${value}" '$s | @uri')
         color=$(yq ".badge_dynamic.settings.patterns[${i}].color // \"orange\"" "${config_file}")
         
         dynamic_badge="![Static Badge](https://img.shields.io/badge/${default_label}-${value}-grey?label=${override_label}&labelColor=grey&color=${color})"
@@ -437,8 +438,8 @@ if [[ "${ci_badge_enabled}" = "true" ]]; then
     fi
 
     # Escape text and label for URL
-    ci_text_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_text}")
-    ci_label_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_badge_label}")
+    ci_text_escaped=$(jq -rn --arg s "${ci_text}" '$s | @uri')
+    ci_label_escaped=$(jq -rn --arg s "${ci_badge_label}" '$s | @uri')
 
     # Create unified CI badge (always clickable)
     ci_badge="[![Static Badge](https://img.shields.io/badge/${ci_text_escaped}-ignored?label=${ci_label_escaped}&logo=${ci_badge_logo}&logoColor=white&labelColor=${ci_badge_label_color}&color=${ci_color})](${ci_badge_build_url})"
