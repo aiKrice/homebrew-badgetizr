@@ -38,7 +38,12 @@ jobs:
       - name: Install badgetizr from local formula
         run: |
           echo "📦 Installing badgetizr via Homebrew..."
-          brew install --build-from-source ./Formula/badgetizr.rb
+          # Create temporary tap to install from local formula
+          mkdir -p $(brew --repository)/Library/Taps/badgetizr-test
+          cp -r . $(brew --repository)/Library/Taps/badgetizr-test/homebrew-badgetizr
+
+          # Install from the temporary tap
+          brew install --build-from-source badgetizr-test/badgetizr/badgetizr
 
       - name: Verify installation structure
         run: |
@@ -101,6 +106,10 @@ jobs:
         run: |
           echo "🧹 Uninstalling badgetizr..."
           brew uninstall badgetizr || true
+
+          echo "🧹 Removing temporary tap..."
+          brew untap badgetizr-test/badgetizr || true
+          rm -rf $(brew --repository)/Library/Taps/badgetizr-test || true
 
   homebrew-e2e-summary:
     name: Homebrew E2E Summary
