@@ -5,21 +5,9 @@
 
 provider_get_pr_info() {
     local mr_id="$1"
-    local field="$2"
 
-    case "${field}" in
-        "title")
-            glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.title // empty'
-            ;;
-        "body")
-            # Get description and remove existing badgetizr comments
-            glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.description // ""' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
-            ;;
-        *)
-            echo "❌ Unknown field: ${field}. You can investigate and open a pull request if you know why."
-            return 1
-            ;;
-    esac
+    # Fetch both title and description in a single call for efficiency
+    glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null
 }
 
 provider_update_pr_description() {

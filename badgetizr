@@ -205,12 +205,14 @@ else
     ready_for_approval_badge_enabled="false"
 fi
 
-pull_request_title=$(get_pr_info "${ci_badge_pull_request_id}" "title")
-pull_request_body=$(get_pr_info "${ci_badge_pull_request_id}" "body")
+# Fetch PR info in a single call for efficiency
+pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}")
+pull_request_title=$(jq -r '.title // empty' <<< "${pr_info_json}")
+pull_request_body_raw=$(jq -r '.body // .description // ""' <<< "${pr_info_json}")
 destination_branch=$(get_destination_branch "${ci_badge_pull_request_id}")
 
-# Extract current badges from the pull request body
-pull_request_body=$(awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' <<< "${pull_request_body}" | tr -d '\r')          
+# Remove existing badgetizr badges and carriage returns from PR body
+pull_request_body=$(awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' <<< "${pull_request_body_raw}" | tr -d '\r')          
 
 all_badges=
 
@@ -223,7 +225,7 @@ if [[ "${ticket_badge_enabled}" = "true" ]]; then
         echo "🟡 Ticket id identified is -> ${ticket_id}"
         # shellcheck disable=SC2059  # ticket_badge_url contains %s placeholder from config
         ticket_badge_url_for_badge=$(printf "${ticket_badge_url}" "${ticket_id}")
-        ticket_id_for_badge=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ticket_id}") 
+        ticket_id_for_badge=$(jq -rn --arg s "${ticket_id}" '$s | @uri') 
         ticket_badge="[![Static Badge](https://img.shields.io/badge/${ticket_badge_label}-${ticket_id_for_badge}-${ticket_badge_color}?logo=${ticket_badge_logo}&color=${ticket_badge_color}&labelColor=grey)](${ticket_badge_url_for_badge})"
         all_badges=${all_badges}${ticket_badge}
     fi
@@ -237,7 +239,7 @@ if [[ "${branch_badge_enabled}" = "true" ]]; then
         exit 1
     fi
 
-    branch_badge_label_for_badge=$(sed -E 's/ /_/g; s/-/--/g' <<< "${branch_badge_label}")
+    branch_badge_label_for_badge=$(jq -rn --arg s "${branch_badge_label}" '$s | @uri')
     if [[ "${ci_badge_destination_branch}" != "${branch_badge_base_branch}" ]];then
         branch_badge="![Static Badge](https://img.shields.io/badge/${branch_badge_label_for_badge}-${ci_badge_destination_branch}-${branch_badge_color}?labelColor=grey&color=${branch_badge_color})"
         all_badges="${all_badges} ${branch_badge}"
@@ -326,12 +328,12 @@ if [[ "${dynamic_badge_enabled}" = "true" ]]; then
             continue
         fi
 
-        default_label=$(sed -E 's/ /_/g; s/-/--/g' <<< "${label}")
-        override_label=$(jq -rn --arg s "${label}" '${s} | @uri')
-        value=$(yq ".badge_dynamic.settings.patterns[${i}].value // \"default\"" "${config_file}" | sed -E 's/ /_/g; s/-/--/g')
+        label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
+        value=$(yq ".badge_dynamic.settings.patterns[${i}].value // \"default\"" "${config_file}")
+        value_encoded=$(jq -rn --arg s "${value}" '$s | @uri')
         color=$(yq ".badge_dynamic.settings.patterns[${i}].color // \"orange\"" "${config_file}")
-        
-        dynamic_badge="![Static Badge](https://img.shields.io/badge/${default_label}-${value}-grey?label=${override_label}&labelColor=grey&color=${color})"
+
+        dynamic_badge="![Static Badge](https://img.shields.io/badge/${label_encoded}-${value_encoded}-grey?label=${label_encoded}&labelColor=grey&color=${color})"
         all_badges="${all_badges} ${dynamic_badge}"
     done
 fi
@@ -435,8 +437,8 @@ if [[ "${ci_badge_enabled}" = "true" ]]; then
     fi
 
     # Escape text and label for URL
-    ci_text_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_text}")
-    ci_label_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_badge_label}")
+    ci_text_escaped=$(jq -rn --arg s "${ci_text}" '$s | @uri')
+    ci_label_escaped=$(jq -rn --arg s "${ci_badge_label}" '$s | @uri')
 
     # Create unified CI badge (always clickable)
     ci_badge="[![Static Badge](https://img.shields.io/badge/${ci_text_escaped}-ignored?label=${ci_label_escaped}&logo=${ci_badge_logo}&logoColor=white&labelColor=${ci_badge_label_color}&color=${ci_color})](${ci_badge_build_url})"

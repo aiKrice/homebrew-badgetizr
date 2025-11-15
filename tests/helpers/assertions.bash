@@ -51,8 +51,8 @@ assert_badge_type_exists() {
             fi
             ;;
         branch)
-            # Branch badge should have Target branch or Base Branch label (with space or underscore)
-            if ! echo "$output" | grep -qE "shields.io.*(Target.branch|Base.Branch)"; then
+            # Branch badge should have Target branch or Base Branch label (URL-encoded or not)
+            if ! echo "$output" | grep -qE "shields.io.*(Target.branch|Base.Branch|Target%20branch|Base%20Branch)"; then
                 echo "Expected branch badge"
                 return 1
             fi

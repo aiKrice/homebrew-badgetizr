@@ -4,20 +4,8 @@
 
 provider_get_pr_info() {
     local pr_id="$1"
-    local field="$2"
 
-    case "${field}" in
-        "title")
-            gh pr view "${pr_id}" --json title -q '.title'
-            ;;
-        "body")
-            gh pr view "${pr_id}" --json body -q '.body' | sed '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/d'
-            ;;
-        *)
-            echo "❌ Unknown field: ${field}. You can investigate and open a pull request if you know why."
-            return 1
-            ;;
-    esac
+    gh pr view "${pr_id}" --json title,body 2>/dev/null
 }
 
 provider_update_pr_description() {
