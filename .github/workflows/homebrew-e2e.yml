@@ -31,10 +31,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          brew install gh glab yq jq
-
       - name: Install badgetizr from local formula
         run: |
           echo "📦 Installing badgetizr via Homebrew..."
@@ -81,13 +77,27 @@ jobs:
 
       - name: Test badgetizr error handling
         run: |
-          echo "🧪 Testing: badgetizr without --pr-id (should fail gracefully)"
-          if badgetizr 2>&1 | grep -q "Error.*--pr-id"; then
-            echo "✅ Error message correct"
-          else
-            echo "❌ Expected error message not found"
+          echo "🧪 Testing: badgetizr without --pr-id (should fail with exit code 1)"
+
+          set +e
+          OUTPUT=$(badgetizr 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "Exit code: $EXIT_CODE"
+          echo "Output: $OUTPUT"
+
+          if [ $EXIT_CODE -ne 1 ]; then
+            echo "❌ Expected exit code 1, got $EXIT_CODE"
             exit 1
           fi
+
+          if ! echo "$OUTPUT" | grep -q "Error.*--pr-id"; then
+            echo "❌ Expected error message not found in output"
+            exit 1
+          fi
+
+          echo "✅ Error handling validated (exit code 1 + correct error message)"
 
       - name: Test providers are accessible
         run: |
@@ -121,12 +131,23 @@ jobs:
       - name: Check all macOS versions passed
         run: |
           echo "=== Homebrew E2E Test Results ==="
-          echo "Job result: ${{ needs.test-homebrew-installation.result }}"
+          echo "Matrix job result: ${{ needs.test-homebrew-installation.result }}"
 
-          if [ "${{ needs.test-homebrew-installation.result }}" != "success" ]; then
-            echo "❌ Homebrew E2E tests failed on at least one macOS version"
-            echo "Check the logs above for details on which OS failed"
+          # With fail-fast: false, we need to check the overall result
+          # Possible values: success, failure, cancelled, skipped
+          RESULT="${{ needs.test-homebrew-installation.result }}"
+
+          if [ "$RESULT" = "success" ]; then
+            echo "✅ All macOS versions (13, 14, latest) passed Homebrew E2E tests"
+            exit 0
+          elif [ "$RESULT" = "failure" ]; then
+            echo "❌ At least one macOS version failed Homebrew E2E tests"
+            echo "Please check the logs above to identify which OS (13, 14, or latest) failed"
             exit 1
+          elif [ "$RESULT" = "cancelled" ]; then
+            echo "⚠️ Homebrew E2E tests were cancelled"
+            exit 1
+          else
+            echo "⏭️ Homebrew E2E tests were skipped"
+            exit 0
           fi
-
-          echo "✅ Homebrew E2E tests passed on all macOS versions (13, 14, latest)"
