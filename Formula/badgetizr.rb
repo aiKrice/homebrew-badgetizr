@@ -7,6 +7,7 @@ class Badgetizr < Formula
     license "MIT"
 
     depends_on "yq"
+    depends_on "jq"
     depends_on "gh"
     depends_on "glab"
 
