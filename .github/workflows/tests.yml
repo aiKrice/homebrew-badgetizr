@@ -9,6 +9,12 @@ on:
   push:
     branches:
       - develop
+    paths:
+      - 'badgetizr'
+      - 'utils.sh'
+      - 'providers/**'
+      - 'tests/**'
+      - '.github/workflows/tests.yml'
 
 jobs:
   test:
