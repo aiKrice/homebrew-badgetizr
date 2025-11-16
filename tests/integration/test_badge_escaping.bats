@@ -162,11 +162,11 @@ teardown() {
     local sed_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_label}")
 
     # Act - Correct implementation
-    local jq_escaped=$(url_encode "${ci_label}")
+    local ci_label_escaped=$(url_encode "${ci_label}")
 
     # Assert - Demonstrate the bug
     [ "$sed_escaped" = "Build_&_Test" ]  # & is NOT escaped - BREAKS URL
-    [[ "$jq_escaped" =~ "Build%20%26%20Test" ]]  # & is %26 - CORRECT
+    [[ "$ci_label_escaped" =~ "Build%20%26%20Test" ]]  # & is %26 - CORRECT
 
     # Verify URL would be broken with sed
     local bad_url="https://img.shields.io/badge/123-ignored?label=${sed_escaped}"
@@ -178,10 +178,10 @@ teardown() {
     local ci_label="Build Status"
 
     # Act
-    local jq_escaped=$(url_encode "${ci_label}")
+    local ci_label_escaped=$(url_encode "${ci_label}")
 
     # Assert
-    [ "$jq_escaped" = "Build%20Status" ]
+    [ "$ci_label_escaped" = "Build%20Status" ]
 }
 
 # ============================================================================
