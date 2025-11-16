@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 # Integration tests for badge URL escaping with real configuration values
-# BUSINESS CRITICAL: Prevent regressions in badge label/value escaping
 
 load '../helpers/test_helpers'
 load '../helpers/assertions'
@@ -8,7 +7,6 @@ load '../helpers/assertions'
 setup() {
     setup_test_env
 
-    # Source utils.sh to access url_encode_shields function
     source "$PROJECT_ROOT/utils.sh"
 
     # Create a test config with challenging label values
@@ -71,7 +69,6 @@ teardown() {
     local label="Github Issue"
     local value="3/5"
 
-    # Expected outputs (all use url_encode_shields now)
     local label_expected="Github%20Issue"
     local value_expected="3%2F5"
 
@@ -133,8 +130,6 @@ teardown() {
 }
 
 @test "Dynamic badge: url_encode_shields syntax is correct (regression test)" {
-    # BUSINESS CRITICAL: Prevent encoding bugs from returning
-
     # Arrange
     local label="Test Label"
 
