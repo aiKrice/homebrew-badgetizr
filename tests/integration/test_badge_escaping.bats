@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 # Integration tests for badge URL escaping with real configuration values
-# BUSINESS CRITICAL: Prevent regressions in badge label/value escaping
 
 load '../helpers/test_helpers'
 load '../helpers/assertions'
 
 setup() {
     setup_test_env
+
+    source "$PROJECT_ROOT/utils.sh"
 
     # Create a test config with challenging label values
     cat > "${TEST_TEMP_DIR}/escaping_test.yml" <<'EOF'
@@ -68,13 +69,12 @@ teardown() {
     local label="Github Issue"
     local value="3/5"
 
-    # Expected outputs (all use jq @uri now)
     local label_expected="Github%20Issue"
     local value_expected="3%2F5"
 
     # Act - Generate badge URL components
-    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
-    local value_encoded=$(jq -rn --arg s "${value}" '$s | @uri')
+    local label_encoded=$(url_encode_shields "${label}")
+    local value_encoded=$(url_encode_shields "${value}")
 
     # Assert
     [ "$label_encoded" = "$label_expected" ]
@@ -94,7 +94,7 @@ teardown() {
     local value="Ready"
 
     # Act
-    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
+    local label_encoded=$(url_encode_shields "${label}")
 
     # Assert - Critical: & must be %26
     [[ "$label_encoded" =~ "%26" ]]
@@ -110,7 +110,7 @@ teardown() {
     local label="Test=Value"
 
     # Act
-    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
+    local label_encoded=$(url_encode_shields "${label}")
 
     # Assert - Critical: = must be %3D
     [[ "$label_encoded" =~ "%3D" ]]
@@ -121,7 +121,7 @@ teardown() {
     local value="3&5 tasks"
 
     # Act
-    local value_escaped=$(jq -rn --arg s "${value}" '$s | @uri')
+    local value_escaped=$(url_encode_shields "${value}")
 
     # Assert - Critical: & must be %26, space must be %20
     [[ "$value_escaped" =~ "%26" ]]
@@ -129,20 +129,19 @@ teardown() {
     [ "$value_escaped" = "3%265%20tasks" ]
 }
 
-@test "Dynamic badge: jq syntax is correct (regression test)" {
-    # BUSINESS CRITICAL: Prevent the '${{s}}' bug from returning
-
+@test "Dynamic badge: url_encode_shields syntax is correct (regression test)" {
     # Arrange
     local label="Test Label"
 
-    # Act - Should not produce jq compile error
-    local result=$(jq -rn --arg s "${label}" '$s | @uri' 2>&1)
+    # Act - Should not produce error
+    local result=$(url_encode_shields "${label}" 2>&1)
     local exit_code=$?
 
     # Assert
     [ "$exit_code" -eq 0 ]
     [[ ! "$result" =~ "syntax error" ]]
     [[ ! "$result" =~ "compile error" ]]
+    [[ ! "$result" =~ "Error" ]]
     [ "$result" = "Test%20Label" ]
 }
 
@@ -150,7 +149,7 @@ teardown() {
 # CI Badge Escaping Tests
 # ============================================================================
 
-@test "CI badge: label with ampersand must use jq @uri" {
+@test "CI badge: label with ampersand must use url_encode_shields()" {
     # Arrange
     local ci_label="Build & Test"
 
@@ -158,46 +157,46 @@ teardown() {
     local sed_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_label}")
 
     # Act - Correct implementation
-    local jq_escaped=$(jq -rn --arg s "${ci_label}" '$s | @uri')
+    local ci_label_escaped=$(url_encode_shields "${ci_label}")
 
     # Assert - Demonstrate the bug
     [ "$sed_escaped" = "Build_&_Test" ]  # & is NOT escaped - BREAKS URL
-    [[ "$jq_escaped" =~ "Build%20%26%20Test" ]]  # & is %26 - CORRECT
+    [[ "$ci_label_escaped" =~ "Build%20%26%20Test" ]]  # & is %26 - CORRECT
 
     # Verify URL would be broken with sed
     local bad_url="https://img.shields.io/badge/123-ignored?label=${sed_escaped}"
     [[ "$bad_url" =~ "label=Build_&_Test" ]]  # & creates new query param - BROKEN
 }
 
-@test "CI badge: label with space should use jq @uri for query param" {
+@test "CI badge: label with space should use url_encode_shields() for query param" {
     # Arrange
     local ci_label="Build Status"
 
     # Act
-    local jq_escaped=$(jq -rn --arg s "${ci_label}" '$s | @uri')
+    local ci_label_escaped=$(url_encode_shields "${ci_label}")
 
     # Assert
-    [ "$jq_escaped" = "Build%20Status" ]
+    [ "$ci_label_escaped" = "Build%20Status" ]
 }
 
 # ============================================================================
 # Other Badges Escaping Tests (No Query Params)
 # ============================================================================
 
-@test "Ticket badge: ticket ID uses jq @uri for URL encoding" {
+@test "Ticket badge: ticket ID uses url_encode_shields() for URL encoding" {
     # Arrange
-    local ticket_label="My-Ticket"
+    local ticket_label="My--Ticket"
     local ticket_id="ABC-123"
 
-    # Act - Now uses jq @uri for consistency
-    local ticket_id_escaped=$(jq -rn --arg s "${ticket_id}" '$s | @uri')
+    # Act - Now uses url_encode_shields() for consistency
+    local ticket_id_escaped=$(url_encode_shields "${ticket_id}")
 
-    # Assert
-    [ "$ticket_id_escaped" = "ABC-123" ]
+    # Assert - dashes are doubled for shields.io
+    [ "$ticket_id_escaped" = "ABC--123" ]
 
     # Verify URL
     local badge_url="https://img.shields.io/badge/${ticket_label}-${ticket_id_escaped}-blue"
-    [[ "$badge_url" =~ "badge/My-Ticket-ABC-123-blue" ]]
+    [[ "$badge_url" =~ "badge/My--Ticket-ABC--123-blue" ]]
 }
 
 @test "Ticket badge: ticket ID with special characters is URL-encoded" {
@@ -205,21 +204,22 @@ teardown() {
     local ticket_id="ABC-123 & more"
 
     # Act
-    local ticket_id_escaped=$(jq -rn --arg s "${ticket_id}" '$s | @uri')
+    local ticket_id_escaped=$(url_encode_shields "${ticket_id}")
 
-    # Assert - Critical: & must be %26, space must be %20
+    # Assert - Critical: & must be %26, space must be %20, dash doubled
     [[ "$ticket_id_escaped" =~ "%26" ]]
     [[ "$ticket_id_escaped" =~ "%20" ]]
-    [ "$ticket_id_escaped" = "ABC-123%20%26%20more" ]
+    [[ "$ticket_id_escaped" =~ "--" ]]
+    [ "$ticket_id_escaped" = "ABC--123%20%26%20more" ]
 }
 
-@test "Branch badge: label uses jq @uri for URL encoding" {
+@test "Branch badge: label uses url_encode_shields() for URL encoding" {
     # Arrange
     local branch_label="Target Branch"
     local branch_name="develop"
 
-    # Act - Now uses jq @uri for consistency
-    local branch_label_escaped=$(jq -rn --arg s "${branch_label}" '$s | @uri')
+    # Act - Now uses url_encode_shields() for consistency
+    local branch_label_escaped=$(url_encode_shields "${branch_label}")
 
     # Assert
     [ "$branch_label_escaped" = "Target%20Branch" ]
@@ -234,12 +234,51 @@ teardown() {
     local branch_label="Branch & Target"
 
     # Act
-    local branch_label_escaped=$(jq -rn --arg s "${branch_label}" '$s | @uri')
+    local branch_label_escaped=$(url_encode_shields "${branch_label}")
 
     # Assert - Critical: & must be %26, space must be %20
     [[ "$branch_label_escaped" =~ "%26" ]]
     [[ "$branch_label_escaped" =~ "%20" ]]
     [ "$branch_label_escaped" = "Branch%20%26%20Target" ]
+}
+
+@test "Badge escaping: underscore must be doubled for shields.io" {
+    # Arrange
+    local label="test_label"
+
+    # Act
+    local label_escaped=$(url_encode_shields "${label}")
+
+    # Assert - underscore must be doubled (_ → __)
+    [[ "$label_escaped" =~ "__" ]]
+    [ "$label_escaped" = "test__label" ]
+}
+
+@test "Badge escaping: dash must be doubled for shields.io" {
+    # Arrange
+    local label="test-label"
+
+    # Act
+    local label_escaped=$(url_encode_shields "${label}")
+
+    # Assert - dash must be doubled (- → --)
+    [[ "$label_escaped" =~ "--" ]]
+    [ "$label_escaped" = "test--label" ]
+}
+
+@test "Badge escaping: mixed special characters" {
+    # Arrange
+    local label="test-label_with spaces & more"
+
+    # Act
+    local label_escaped=$(url_encode_shields "${label}")
+
+    # Assert - all escaping rules applied
+    [[ "$label_escaped" =~ "--" ]]      # dash doubled
+    [[ "$label_escaped" =~ "__" ]]      # underscore doubled
+    [[ "$label_escaped" =~ "%20" ]]     # space encoded
+    [[ "$label_escaped" =~ "%26" ]]     # ampersand encoded
+    [ "$label_escaped" = "test--label__with%20spaces%20%26%20more" ]
 }
 
 # ============================================================================
@@ -307,7 +346,7 @@ EOF
     [ -f "$MOCK_GH_RESPONSES_DIR/pr_body.txt" ]
     local pr_body=$(cat "$MOCK_GH_RESPONSES_DIR/pr_body.txt")
 
-    # CRITICAL: Label should use jq @uri, not sed
+    # CRITICAL: Label should use url_encode_shields(), not sed
     # With current bug, this will contain "label=Build_&_Test" (WRONG)
     # After fix, should contain "label=Build%20%26%20Test" (CORRECT)
     [[ "$pr_body" =~ "img.shields.io" ]]

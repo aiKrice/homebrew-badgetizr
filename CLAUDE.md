@@ -388,7 +388,7 @@ Before committing changes to shell scripts (`.sh` files, `badgetizr`):
 #### 3. Docker Image Distribution
 - [ ] **Create official Docker image**
   - Multi-stage Dockerfile with minimal footprint
-  - Include all dependencies (gh, glab, yq, jq)
+  - Include all dependencies (gh, glab, yq)
   - Support for both GitHub and GitLab
   - Published to Docker Hub and GitHub Container Registry
   - Version tags matching releases

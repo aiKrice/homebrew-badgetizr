@@ -136,7 +136,7 @@ See `.github/workflows/test.yml` for CI configuration.
 
 ### Tests fail with "command not found"
 - Ensure bats-core is properly installed
-- Check that the project dependencies (yq, jq) are available
+- Check that the project dependencies (yq) are available
 
 ### Mock functions not working
 - Ensure you export mocked functions: `export -f function_name`
