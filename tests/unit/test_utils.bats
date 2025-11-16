@@ -45,69 +45,84 @@ setup() {
 }
 
 # ============================================================================
-# url_encode() function tests
+# url_encode_shields() function tests
 # ============================================================================
 
-@test "url_encode function exists" {
-    declare -f url_encode > /dev/null
+@test "url_encode_shields function exists" {
+    declare -f url_encode_shields > /dev/null
 }
 
-@test "url_encode: spaces become %20" {
-    result=$(url_encode "hello world")
+@test "url_encode_shields: spaces become %20" {
+    result=$(url_encode_shields "hello world")
     [ "$result" = "hello%20world" ]
 }
 
-@test "url_encode: underscores are doubled" {
-    result=$(url_encode "test_value")
+@test "url_encode_shields: underscores are doubled" {
+    result=$(url_encode_shields "test_value")
     [ "$result" = "test__value" ]
 }
 
-@test "url_encode: dashes are doubled" {
-    result=$(url_encode "test-value")
+@test "url_encode_shields: dashes are doubled" {
+    result=$(url_encode_shields "test-value")
     [ "$result" = "test--value" ]
 }
 
-@test "url_encode: multiple underscores are all doubled" {
-    result=$(url_encode "a_b_c")
+@test "url_encode_shields: multiple underscores are all doubled" {
+    result=$(url_encode_shields "a_b_c")
     [ "$result" = "a__b__c" ]
 }
 
-@test "url_encode: multiple dashes are all doubled" {
-    result=$(url_encode "a-b-c")
+@test "url_encode_shields: multiple dashes are all doubled" {
+    result=$(url_encode_shields "a-b-c")
     [ "$result" = "a--b--c" ]
 }
 
-@test "url_encode: ampersand becomes %26" {
-    result=$(url_encode "foo&bar")
+@test "url_encode_shields: ampersand becomes %26" {
+    result=$(url_encode_shields "foo&bar")
     [ "$result" = "foo%26bar" ]
 }
 
-@test "url_encode: equals becomes %3D" {
-    result=$(url_encode "key=value")
+@test "url_encode_shields: equals becomes %3D" {
+    result=$(url_encode_shields "key=value")
     [ "$result" = "key%3Dvalue" ]
 }
 
-@test "url_encode: forward slash becomes %2F" {
-    result=$(url_encode "path/to/file")
+@test "url_encode_shields: forward slash becomes %2F" {
+    result=$(url_encode_shields "path/to/file")
     [ "$result" = "path%2Fto%2Ffile" ]
 }
 
-@test "url_encode: mixed special characters" {
-    result=$(url_encode "test-label_with spaces & more")
+@test "url_encode_shields: mixed special characters" {
+    result=$(url_encode_shields "test-label_with spaces & more")
     [ "$result" = "test--label__with%20spaces%20%26%20more" ]
 }
 
-@test "url_encode: empty string" {
-    result=$(url_encode "")
+@test "url_encode_shields: empty string" {
+    result=$(url_encode_shields "")
     [ "$result" = "" ]
 }
 
-@test "url_encode: no special characters" {
-    result=$(url_encode "simple")
+@test "url_encode_shields: no special characters" {
+    result=$(url_encode_shields "simple")
     [ "$result" = "simple" ]
 }
 
-@test "url_encode: alphanumeric preserved" {
-    result=$(url_encode "ABC123xyz")
+@test "url_encode_shields: alphanumeric preserved" {
+    result=$(url_encode_shields "ABC123xyz")
     [ "$result" = "ABC123xyz" ]
+}
+
+@test "url_encode_shields: multiple consecutive dashes" {
+    result=$(url_encode_shields "test---value")
+    [ "$result" = "test------value" ]
+}
+
+@test "url_encode_shields: multiple consecutive underscores" {
+    result=$(url_encode_shields "test___value")
+    [ "$result" = "test______value" ]
+}
+
+@test "url_encode_shields: mixed multiple special chars" {
+    result=$(url_encode_shields "foo-bar_baz-qux_end")
+    [ "$result" = "foo--bar__baz--qux__end" ]
 }

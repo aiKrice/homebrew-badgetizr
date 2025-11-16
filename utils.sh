@@ -7,7 +7,7 @@ BADGETIZR_VERSION="2.5.0"
 # - Dash (-) must be doubled (--) to display a literal dash
 # - Other special characters follow standard URL encoding
 # See: https://shields.io/badges/static-badge
-url_encode() {
+url_encode_shields() {
     local string="$1"
     # Double dashes and underscores for shields.io, then apply URL encoding
     s="${string}" yq -n -oy eval 'strenv(s) | sub("-"; "--") | sub("_"; "__") | @uri | sub("\\+"; "%20")'
