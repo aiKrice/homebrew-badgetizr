@@ -89,7 +89,7 @@ provider_create_pr_label() {
 provider_get_destination_branch() {
     local mr_id="$1"
 
-    glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | jq -r '.target_branch // empty'
+    glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | yq -r '.target_branch'
 }
 
 provider_test_auth() {

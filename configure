@@ -48,14 +48,6 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
     else
         echo "🔵 yq is already installed."
     fi
-
-    if ! is_command_exists jq; then
-        echo "🟡 Installing jq..."
-        brew install jq
-        echo "🟢 jq successfuly installed"
-    else
-        echo "🔵 jq is already installed."
-    fi
 elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     echo "Running on: Linux"
     sudo apt-get update
@@ -66,14 +58,6 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
         echo "🟢 yq successfuly installed"
     else
         echo "🔵 yq is already installed."
-    fi
-
-    if ! is_command_exists jq; then
-        echo "🟡 Installing jq..."
-        sudo apt-get install -y jq
-        echo "🟢 jq successfuly installed"
-    else
-        echo "🔵 jq is already installed."
     fi
 else
     echo "🔴 Unsupported Operating System: ${OSTYPE}"
