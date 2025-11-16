@@ -34,55 +34,31 @@ check_yaml_key() {
 
 # Main
 if [[ "${OSTYPE}" == "darwin"* ]]; then
-    echo "🟡 Running on : macOS"
-    
+    echo "🟡 Running on: macOS"
+
     if ! is_command_exists brew; then
         echo "🔴 Homebrew not installed. Visit https://brew.sh/ to install it"
         exit 1
     fi
 
-    if ! is_command_exists yq; then
-        echo "🟡 Installing yq..."
-        brew install yq
-        echo "🟢 yq successfuly installed"
-    else
-        echo "🔵 yq is already installed."
-    fi
+    echo "📦 Installing dependencies from Brewfile..."
+    brew bundle
+    echo "🟢 Dependencies installed successfully"
 elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
-    echo "Running on: Linux"
+    echo "🟡 Running on: Linux"
     sudo apt-get update
+
     if ! is_command_exists yq; then
         echo "🟡 Installing yq (mikefarah/yq)..."
         sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
         sudo chmod +x /usr/local/bin/yq
-        echo "🟢 yq successfuly installed"
+        echo "🟢 yq successfully installed"
     else
         echo "🔵 yq is already installed."
     fi
-else
-    echo "🔴 Unsupported Operating System: ${OSTYPE}"
-    exit 1
-fi
 
-echo ""
-echo "🔍 Platform-specific CLI tools needed:"
-
-# Detect and provide platform-specific installation advice
-if [[ "${OSTYPE}" == "darwin"* ]]; then
-    echo "📝 For your macOS system:"
-    if ! is_command_exists gh; then
-        echo "   - Install GitHub CLI: brew install gh"
-    else
-        echo "   ✅ GitHub CLI (gh) already installed"
-    fi
-
-    if ! is_command_exists glab; then
-        echo "   - Install GitLab CLI: brew install glab"
-        echo "     Or download from: https://gitlab.com/gitlab-org/cli/-/releases"
-    else
-        echo "   ✅ GitLab CLI (glab) already installed"
-    fi
-elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
+    echo ""
+    echo "🔍 Platform-specific CLI tools needed:"
     echo "📝 For your Linux system:"
     if ! is_command_exists gh; then
         echo "   - Install GitHub CLI: https://github.com/cli/cli/blob/trunk/docs/install_linux.md"
@@ -95,6 +71,26 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     else
         echo "   ✅ GitLab CLI (glab) already installed"
     fi
+else
+    echo "🔴 Unsupported Operating System: ${OSTYPE}"
+    exit 1
+fi
+
+echo ""
+echo "🔧 Configuring Git hooks..."
+
+# Setup git hooks by including the project's .gitconfig
+if git config --local --get-all include.path | grep -q "^\\.gitconfig$"; then
+    echo "🔵 Git hooks already configured."
+else
+    git config --local include.path .gitconfig
+    echo "🟢 Git hooks configured successfully (using .gitconfig)"
+fi
+
+# Make sure all hooks are executable
+if [[ -d "githooks" ]]; then
+    chmod +x githooks/* 2>/dev/null
+    echo "🟢 Git hooks directory ready: githooks/"
 fi
 
 echo ""

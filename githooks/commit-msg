@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# commit-msg hook - Sends success notification after successful commit
+
+# Arguments passed by Git
+COMMIT_MSG_FILE=$1
+
+# Send macOS notification
+send_notification() {
+    local title="$1"
+    local message="$2"
+    local sound="${3:-default}"
+
+    if [[ "$OSTYPE" == "darwin"* ]] && command -v terminal-notifier &> /dev/null; then
+        terminal-notifier -title "$title" -message "$message" -sound "$sound"
+    fi
+}
+
+# Main execution
+main() {
+    # Extract commit message for notification (first line only)
+    local commit_summary
+    commit_summary=$(head -n 1 "$COMMIT_MSG_FILE" | sed 's/^#.*//')
+
+    if [ -n "$commit_summary" ]; then
+        # Success notification
+        send_notification "Badgetizr Commit Successful" \
+            "$commit_summary" \
+            "Glass"
+    fi
+}
+
+main "$@"
