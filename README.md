@@ -118,7 +118,7 @@ badgetizr:
     CONFIG_PATH: "../.badgetizr.yml"
     GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   before_script:
-    - apk add --no-cache curl bash yq jq
+    - apk add --no-cache curl bash yq
     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
     - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
     - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/${BADGETIZR_VERSION}.tar.gz | tar -xz
@@ -152,7 +152,7 @@ TAG=$(curl -s https://api.github.com/repos/aiKrice/homebrew-badgetizr/releases/l
 curl -L -o badgetizr-latest.tar.gz "https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/$TAG.tar.gz"
 tar -xz --strip-components=1 -f badgetizr-latest.tar.gz
 
-# Install dependencies (yq, jq) - supports macOS and Linux only
+# Install dependencies (yq) - supports macOS and Linux only
 ./configure
 
 # Install platform-specific CLI tools

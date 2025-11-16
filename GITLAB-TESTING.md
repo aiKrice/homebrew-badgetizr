@@ -51,7 +51,7 @@ badgetizr:
     CONFIG_PATH: "../.badgetizr.yml"  # Relative or absolute path (default: .badgetizr.yml if not specified)
     GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   before_script:
-    - apk add --no-cache curl bash yq jq
+    - apk add --no-cache curl bash yq
     - curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
     - mv /tmp/bin/glab /usr/local/bin/glab && chmod +x /usr/local/bin/glab
     - curl -sSL https://github.com/aiKrice/homebrew-badgetizr/archive/refs/heads/${BRANCH}.tar.gz | tar -xz
