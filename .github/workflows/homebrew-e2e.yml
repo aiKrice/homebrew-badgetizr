@@ -29,159 +29,131 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Get current week for cache
-        if: runner.os == 'Linux'
-        id: get-date
-        run: echo "week=$(date +'%Y-W%U')" >> $GITHUB_OUTPUT
-
-      - name: Cache Homebrew installation
-        if: runner.os == 'Linux'
-        uses: actions/cache@v4
-        with:
-          path: /home/linuxbrew/.linuxbrew
-          key: ${{ runner.os }}-homebrew-${{ steps.get-date.outputs.week }}
-          restore-keys: |
-            ${{ runner.os }}-homebrew-
-
+      # ------------------------------------------------------------------
+      # Install Homebrew on Linux (macOS has it preinstalled)
+      # ------------------------------------------------------------------
       - name: Install Homebrew (Linux only)
         if: runner.os == 'Linux'
         run: |
-          if [ ! -d "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-            echo "📦 Installing Homebrew on Linux (cache miss)..."
+          if ! command -v brew &>/dev/null; then
+            echo "📦 Installing Homebrew on Linux..."
             NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+            echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           else
-            echo "✅ Homebrew restored from cache (week: ${{ steps.get-date.outputs.week }})"
+            echo "Homebrew already installed (cache restored)"
           fi
 
-          echo "🔧 Adding Homebrew to PATH..."
-          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+      # ------------------------------------------------------------------
+      # Now that brew exists → compute paths safely
+      # ------------------------------------------------------------------
+      - name: Setup Homebrew dynamic paths
+        run: |
+          BREW_REPO=$(brew --repository)
+          BREW_PREFIX=$(brew --prefix)
 
+          echo "BREW_REPO=$BREW_REPO" >> $GITHUB_ENV
+          echo "BREW_PREFIX=$BREW_PREFIX" >> $GITHUB_ENV
+
+          echo "TAP_NAME=badgetizr-test/badgetizr" >> $GITHUB_ENV
+          echo "TAP_PATH=$BREW_REPO/Library/Taps/badgetizr-test" >> $GITHUB_ENV
+
+          echo "INSTALL_PATH=$BREW_PREFIX/opt/badgetizr/libexec" >> $GITHUB_ENV
+          echo "WRAPPER_PATH=$BREW_PREFIX/bin/badgetizr" >> $GITHUB_ENV
+
+      # ------------------------------------------------------------------
+      # Install Badgetizr
+      # ------------------------------------------------------------------
       - name: Install badgetizr from local formula
         run: |
           echo "📦 Installing badgetizr via Homebrew..."
 
-          # Create temporary tap to install from local formula
-          # Note: $(brew --repository) automatically resolves to the correct path on all platforms:
-          #   - macOS Apple Silicon: /opt/homebrew
-          #   - macOS Intel: /usr/local/Homebrew
-          #   - Linux: /home/linuxbrew/.linuxbrew/Homebrew
-          BREW_REPO=$(brew --repository)
-          mkdir -p "${BREW_REPO}/Library/Taps/badgetizr-test"
-          cp -r . "${BREW_REPO}/Library/Taps/badgetizr-test/homebrew-badgetizr"
+          mkdir -p "$TAP_PATH"
+          cp -r . "$TAP_PATH/homebrew-badgetizr"
 
-          # Install from the temporary tap
-          brew install --build-from-source badgetizr-test/badgetizr/badgetizr
+          brew install --build-from-source "$TAP_NAME/badgetizr"
 
+      # ------------------------------------------------------------------
+      # Verification
+      # ------------------------------------------------------------------
       - name: Verify installation structure
         run: |
           echo "=== 📂 Checking libexec structure ==="
-          INSTALL_PATH=$(brew --prefix)/opt/badgetizr/libexec
-          echo "Installation path: $INSTALL_PATH"
           ls -la "$INSTALL_PATH"
 
           echo ""
-          echo "=== 🔗 Checking bin wrapper ==="
-          WRAPPER_PATH=$(brew --prefix)/bin/badgetizr
-          echo "Wrapper path: $WRAPPER_PATH"
+          echo "=== 🔗 Wrapper ==="
           cat "$WRAPPER_PATH"
 
           echo ""
-          echo "=== ✅ Verifying UTILS_PATH is set ==="
-          if grep -q "UTILS_PATH" "$WRAPPER_PATH"; then
-            echo "✅ UTILS_PATH found in wrapper"
-            grep "UTILS_PATH" "$WRAPPER_PATH"
-          else
-            echo "❌ UTILS_PATH not found in wrapper!"
-            echo "This would cause the v1.5.5 bug regression!"
+          if ! grep -q "UTILS_PATH" "$WRAPPER_PATH"; then
+            echo "❌ UTILS_PATH missing in wrapper"
             exit 1
           fi
+          echo "UTILS_PATH OK"
 
       - name: Test badgetizr --version
-        run: |
-          echo "🧪 Testing: badgetizr --version"
-          badgetizr --version
+        run: badgetizr --version
 
       - name: Test badgetizr --help
-        run: |
-          echo "🧪 Testing: badgetizr --help"
-          badgetizr --help | head -20
+        run: badgetizr --help | head -20
 
       - name: Test badgetizr error handling
         run: |
-          echo "🧪 Testing: badgetizr without --pr-id (should fail with exit code 1)"
-
           set +e
           OUTPUT=$(badgetizr 2>&1)
-          EXIT_CODE=$?
+          EXIT=$?
           set -e
 
-          echo "Exit code: $EXIT_CODE"
+          echo "Exit: $EXIT"
           echo "Output: $OUTPUT"
 
-          if [ $EXIT_CODE -ne 1 ]; then
-            echo "❌ Expected exit code 1, got $EXIT_CODE"
+          if [ $EXIT -ne 1 ]; then
+            echo "❌ Expected exit code 1"
             exit 1
           fi
 
           if ! echo "$OUTPUT" | grep -q "Error.*--pr-id"; then
-            echo "❌ Expected error message not found in output"
+            echo "❌ Expected error not found"
             exit 1
           fi
 
-          echo "✅ Error handling validated (exit code 1 + correct error message)"
+          echo "✅ Error handling OK"
 
-      - name: Test providers are accessible
+      - name: Test providers accessibility
         run: |
-          echo "🧪 Testing: providers directory is accessible"
-          INSTALL_PATH=$(brew --prefix)/opt/badgetizr/libexec
-          if [ -d "$INSTALL_PATH/providers" ]; then
-            echo "✅ Providers directory found"
-            ls -la "$INSTALL_PATH/providers"
-          else
-            echo "❌ Providers directory not found!"
+          if [ ! -d "$INSTALL_PATH/providers" ]; then
+            echo "❌ providers/ missing!"
             exit 1
           fi
+          echo "providers/ OK"
+          ls -la "$INSTALL_PATH/providers"
 
+      # ------------------------------------------------------------------
+      # Cleanup
+      # ------------------------------------------------------------------
       - name: Cleanup
         if: always()
         run: |
-          echo "🧹 Uninstalling badgetizr..."
           brew uninstall badgetizr || true
-
-          echo "🧹 Removing temporary tap..."
-          brew untap badgetizr-test/badgetizr || true
-          rm -rf $(brew --repository)/Library/Taps/badgetizr-test || true
+          brew untap "$TAP_NAME" || true
+          rm -rf "$TAP_PATH" || true
 
   homebrew-e2e-summary:
-    name: Homebrew E2E Summary
     runs-on: ubuntu-latest
     needs: [test-homebrew-installation]
     if: always()
 
     steps:
-      - name: Check all macOS versions passed
+      - name: Summary
         run: |
-          echo "=== Homebrew E2E Test Results ==="
           echo "Matrix job result: ${{ needs.test-homebrew-installation.result }}"
-
-          # With fail-fast: false, we need to check the overall result
-          # Possible values: success, failure, cancelled, skipped
-          RESULT="${{ needs.test-homebrew-installation.result }}"
-
-          if [ "$RESULT" = "success" ]; then
-            echo "✅ All platforms passed Homebrew E2E tests"
-            exit 0
-          elif [ "$RESULT" = "failure" ]; then
-            echo "❌ At least one platform failed Homebrew E2E tests"
-            echo "Please check the logs above to identify which OS failed"
-            exit 1
-          elif [ "$RESULT" = "cancelled" ]; then
-            echo "⚠️ Homebrew E2E tests were cancelled"
-            exit 1
-          else
-            echo "⏭️ Homebrew E2E tests were skipped"
-            exit 0
-          fi
+          case "${{ needs.test-homebrew-installation.result }}" in
+            success) echo "✅ All platforms passed"; exit 0;;
+            failure) echo "❌ A platform failed"; exit 1;;
+            cancelled) echo "⚠️ Cancelled"; exit 1;;
+            *) echo "⏭️ Skipped"; exit 0;;
+          esac
