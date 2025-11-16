@@ -8,6 +8,9 @@ load '../helpers/assertions'
 setup() {
     setup_test_env
 
+    # Source utils.sh to access url_encode function
+    source "$PROJECT_ROOT/utils.sh"
+
     # Create a test config with challenging label values
     cat > "${TEST_TEMP_DIR}/escaping_test.yml" <<'EOF'
 badge_dynamic:
@@ -68,13 +71,13 @@ teardown() {
     local label="Github Issue"
     local value="3/5"
 
-    # Expected outputs (all use jq @uri now)
+    # Expected outputs (all use url_encode now)
     local label_expected="Github%20Issue"
     local value_expected="3%2F5"
 
     # Act - Generate badge URL components
-    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
-    local value_encoded=$(jq -rn --arg s "${value}" '$s | @uri')
+    local label_encoded=$(url_encode "${label}")
+    local value_encoded=$(url_encode "${value}")
 
     # Assert
     [ "$label_encoded" = "$label_expected" ]
@@ -94,7 +97,7 @@ teardown() {
     local value="Ready"
 
     # Act
-    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
+    local label_encoded=$(url_encode "${label}")
 
     # Assert - Critical: & must be %26
     [[ "$label_encoded" =~ "%26" ]]
@@ -110,7 +113,7 @@ teardown() {
     local label="Test=Value"
 
     # Act
-    local label_encoded=$(jq -rn --arg s "${label}" '$s | @uri')
+    local label_encoded=$(url_encode "${label}")
 
     # Assert - Critical: = must be %3D
     [[ "$label_encoded" =~ "%3D" ]]
@@ -121,7 +124,7 @@ teardown() {
     local value="3&5 tasks"
 
     # Act
-    local value_escaped=$(jq -rn --arg s "${value}" '$s | @uri')
+    local value_escaped=$(url_encode "${value}")
 
     # Assert - Critical: & must be %26, space must be %20
     [[ "$value_escaped" =~ "%26" ]]
@@ -129,20 +132,21 @@ teardown() {
     [ "$value_escaped" = "3%265%20tasks" ]
 }
 
-@test "Dynamic badge: jq syntax is correct (regression test)" {
-    # BUSINESS CRITICAL: Prevent the '${{s}}' bug from returning
+@test "Dynamic badge: url_encode syntax is correct (regression test)" {
+    # BUSINESS CRITICAL: Prevent encoding bugs from returning
 
     # Arrange
     local label="Test Label"
 
-    # Act - Should not produce jq compile error
-    local result=$(jq -rn --arg s "${label}" '$s | @uri' 2>&1)
+    # Act - Should not produce error
+    local result=$(url_encode "${label}" 2>&1)
     local exit_code=$?
 
     # Assert
     [ "$exit_code" -eq 0 ]
     [[ ! "$result" =~ "syntax error" ]]
     [[ ! "$result" =~ "compile error" ]]
+    [[ ! "$result" =~ "Error" ]]
     [ "$result" = "Test%20Label" ]
 }
 
@@ -150,7 +154,7 @@ teardown() {
 # CI Badge Escaping Tests
 # ============================================================================
 
-@test "CI badge: label with ampersand must use jq @uri" {
+@test "CI badge: label with ampersand must use url_encode()" {
     # Arrange
     local ci_label="Build & Test"
 
@@ -158,7 +162,7 @@ teardown() {
     local sed_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_label}")
 
     # Act - Correct implementation
-    local jq_escaped=$(jq -rn --arg s "${ci_label}" '$s | @uri')
+    local jq_escaped=$(url_encode "${ci_label}")
 
     # Assert - Demonstrate the bug
     [ "$sed_escaped" = "Build_&_Test" ]  # & is NOT escaped - BREAKS URL
@@ -169,12 +173,12 @@ teardown() {
     [[ "$bad_url" =~ "label=Build_&_Test" ]]  # & creates new query param - BROKEN
 }
 
-@test "CI badge: label with space should use jq @uri for query param" {
+@test "CI badge: label with space should use url_encode() for query param" {
     # Arrange
     local ci_label="Build Status"
 
     # Act
-    local jq_escaped=$(jq -rn --arg s "${ci_label}" '$s | @uri')
+    local jq_escaped=$(url_encode "${ci_label}")
 
     # Assert
     [ "$jq_escaped" = "Build%20Status" ]
@@ -184,13 +188,13 @@ teardown() {
 # Other Badges Escaping Tests (No Query Params)
 # ============================================================================
 
-@test "Ticket badge: ticket ID uses jq @uri for URL encoding" {
+@test "Ticket badge: ticket ID uses url_encode() for URL encoding" {
     # Arrange
     local ticket_label="My-Ticket"
     local ticket_id="ABC-123"
 
-    # Act - Now uses jq @uri for consistency
-    local ticket_id_escaped=$(jq -rn --arg s "${ticket_id}" '$s | @uri')
+    # Act - Now uses url_encode() for consistency
+    local ticket_id_escaped=$(url_encode "${ticket_id}")
 
     # Assert
     [ "$ticket_id_escaped" = "ABC-123" ]
@@ -205,7 +209,7 @@ teardown() {
     local ticket_id="ABC-123 & more"
 
     # Act
-    local ticket_id_escaped=$(jq -rn --arg s "${ticket_id}" '$s | @uri')
+    local ticket_id_escaped=$(url_encode "${ticket_id}")
 
     # Assert - Critical: & must be %26, space must be %20
     [[ "$ticket_id_escaped" =~ "%26" ]]
@@ -213,13 +217,13 @@ teardown() {
     [ "$ticket_id_escaped" = "ABC-123%20%26%20more" ]
 }
 
-@test "Branch badge: label uses jq @uri for URL encoding" {
+@test "Branch badge: label uses url_encode() for URL encoding" {
     # Arrange
     local branch_label="Target Branch"
     local branch_name="develop"
 
-    # Act - Now uses jq @uri for consistency
-    local branch_label_escaped=$(jq -rn --arg s "${branch_label}" '$s | @uri')
+    # Act - Now uses url_encode() for consistency
+    local branch_label_escaped=$(url_encode "${branch_label}")
 
     # Assert
     [ "$branch_label_escaped" = "Target%20Branch" ]
@@ -234,7 +238,7 @@ teardown() {
     local branch_label="Branch & Target"
 
     # Act
-    local branch_label_escaped=$(jq -rn --arg s "${branch_label}" '$s | @uri')
+    local branch_label_escaped=$(url_encode "${branch_label}")
 
     # Assert - Critical: & must be %26, space must be %20
     [[ "$branch_label_escaped" =~ "%26" ]]
@@ -307,7 +311,7 @@ EOF
     [ -f "$MOCK_GH_RESPONSES_DIR/pr_body.txt" ]
     local pr_body=$(cat "$MOCK_GH_RESPONSES_DIR/pr_body.txt")
 
-    # CRITICAL: Label should use jq @uri, not sed
+    # CRITICAL: Label should use url_encode(), not sed
     # With current bug, this will contain "label=Build_&_Test" (WRONG)
     # After fix, should contain "label=Build%20%26%20Test" (CORRECT)
     [[ "$pr_body" =~ "img.shields.io" ]]
