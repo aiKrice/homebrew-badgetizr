@@ -225,7 +225,7 @@ if [[ "${ticket_badge_enabled}" = "true" ]]; then
         echo "🟡 Ticket id identified is -> ${ticket_id}"
         # shellcheck disable=SC2059  # ticket_badge_url contains %s placeholder from config
         ticket_badge_url_for_badge=$(printf "${ticket_badge_url}" "${ticket_id}")
-        ticket_id_for_badge=$(s="${ticket_id}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")') 
+        ticket_id_for_badge=$(url_encode "${ticket_id}") 
         ticket_badge="[![Static Badge](https://img.shields.io/badge/${ticket_badge_label}-${ticket_id_for_badge}-${ticket_badge_color}?logo=${ticket_badge_logo}&color=${ticket_badge_color}&labelColor=grey)](${ticket_badge_url_for_badge})"
         all_badges=${all_badges}${ticket_badge}
     fi
@@ -239,7 +239,7 @@ if [[ "${branch_badge_enabled}" = "true" ]]; then
         exit 1
     fi
 
-    branch_badge_label_for_badge=$(s="${branch_badge_label}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")')
+    branch_badge_label_for_badge=$(url_encode "${branch_badge_label}")
     if [[ "${ci_badge_destination_branch}" != "${branch_badge_base_branch}" ]];then
         branch_badge="![Static Badge](https://img.shields.io/badge/${branch_badge_label_for_badge}-${ci_badge_destination_branch}-${branch_badge_color}?labelColor=grey&color=${branch_badge_color})"
         all_badges="${all_badges} ${branch_badge}"
@@ -328,9 +328,9 @@ if [[ "${dynamic_badge_enabled}" = "true" ]]; then
             continue
         fi
 
-        label_encoded=$(s="${label}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")')
+        label_encoded=$(url_encode "${label}")
         value=$(yq ".badge_dynamic.settings.patterns[${i}].value // \"default\"" "${config_file}")
-        value_encoded=$(s="${value}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")')
+        value_encoded=$(url_encode "${value}")
         color=$(yq ".badge_dynamic.settings.patterns[${i}].color // \"orange\"" "${config_file}")
 
         dynamic_badge="![Static Badge](https://img.shields.io/badge/${label_encoded}-${value_encoded}-grey?label=${label_encoded}&labelColor=grey&color=${color})"
@@ -437,8 +437,8 @@ if [[ "${ci_badge_enabled}" = "true" ]]; then
     fi
 
     # Escape text and label for URL
-    ci_text_escaped=$(s="${ci_text}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")')
-    ci_label_escaped=$(s="${ci_badge_label}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")')
+    ci_text_escaped=$(url_encode "${ci_text}")
+    ci_label_escaped=$(url_encode "${ci_badge_label}")
 
     # Create unified CI badge (always clickable)
     ci_badge="[![Static Badge](https://img.shields.io/badge/${ci_text_escaped}-ignored?label=${ci_label_escaped}&logo=${ci_badge_logo}&logoColor=white&labelColor=${ci_badge_label_color}&color=${ci_color})](${ci_badge_build_url})"

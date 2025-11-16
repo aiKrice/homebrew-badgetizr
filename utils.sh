@@ -1,12 +1,17 @@
 #!/bin/bash
 BADGETIZR_VERSION="2.5.0"
 
+url_encode() {
+    local string="$1"
+    s="${string}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")'
+}
+
 show_help() {
     cat <<EOF
 Usage: $0 [options]
 
 Options :
-  -c <file>, 
+  -c <file>,
   --configuration=<file>,
   --configuration <file>        (Optional) Specify the path to the configuration. Default is .badgetizr.yml
 
