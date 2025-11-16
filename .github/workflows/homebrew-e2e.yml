@@ -25,18 +25,52 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14, macos-latest]
+        os: [macos-latest, macos-15-intel, ubuntu-latest]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get current week for cache
+        if: runner.os == 'Linux'
+        id: get-date
+        run: echo "week=$(date +'%Y-W%U')" >> $GITHUB_OUTPUT
+
+      - name: Cache Homebrew installation
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: /home/linuxbrew/.linuxbrew
+          key: ${{ runner.os }}-homebrew-${{ steps.get-date.outputs.week }}
+          restore-keys: |
+            ${{ runner.os }}-homebrew-
+
+      - name: Install Homebrew (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          if [ ! -d "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+            echo "📦 Installing Homebrew on Linux (cache miss)..."
+            NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          else
+            echo "✅ Homebrew restored from cache (week: ${{ steps.get-date.outputs.week }})"
+          fi
+
+          echo "🔧 Adding Homebrew to PATH..."
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
       - name: Install badgetizr from local formula
         run: |
           echo "📦 Installing badgetizr via Homebrew..."
+
           # Create temporary tap to install from local formula
-          mkdir -p $(brew --repository)/Library/Taps/badgetizr-test
-          cp -r . $(brew --repository)/Library/Taps/badgetizr-test/homebrew-badgetizr
+          # Note: $(brew --repository) automatically resolves to the correct path on all platforms:
+          #   - macOS Apple Silicon: /opt/homebrew
+          #   - macOS Intel: /usr/local/Homebrew
+          #   - Linux: /home/linuxbrew/.linuxbrew/Homebrew
+          BREW_REPO=$(brew --repository)
+          mkdir -p "${BREW_REPO}/Library/Taps/badgetizr-test"
+          cp -r . "${BREW_REPO}/Library/Taps/badgetizr-test/homebrew-badgetizr"
 
           # Install from the temporary tap
           brew install --build-from-source badgetizr-test/badgetizr/badgetizr
@@ -138,11 +172,11 @@ jobs:
           RESULT="${{ needs.test-homebrew-installation.result }}"
 
           if [ "$RESULT" = "success" ]; then
-            echo "✅ All macOS versions (13, 14, latest) passed Homebrew E2E tests"
+            echo "✅ All platforms passed Homebrew E2E tests"
             exit 0
           elif [ "$RESULT" = "failure" ]; then
-            echo "❌ At least one macOS version failed Homebrew E2E tests"
-            echo "Please check the logs above to identify which OS (13, 14, or latest) failed"
+            echo "❌ At least one platform failed Homebrew E2E tests"
+            echo "Please check the logs above to identify which OS failed"
             exit 1
           elif [ "$RESULT" = "cancelled" ]; then
             echo "⚠️ Homebrew E2E tests were cancelled"
