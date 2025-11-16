@@ -1,9 +1,16 @@
 #!/bin/bash
 BADGETIZR_VERSION="2.5.0"
 
+# URL encode a string for shields.io badge API
+# Shields.io requires special escaping:
+# - Underscore (_) must be doubled (__) to display a literal underscore
+# - Dash (-) must be doubled (--) to display a literal dash
+# - Other special characters follow standard URL encoding
+# See: https://shields.io/badges/static-badge
 url_encode() {
     local string="$1"
-    s="${string}" yq -n -oy eval 'strenv(s) | @uri | sub("\\+"; "%20")'
+    # Double dashes and underscores for shields.io, then apply URL encoding
+    s="${string}" yq -n -oy eval 'strenv(s) | sub("-"; "--") | sub("_"; "__") | @uri | sub("\\+"; "%20")'
 }
 
 show_help() {

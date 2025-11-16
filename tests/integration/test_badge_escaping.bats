@@ -190,18 +190,18 @@ teardown() {
 
 @test "Ticket badge: ticket ID uses url_encode() for URL encoding" {
     # Arrange
-    local ticket_label="My-Ticket"
+    local ticket_label="My--Ticket"
     local ticket_id="ABC-123"
 
     # Act - Now uses url_encode() for consistency
     local ticket_id_escaped=$(url_encode "${ticket_id}")
 
-    # Assert
-    [ "$ticket_id_escaped" = "ABC-123" ]
+    # Assert - dashes are doubled for shields.io
+    [ "$ticket_id_escaped" = "ABC--123" ]
 
     # Verify URL
     local badge_url="https://img.shields.io/badge/${ticket_label}-${ticket_id_escaped}-blue"
-    [[ "$badge_url" =~ "badge/My-Ticket-ABC-123-blue" ]]
+    [[ "$badge_url" =~ "badge/My--Ticket-ABC--123-blue" ]]
 }
 
 @test "Ticket badge: ticket ID with special characters is URL-encoded" {
@@ -211,10 +211,11 @@ teardown() {
     # Act
     local ticket_id_escaped=$(url_encode "${ticket_id}")
 
-    # Assert - Critical: & must be %26, space must be %20
+    # Assert - Critical: & must be %26, space must be %20, dash doubled
     [[ "$ticket_id_escaped" =~ "%26" ]]
     [[ "$ticket_id_escaped" =~ "%20" ]]
-    [ "$ticket_id_escaped" = "ABC-123%20%26%20more" ]
+    [[ "$ticket_id_escaped" =~ "--" ]]
+    [ "$ticket_id_escaped" = "ABC--123%20%26%20more" ]
 }
 
 @test "Branch badge: label uses url_encode() for URL encoding" {
@@ -244,6 +245,45 @@ teardown() {
     [[ "$branch_label_escaped" =~ "%26" ]]
     [[ "$branch_label_escaped" =~ "%20" ]]
     [ "$branch_label_escaped" = "Branch%20%26%20Target" ]
+}
+
+@test "Badge escaping: underscore must be doubled for shields.io" {
+    # Arrange
+    local label="test_label"
+
+    # Act
+    local label_escaped=$(url_encode "${label}")
+
+    # Assert - underscore must be doubled (_ → __)
+    [[ "$label_escaped" =~ "__" ]]
+    [ "$label_escaped" = "test__label" ]
+}
+
+@test "Badge escaping: dash must be doubled for shields.io" {
+    # Arrange
+    local label="test-label"
+
+    # Act
+    local label_escaped=$(url_encode "${label}")
+
+    # Assert - dash must be doubled (- → --)
+    [[ "$label_escaped" =~ "--" ]]
+    [ "$label_escaped" = "test--label" ]
+}
+
+@test "Badge escaping: mixed special characters" {
+    # Arrange
+    local label="test-label_with spaces & more"
+
+    # Act
+    local label_escaped=$(url_encode "${label}")
+
+    # Assert - all escaping rules applied
+    [[ "$label_escaped" =~ "--" ]]      # dash doubled
+    [[ "$label_escaped" =~ "__" ]]      # underscore doubled
+    [[ "$label_escaped" =~ "%20" ]]     # space encoded
+    [[ "$label_escaped" =~ "%26" ]]     # ampersand encoded
+    [ "$label_escaped" = "test--label__with%20spaces%20%26%20more" ]
 }
 
 # ============================================================================
