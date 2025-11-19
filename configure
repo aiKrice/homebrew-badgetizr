@@ -31,6 +31,21 @@ check_yaml_key() {
     fi
 }
 
+# Parse arguments
+CONTRIBUTOR_MODE=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --contributor)
+            CONTRIBUTOR_MODE=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: ./configure [--contributor]"
+            exit 1
+            ;;
+    esac
+done
 
 # Main
 if [[ "${OSTYPE}" == "darwin"* ]]; then
@@ -41,8 +56,21 @@ if [[ "${OSTYPE}" == "darwin"* ]]; then
         exit 1
     fi
 
-    echo "📦 Installing dependencies from Brewfile..."
-    brew bundle
+    # Select Brewfile based on mode
+    if [[ "$CONTRIBUTOR_MODE" == true ]]; then
+        BREWFILE="Brewfile.dev"
+        echo "📦 Installing contributor dependencies from Brewfile.dev..."
+    else
+        BREWFILE="Brewfile"
+        echo "📦 Installing dependencies from Brewfile..."
+    fi
+
+    if [[ ! -f "$BREWFILE" ]]; then
+        echo "🔴 $BREWFILE not found"
+        exit 1
+    fi
+
+    brew bundle --file="$BREWFILE"
     echo "🟢 Dependencies installed successfully"
 elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
     echo "🟡 Running on: Linux"
