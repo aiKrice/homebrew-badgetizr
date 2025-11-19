@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # pre-commit hook - Runs shfmt and shellcheck on modified shell files
 
-set -e
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -23,15 +21,12 @@ check_dependencies() {
 
     if [ ${#missing_deps[@]} -ne 0 ]; then
         echo -e "${RED}Error: Missing required dependencies: ${missing_deps[*]}${RESET}" >&2
-        echo -e "${YELLOW}Please run './configure' at the root of the project to install dependencies.${RESET}" >&2
+        echo -e "${YELLOW}Please run './configure --contributor' at the root of the project to install dependencies.${RESET}" >&2
 
         # Send notification if on macOS
-        if [[ "$OSTYPE" == "darwin"* ]] && command -v terminal-notifier &> /dev/null; then
-            terminal-notifier -title "Badgetizr Pre-commit Failed" \
-                -message "Missing dependencies: ${missing_deps[*]}. Run ./configure" \
-                -sound "Basso"
-                -contentImage logo.png
-        fi
+        send_notification "Badgetizr Pre-commit Failed" \
+            "Missing dependencies: ${missing_deps[*]}. Run ./configure --contributor" \
+            "Basso"
 
         exit 1
     fi
@@ -42,9 +37,10 @@ send_notification() {
     local title="$1"
     local message="$2"
     local sound="${3:-default}"
+    local logo="${4:-logo.png}"
 
     if [[ "$OSTYPE" == "darwin"* ]] && command -v terminal-notifier &> /dev/null; then
-        terminal-notifier -title "$title" -message "$message" -sound "$sound"
+        terminal-notifier -title "$title" -message "$message" -sound "$sound" -contentImage "$logo"
     fi
 }
 
@@ -68,8 +64,15 @@ run_shfmt() {
 
     for file in "${files[@]}"; do
         if [ -f "$file" ]; then
+            # Calculate hash before formatting
+            hash_before=$(git hash-object "$file")
+
             if shfmt -w -ci -sr "$file" 2>/dev/null; then
-                if git diff --name-only "$file" | grep -q "$file"; then
+                # Calculate hash after formatting
+                hash_after=$(git hash-object "$file")
+
+                # Only stage if shfmt actually modified the file
+                if [[ "$hash_before" != "$hash_after" ]]; then
                     shfmt_fixed+=("$file")
                     git add "$file"
                 fi
@@ -143,7 +146,7 @@ main() {
     mapfile -t shell_files < <(get_shell_files)
 
     if [ ${#shell_files[@]} -eq 0 ]; then
-        echo -e "${GREEN}No shell files to check${RESET}"
+        echo -e "${GREEN}✓ Pre-commit checks skipped (no shell scripts modified)${RESET}"
         exit 0
     fi
 

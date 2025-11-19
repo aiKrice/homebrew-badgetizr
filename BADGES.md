@@ -67,6 +67,18 @@ badge_ticket:
 | `sed_pattern` | Regex to extract ticket ID (requires capture group) | `.*\(([^)]+)\).*` | No |
 | `url` | URL template (`%s` replaced with ticket ID) | Atlassian URL | Yes |
 
+#### Common Regex Patterns
+
+**To match `[GH-123]` format:**
+```yaml
+sed_pattern: '.*\[GH-([0-9]+)\].*'
+```
+
+**To match `feat(GH-123):` format (conventional commits):**
+```yaml
+sed_pattern: '.*\(GH-([0-9]+)\):.*'
+```
+
 ### ⚠️ Work In Progress (WIP) Badge
 
 Automatically detects "WIP" in PR titles (case-insensitive) and displays a warning badge.

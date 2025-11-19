@@ -9,9 +9,10 @@ send_notification() {
     local title="$1"
     local message="$2"
     local sound="${3:-default}"
+    local logo="${4:-logo.png}"
 
     if [[ "$OSTYPE" == "darwin"* ]] && command -v terminal-notifier &> /dev/null; then
-        terminal-notifier -title "$title" -message "$message" -sound "$sound"
+        terminal-notifier -title "$title" -message "$message" -sound "$sound" -contentImage "$logo"
     fi
 }
 
