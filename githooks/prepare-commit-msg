@@ -60,19 +60,19 @@ extract_commit_type() {
 main() {
     # Skip if we're in a rebase, merge, cherry-pick, or squash
     # These operations replay existing commits that are already properly formatted
-    if [ "$COMMIT_SOURCE" = "merge" ] || [ "$COMMIT_SOURCE" = "squash" ] || [ "$COMMIT_SOURCE" = "message" ]; then
+    if [ "$COMMIT_SOURCE" = "merge" ] || [ "$COMMIT_SOURCE" = "squash" ]; then
         exit 0
     fi
 
-    # Skip if message comes from commit -m or -F (user explicitly provided message)
+    # Skip if message comes from rebase/cherry-pick (SHA1 is set)
     if [ -n "$SHA1" ]; then
         # SHA1 is set during rebase/cherry-pick, keep original message
         exit 0
     fi
 
-    # Skip if this is an amend (keep existing message as it's already validated)
-    if [ "$COMMIT_SOURCE" = "commit" ] && git log -1 --format=%B 2>/dev/null | grep -q "^[a-z]*([A-Z]*-[0-9]*):"; then
-        # This is likely an amend of a properly formatted commit, keep it as is
+    # Skip if this is an amend (COMMIT_SOURCE is "commit" and there's a previous commit)
+    if [ "$COMMIT_SOURCE" = "commit" ]; then
+        # This is an amend, keep existing message
         exit 0
     fi
 
