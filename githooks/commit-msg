@@ -24,7 +24,7 @@ main() {
 
     if [ -n "$commit_summary" ]; then
         # Success notification
-        send_notification "Badgetizr Commit Successful" \
+        send_notification "🟢 Badgetizr Commit Successful" \
             "$commit_summary" \
             "Glass"
     fi

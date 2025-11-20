@@ -24,7 +24,7 @@ check_dependencies() {
         echo -e "${YELLOW}Please run './configure --contributor' at the root of the project to install dependencies.${RESET}" >&2
 
         # Send notification if on macOS
-        send_notification "Badgetizr Pre-commit Failed" \
+        send_notification "🔴 Badgetizr Pre-commit Failed" \
             "Missing dependencies: ${missing_deps[*]}. Run ./configure --contributor" \
             "Basso"
 
@@ -91,8 +91,8 @@ run_shfmt() {
     fi
 
     if [ ${#shfmt_failed[@]} -gt 0 ]; then
-        send_notification "Badgetizr Pre-commit Failed" \
-            "shfmt failed on ${#shfmt_failed[@]} file(s)" \
+        send_notification "🔴 shfmt Formatter Failed" \
+            "Failed to format ${#shfmt_failed[@]} file(s). Check terminal for details." \
             "Basso"
 
         echo -e "\n${RED}shfmt failed on the following files:${RESET}" >&2
@@ -123,8 +123,8 @@ run_shellcheck() {
     shellcheck_output=$(shellcheck -x "${files[@]}" 2>&1) || shellcheck_exit_code=$?
 
     if [ $shellcheck_exit_code -ne 0 ]; then
-        send_notification "Badgetizr Pre-commit Failed" \
-            "shellcheck found issues in your code" \
+        send_notification "🔴 ShellCheck Linter Failed" \
+            "Code quality issues detected. Check terminal for details." \
             "Basso"
 
         echo -e "${RED}✗ ShellCheck found issues:${RESET}" >&2
