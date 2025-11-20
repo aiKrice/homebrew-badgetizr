@@ -85,6 +85,11 @@ main() {
         exit 0
     fi
 
+    # Skip if this is master or develop (for automated backmerges/releases)
+    if [[ $branch_name == "master" ]] || [[ $branch_name == "develop" ]]; then
+        exit 0
+    fi
+
     # Extract commit type from branch
     commit_type=$(extract_commit_type)
 

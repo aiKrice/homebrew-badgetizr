@@ -67,7 +67,7 @@ run_shfmt() {
             # Calculate hash before formatting
             hash_before=$(git hash-object "$file")
 
-            if shfmt -w -ci -sr "$file" 2>/dev/null; then
+            if shfmt -w -i 4 -ci -sr "$file" 2>/dev/null; then
                 # Calculate hash after formatting
                 hash_after=$(git hash-object "$file")
 
