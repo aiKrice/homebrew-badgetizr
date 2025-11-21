@@ -133,11 +133,6 @@ main() {
 
     # Write the formatted message
     echo "$formatted_msg" > "$COMMIT_MSG_FILE"
-
-    # Preserve any comment lines from original message
-    if [ -n "$existing_msg" ]; then
-        echo "$existing_msg" | grep "^#" >> "$COMMIT_MSG_FILE" || true
-    fi
 }
 
 main "$@"
