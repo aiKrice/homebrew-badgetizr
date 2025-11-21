@@ -1,107 +1,151 @@
 #!/bin/bash
 
 is_command_exists() {
-	command -v "$1" &> /dev/null
+    command -v "$1" &> /dev/null
 }
 
 check_yaml_key() {
-	local yaml_file="$1"
-	local yaml_key="$2"
+    local yaml_file="$1"
+    local yaml_key="$2"
 
-	if [[ ! -f "${yaml_file}" ]]; then
-		echo "🔴 ${yaml_file} file not found."
-		exit 1
-	fi
+    if [[ ! -f "${yaml_file}" ]]; then
+        echo "🔴 ${yaml_file} file not found."
+        exit 1
+    fi
 
-	local value
-	value=$(yq eval ".${yaml_key}" "${yaml_file}" 2> /dev/null)
+    local value
+    value=$(yq eval ".${yaml_key}" "${yaml_file}" 2> /dev/null)
 
-	if [[ -z "${value}" ]]; then
-		echo "🔴 ${yaml_key} is not found in ${yaml_file}."
-		exit 2
-	fi
+    if [[ -z "${value}" ]]; then
+        echo "🔴 ${yaml_key} is not found in ${yaml_file}."
+        exit 2
+    fi
 
-	if [[ "${value}" == "true" ]]; then
-		echo "🟢 ${yaml_key} is enabled (true)."
-	elif [[ "${value}" == "false" ]]; then
-		echo "🔴 ${yaml_key} is disabled (false)."
-	else
-		echo "🔴 ${yaml_key} has an invalid value (${value})."
-		exit 3
-	fi
+    if [[ "${value}" == "true" ]]; then
+        echo "🟢 ${yaml_key} is enabled (true)."
+    elif [[ "${value}" == "false" ]]; then
+        echo "🔴 ${yaml_key} is disabled (false)."
+    else
+        echo "🔴 ${yaml_key} has an invalid value (${value})."
+        exit 3
+    fi
 }
 
 # Parse arguments
 CONTRIBUTOR_MODE=false
 while [[ $# -gt 0 ]]; do
-	case $1 in
-		--contributor)
-			CONTRIBUTOR_MODE=true
-			shift
-			;;
-		*)
-			echo "Unknown option: $1"
-			echo "Usage: ./configure [--contributor]"
-			exit 1
-			;;
-	esac
+    case $1 in
+        --contributor)
+            CONTRIBUTOR_MODE=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: ./configure [--contributor]"
+            exit 1
+            ;;
+    esac
 done
 
 # Main
 if [[ "${OSTYPE}" == "darwin"* ]]; then
-	echo "🟡 Running on: macOS"
+    echo "🟡 Running on: macOS"
 
-	if ! is_command_exists brew; then
-		echo "🔴 Homebrew not installed. Visit https://brew.sh/ to install it"
-		exit 1
-	fi
+    if ! is_command_exists brew; then
+        echo "🔴 Homebrew not installed. Visit https://brew.sh/ to install it"
+        exit 1
+    fi
 
-	# Select Brewfile based on mode
-	if [[ "${CONTRIBUTOR_MODE}" == true ]]; then
-		BREWFILE="Brewfile.dev"
-		echo "📦 Installing contributor dependencies from Brewfile.dev..."
-	else
-		BREWFILE="Brewfile"
-		echo "📦 Installing dependencies from Brewfile..."
-	fi
+    # Select Brewfile based on mode
+    if [[ "${CONTRIBUTOR_MODE}" == true ]]; then
+        BREWFILE="Brewfile.dev"
+        echo "📦 Installing contributor dependencies from Brewfile.dev..."
+    else
+        BREWFILE="Brewfile"
+        echo "📦 Installing dependencies from Brewfile..."
+    fi
 
-	if [[ ! -f "${BREWFILE}" ]]; then
-		echo "🔴 ${BREWFILE} not found"
-		exit 1
-	fi
+    if [[ ! -f "${BREWFILE}" ]]; then
+        echo "🔴 ${BREWFILE} not found"
+        exit 1
+    fi
 
-	brew bundle --file="${BREWFILE}"
-	echo "🟢 Dependencies installed successfully"
+    brew bundle --file="${BREWFILE}"
+    echo "🟢 Dependencies installed successfully"
 elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
-	echo "🟡 Running on: Linux"
-	sudo apt-get update
+    echo "🟡 Running on: Linux"
+    sudo apt-get update
 
-	if ! is_command_exists yq; then
-		echo "🟡 Installing yq (mikefarah/yq)..."
-		sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-		sudo chmod +x /usr/local/bin/yq
-		echo "🟢 yq successfully installed"
-	else
-		echo "🔵 yq is already installed."
-	fi
+    # Basic dependencies
+    if ! is_command_exists yq; then
+        echo "🟡 Installing yq (mikefarah/yq)..."
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
+        echo "🟢 yq successfully installed"
+    else
+        echo "🔵 yq is already installed."
+    fi
 
-	echo ""
-	echo "🔍 Platform-specific CLI tools needed:"
-	echo "📝 For your Linux system:"
-	if ! is_command_exists gh; then
-		echo "   - Install GitHub CLI: https://github.com/cli/cli/blob/trunk/docs/install_linux.md"
-	else
-		echo "   ✅ GitHub CLI (gh) already installed"
-	fi
+    # Contributor mode: install development tools
+    if [[ "${CONTRIBUTOR_MODE}" == true ]]; then
+        echo ""
+        echo "📦 Installing contributor dependencies..."
 
-	if ! is_command_exists glab; then
-		echo "   - Install GitLab CLI: https://gitlab.com/gitlab-org/cli/-/releases"
-	else
-		echo "   ✅ GitLab CLI (glab) already installed"
-	fi
+        # Install shellcheck
+        if ! is_command_exists shellcheck; then
+            echo "🟡 Installing shellcheck..."
+            sudo apt-get install -y shellcheck
+            echo "🟢 shellcheck installed"
+        else
+            echo "🔵 shellcheck already installed"
+        fi
+
+        # Install shfmt
+        if ! is_command_exists shfmt; then
+            echo "🟡 Installing shfmt..."
+            sudo wget -qO /usr/local/bin/shfmt https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.8.0_linux_amd64
+            sudo chmod +x /usr/local/bin/shfmt
+            echo "🟢 shfmt installed"
+        else
+            echo "🔵 shfmt already installed"
+        fi
+
+        # Install bats
+        if ! is_command_exists bats; then
+            echo "🟡 Installing bats-core..."
+            sudo apt-get install -y bats
+            echo "🟢 bats-core installed"
+        else
+            echo "🔵 bats already installed"
+        fi
+
+        # Install kcov
+        if ! is_command_exists kcov; then
+            echo "🟡 Installing kcov..."
+            sudo apt-get install -y kcov
+            echo "🟢 kcov installed"
+        else
+            echo "🔵 kcov already installed"
+        fi
+    fi
+
+    echo ""
+    echo "🔍 Platform-specific CLI tools needed:"
+    echo "📝 For your Linux system:"
+    if ! is_command_exists gh; then
+        echo "   - Install GitHub CLI: https://github.com/cli/cli/blob/trunk/docs/install_linux.md"
+    else
+        echo "   ✅ GitHub CLI (gh) already installed"
+    fi
+
+    if ! is_command_exists glab; then
+        echo "   - Install GitLab CLI: https://gitlab.com/gitlab-org/cli/-/releases"
+    else
+        echo "   ✅ GitLab CLI (glab) already installed"
+    fi
 else
-	echo "🔴 Unsupported Operating System: ${OSTYPE}"
-	exit 1
+    echo "🔴 Unsupported Operating System: ${OSTYPE}"
+    exit 1
 fi
 
 echo ""
@@ -110,16 +154,16 @@ echo "🔧 Configuring Git hooks..."
 # Setup git hooks path (cannot use include.path for security reasons)
 CURRENT_HOOKS_PATH=$(git config --local core.hooksPath 2> /dev/null || echo "")
 if [[ "${CURRENT_HOOKS_PATH}" == "githooks" ]]; then
-	echo "🔵 Git hooks already configured."
+    echo "🔵 Git hooks already configured."
 else
-	git config --local core.hooksPath githooks
-	echo "🟢 Git hooks configured successfully (using githooks/)"
+    git config --local core.hooksPath githooks
+    echo "🟢 Git hooks configured successfully (using githooks/)"
 fi
 
 # Make sure all hooks are executable
 if [[ -d "githooks" ]]; then
-	chmod +x githooks/* 2> /dev/null
-	echo "🟢 Git hooks directory ready: githooks/"
+    chmod +x githooks/* 2> /dev/null
+    echo "🟢 Git hooks directory ready: githooks/"
 fi
 
 echo ""
