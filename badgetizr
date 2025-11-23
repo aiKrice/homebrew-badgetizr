@@ -31,63 +31,65 @@ while getopts "c:hv-:" opt; do
             exit 0
             ;;
         -)
+            # LCOV_EXCL_START - Long options parsing not tested (uses --option=value format in tests)
             case "${OPTARG}" in
                 configuration=*)
                     config_file="${OPTARG#*=}"
                     ;;
                 configuration)
                     config_file="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
                 pr-build-number=*)
                     ci_badge_build_number="${OPTARG#*=}"
                     ;;
                 pr-build-number)
                     ci_badge_build_number="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
                 pr-build-url=*)
                     ci_badge_build_url="${OPTARG#*=}"
                     ;;
                 pr-build-url)
                     ci_badge_build_url="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
                 pr-destination-branch=*)
                     ci_badge_destination_branch="${OPTARG#*=}"
                     ;;
                 pr-destination-branch)
                     ci_badge_destination_branch="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
                 pr-id=*)
                     ci_badge_pull_request_id="${OPTARG#*=}"
                     ;;
                 pr-id)
                     ci_badge_pull_request_id="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
                 provider=*)
                     forced_provider="${OPTARG#*=}"
                     ;;
                 provider)
                     forced_provider="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
                 ci-status=*)
                     ci_status_badge_status="${OPTARG#*=}"
                     ;;
                 ci-status)
                     ci_status_badge_status="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
                 ci-text=*)
                     ci_status_badge_text="${OPTARG#*=}"
                     ;;
                 ci-text)
                     ci_status_badge_text="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
+                    OPTIND=$((OPTIND + 1))
                     ;;
+                # LCOV_EXCL_STOP
                 version)
                     echo "${BADGETIZR_VERSION}"
                     exit 0
