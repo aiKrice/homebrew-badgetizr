@@ -47,6 +47,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-review
+          filter_mode: diff_context
           path: "."
           pattern: "*.sh"
           exclude: "./.git/*"
@@ -57,6 +58,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-review
+          filter_mode: diff_context
           path: "."
           pattern: "*.sh"
           exclude: "./.git/*"

@@ -32,7 +32,7 @@ extract_github_issue() {
     branch_name=$(git branch --show-current)
 
     # Match patterns like: feat/GH-123_description or GH-123-description
-    if [[ $branch_name =~ GH-([0-9]+) ]]; then
+    if [[ ${branch_name} =~ GH-([0-9]+) ]]; then
         echo "${BASH_REMATCH[1]}"
         return 0
     fi
@@ -47,8 +47,8 @@ extract_commit_type() {
 
     # Check if branch starts with any conventional prefix
     for prefix in "${CONVENTIONAL_PREFIXES[@]}"; do
-        if [[ $branch_name =~ ^${prefix}/ ]]; then
-            echo "$prefix"
+        if [[ ${branch_name} =~ ^${prefix}/ ]]; then
+            echo "${prefix}"
             return 0
         fi
     done
@@ -60,18 +60,18 @@ extract_commit_type() {
 main() {
     # Skip if we're in a rebase, merge, cherry-pick, or squash
     # These operations replay existing commits that are already properly formatted
-    if [ "$COMMIT_SOURCE" = "merge" ] || [ "$COMMIT_SOURCE" = "squash" ]; then
+    if [[ "${COMMIT_SOURCE}" = "merge" ]] || [[ "${COMMIT_SOURCE}" = "squash" ]]; then
         exit 0
     fi
 
     # Skip if message comes from rebase/cherry-pick (SHA1 is set)
-    if [ -n "$SHA1" ]; then
+    if [[ -n "${SHA1}" ]]; then
         # SHA1 is set during rebase/cherry-pick, keep original message
         exit 0
     fi
 
     # Skip if this is an amend (COMMIT_SOURCE is "commit" and there's a previous commit)
-    if [ "$COMMIT_SOURCE" = "commit" ]; then
+    if [[ "${COMMIT_SOURCE}" = "commit" ]]; then
         # This is an amend, keep existing message
         exit 0
     fi
@@ -81,12 +81,12 @@ main() {
     branch_name=$(git branch --show-current)
 
     # Skip if this is a dependabot branch
-    if [[ $branch_name =~ ^dependabot/ ]]; then
+    if [[ ${branch_name} =~ ^dependabot/ ]]; then
         exit 0
     fi
 
     # Skip if this is master or develop (for automated backmerges/releases)
-    if [[ $branch_name == "master" ]] || [[ $branch_name == "develop" ]]; then
+    if [[ ${branch_name} == "master" ]] || [[ ${branch_name} == "develop" ]]; then
         exit 0
     fi
 
@@ -97,33 +97,33 @@ main() {
     gh_issue=$(extract_github_issue)
 
     # Enforce branch naming convention (except for special cases already handled above)
-    if [ -z "$commit_type" ] || [ -z "$gh_issue" ]; then
+    if [[ -z "${commit_type}" ]] || [[ -z "${gh_issue}" ]]; then
         echo -e "${RED}Error: Branch name doesn't follow the required convention${NC}" >&2
         echo -e "${YELLOW}Expected format: <type>/GH-<number>_description${NC}" >&2
         echo -e "${YELLOW}Example: feat/GH-123_add-new-feature${NC}" >&2
         echo -e "" >&2
         echo -e "${YELLOW}Supported types: ${CONVENTIONAL_PREFIXES[*]}${NC}" >&2
-        echo -e "${YELLOW}Current branch: $branch_name${NC}" >&2
+        echo -e "${YELLOW}Current branch: ${branch_name}${NC}" >&2
         exit 1
     fi
 
     # Read existing commit message (if any)
-    existing_msg=$(cat "$COMMIT_MSG_FILE")
+    existing_msg=$(cat "${COMMIT_MSG_FILE}")
 
     # Check if message is already formatted (to avoid double-formatting)
-    if [[ $existing_msg =~ ^[a-z]+\(GH-[0-9]+\): ]]; then
+    if [[ ${existing_msg} =~ ^[a-z]+\(GH-[0-9]+\): ]]; then
         # Already formatted, don't modify
         exit 0
     fi
 
     # Check if this is a template message we created (contains placeholder)
-    if [[ $existing_msg =~ "#write description here" ]]; then
+    if [[ ${existing_msg} =~ "#write description here" ]]; then
         # User is editing our placeholder, don't overwrite
         exit 0
     fi
 
     # If there's existing content that's not our placeholder, preserve it
-    if [ -n "$existing_msg" ] && ! [[ $existing_msg =~ ^# ]]; then
+    if [[ -n "${existing_msg}" ]] && ! [[ ${existing_msg} =~ ^# ]]; then
         # There's actual content, just prepend the prefix
         formatted_msg="${commit_type}(GH-${gh_issue}): ${existing_msg}"
     else
@@ -132,7 +132,7 @@ main() {
     fi
 
     # Write the formatted message
-    echo "$formatted_msg" > "$COMMIT_MSG_FILE"
+    echo "${formatted_msg}" > "${COMMIT_MSG_FILE}"
 }
 
 main "$@"
