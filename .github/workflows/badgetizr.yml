@@ -54,7 +54,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           filter_mode: diff_context
-          shfmt_flags: "-i 4 -ci -sr -d badgetizr configure providers/*.sh githooks/*"
+          shfmt_flags: "-i 4 -ci -sr"
 
   tests:
     # Run tests only if shellcheck succeeded
