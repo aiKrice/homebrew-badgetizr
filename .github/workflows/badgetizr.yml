@@ -42,30 +42,25 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v5
 
-      - name: Cache ShellCheck
-        id: cache-shellcheck
-        uses: actions/cache@v4
+      - name: Run shellcheck with reviewdog
+        uses: reviewdog/action-shellcheck@v1
         with:
-          path: ~/.local/bin/shellcheck
-          key: shellcheck-${{ runner.os }}-v0.11.0
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          path: "."
+          pattern: "*.sh"
+          exclude: "./.git/*"
+          shellcheck_flags: "-x badgetizr configure providers/*.sh githooks/*"
 
-      - name: Install ShellCheck
-        if: steps.cache-shellcheck.outputs.cache-hit != 'true'
-        run: |
-          wget -qO- "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz" | tar -xJv
-          mkdir -p ~/.local/bin
-          mv "shellcheck-v0.11.0/shellcheck" ~/.local/bin/
-          chmod +x ~/.local/bin/shellcheck
-          rm -rf shellcheck-v0.11.0
-
-      - name: Add ShellCheck to PATH
-        run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
-
-      - name: Run ShellCheck
-        run: |
-          echo "Running ShellCheck on all shell scripts..."
-          shellcheck -x badgetizr configure providers/*.sh
-          echo "✅ ShellCheck passed!"
+      - name: Run shfmt with reviewdog
+        uses: reviewdog/action-shfmt@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          path: "."
+          pattern: "*.sh"
+          exclude: "./.git/*"
+          shfmt_flags: "-i 4 -ci -sr -d badgetizr configure providers/*.sh githooks/*"
 
   tests:
     # Run tests only if shellcheck succeeded

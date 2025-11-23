@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Tool versions for Linux manual installation
+SHFMT_VERSION="v3.12.0"
+
 is_command_exists() {
     command -v "$1" &> /dev/null
 }
@@ -100,10 +103,10 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
         fi
 
         if ! is_command_exists shfmt; then
-            echo "🟡 Installing shfmt..."
-            sudo wget -qO /usr/local/bin/shfmt https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.8.0_linux_amd64
+            echo "🟡 Installing shfmt ${SHFMT_VERSION}..."
+            sudo wget -qO /usr/local/bin/shfmt "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64"
             sudo chmod +x /usr/local/bin/shfmt
-            echo "🟢 shfmt installed"
+            echo "🟢 shfmt ${SHFMT_VERSION} installed"
         else
             echo "🔵 shfmt already installed"
         fi
