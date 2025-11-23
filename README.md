@@ -24,10 +24,12 @@
 - [What is Badgetizr?](#what-is-badgetizr)
 - [Multi-Platform Support](#multi-platform-support)
 - [Installation](#installation)
-  - [Homebrew (macOS)](#homebrew-macos)
-  - [GitHub Actions](#github-actions)
-  - [GitLab CI](#gitlab-ci)
+  - [CI/CD Integration (Automated)](#cicd-integration-automated)
+    - [GitHub Actions](#github-actions)
+    - [GitLab CI](#gitlab-ci)
   - [Manual Installation](#manual-installation)
+    - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
+    - [Direct Installation (macOS/Linux)](#direct-installation-macoslinux)
 - [Usage](#usage)
   - [Command Line Options](#command-line-options)
   - [Basic Examples](#basic-examples)
@@ -60,20 +62,9 @@ Badgetizr automatically adds customizable badges to your GitHub and GitLab pull/
 
 ## Installation
 
-### Homebrew (macOS)
+### CI/CD Integration (Automated)
 
-```bash
-# Add the tap and install
-brew tap aiKrice/badgetizr
-brew install aiKrice/badgetizr/badgetizr
-
-# Configure authentication
-export GITHUB_TOKEN="your_github_token"     # For GitHub
-export GITLAB_TOKEN="your_gitlab_token"     # For GitLab
-export GITLAB_HOST="gitlab.example.com"     # For self-managed GitLab (optional)
-```
-
-### GitHub Actions
+#### GitHub Actions
 
 Add this to your workflow (`.github/workflows/*.yml`):
 
@@ -83,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Run Badgetizr
         uses: aiKrice/homebrew-badgetizr@2.5.0
@@ -97,7 +88,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### GitLab CI
+#### GitLab CI
 
 Add this to your `.gitlab-ci.yml`:
 
@@ -144,7 +135,26 @@ badgetizr:
 
 **For custom ports or URLs**: Replace `BUILD_URL` with your specific format (e.g., using `$CI_SERVER_PORT` or `$CI_SERVER_URL`)
 
+---
+
 ### Manual Installation
+
+#### Homebrew (macOS/Linux)
+
+```bash
+# Add the tap and install
+brew tap aiKrice/badgetizr
+brew install aiKrice/badgetizr/badgetizr
+
+# Configure authentication
+export GITHUB_TOKEN="your_github_token"     # For GitHub
+export GITLAB_TOKEN="your_gitlab_token"     # For GitLab
+export GITLAB_HOST="gitlab.example.com"     # For self-managed GitLab (optional)
+```
+
+#### Direct Installation (macOS/Linux)
+
+For systems without Homebrew or for development purposes:
 
 ```bash
 # Download latest release
@@ -152,15 +162,11 @@ TAG=$(curl -s https://api.github.com/repos/aiKrice/homebrew-badgetizr/releases/l
 curl -L -o badgetizr-latest.tar.gz "https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/$TAG.tar.gz"
 tar -xz --strip-components=1 -f badgetizr-latest.tar.gz
 
-# Install dependencies (yq) - supports macOS and Linux only
+# Install runtime dependencies (gh/glab, yq)
 ./configure
 
-# Install platform-specific CLI tools
-# For GitHub:
-brew install gh                    # macOS/Linux
-
-# For GitLab:
-# Download from: https://gitlab.com/gitlab-org/cli/-/releases
+# For contributors: install development tools (shellcheck, shfmt, bats, kcov)
+./configure --contributor
 
 # Configure authentication
 export GITHUB_TOKEN="your_github_token"     # For GitHub

@@ -11,7 +11,7 @@ badge_ticket:
   settings:
     color: "black"
     label: "Issue"
-    sed_pattern: '.*\[GH-([0-9]+)\].*'
+    sed_pattern: '.*\(GH-([0-9]+)\):.*'
     url: "https://github.com/aiKrice/homebrew-badgetizr/issues/%s"
     logo: "github"
 
