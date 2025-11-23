@@ -37,7 +37,7 @@ while getopts "c:hv-:" opt; do
                     ;;
                 configuration)
                     config_file="${!OPTIND}"
-                    OPTIND=$((OPTIND + 1))
+                    OPTIND=$((OPTIND + 1)) # LCOV_EXCL_LINE
                     ;;
                 pr-build-number=*)
                     ci_badge_build_number="${OPTARG#*=}"
