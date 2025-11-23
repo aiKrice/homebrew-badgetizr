@@ -5,7 +5,6 @@
 brew "gh"              # GitHub CLI
 brew "glab"            # GitLab CLI
 brew "yq"              # YAML processor
-brew "jq"              # JSON processor
 
 # Development tools
 brew "shellcheck"      # Shell script linter

@@ -91,7 +91,6 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
         echo ""
         echo "📦 Installing contributor dependencies..."
 
-        # Install shellcheck
         if ! is_command_exists shellcheck; then
             echo "🟡 Installing shellcheck..."
             sudo apt-get install -y shellcheck
@@ -100,7 +99,6 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
             echo "🔵 shellcheck already installed"
         fi
 
-        # Install shfmt
         if ! is_command_exists shfmt; then
             echo "🟡 Installing shfmt..."
             sudo wget -qO /usr/local/bin/shfmt https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.8.0_linux_amd64
@@ -110,7 +108,6 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
             echo "🔵 shfmt already installed"
         fi
 
-        # Install bats
         if ! is_command_exists bats; then
             echo "🟡 Installing bats-core..."
             sudo apt-get install -y bats
@@ -119,7 +116,6 @@ elif [[ "${OSTYPE}" == "linux-gnu"* ]]; then
             echo "🔵 bats already installed"
         fi
 
-        # Install kcov
         if ! is_command_exists kcov; then
             echo "🟡 Installing kcov..."
             sudo apt-get install -y kcov
@@ -148,22 +144,24 @@ else
     exit 1
 fi
 
-echo ""
-echo "🔧 Configuring Git hooks..."
+# Configure Git hooks (contributor mode only)
+if [[ "${CONTRIBUTOR_MODE}" == true ]]; then
+    echo ""
+    echo "🔧 Configuring Git hooks..."
 
-# Setup git hooks path (cannot use include.path for security reasons)
-CURRENT_HOOKS_PATH=$(git config --local core.hooksPath 2> /dev/null || echo "")
-if [[ "${CURRENT_HOOKS_PATH}" == "githooks" ]]; then
-    echo "🔵 Git hooks already configured."
-else
-    git config --local core.hooksPath githooks
-    echo "🟢 Git hooks configured successfully (using githooks/)"
-fi
+    # Setup git hooks path (cannot use include.path for security reasons)
+    CURRENT_HOOKS_PATH=$(git config --local core.hooksPath 2> /dev/null || echo "")
+    if [[ "${CURRENT_HOOKS_PATH}" == "githooks" ]]; then
+        echo "🔵 Git hooks already configured."
+    else
+        git config --local core.hooksPath githooks
+        echo "🟢 Git hooks configured successfully (using githooks/)"
+    fi
 
-# Make sure all hooks are executable
-if [[ -d "githooks" ]]; then
-    chmod +x githooks/* 2> /dev/null
-    echo "🟢 Git hooks directory ready: githooks/"
+    if [[ -d "githooks" ]]; then
+        chmod +x githooks/* 2> /dev/null
+        echo "🟢 Git hooks directory ready: githooks/"
+    fi
 fi
 
 echo ""
