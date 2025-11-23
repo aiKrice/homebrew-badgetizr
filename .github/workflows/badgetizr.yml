@@ -108,3 +108,15 @@ jobs:
           ci_status: "failed"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  claude-review:
+    # Only run Claude review if all checks passed
+    needs: [shellcheck, tests, badgetizr-result]
+    if: ${{ needs.shellcheck.result == 'success' && needs.tests.result == 'success' }}
+    uses: ./.github/workflows/claude-code-review.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      pr_author: ${{ github.event.pull_request.user.login }}
+      head_ref: ${{ github.head_ref }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
