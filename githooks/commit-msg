@@ -11,8 +11,8 @@ send_notification() {
     local sound="${3:-default}"
     local logo="${4:-logo.png}"
 
-    if [[ "$OSTYPE" == "darwin"* ]] && command -v terminal-notifier &> /dev/null; then
-        terminal-notifier -title "$title" -message "$message" -sound "$sound" -contentImage "$logo"
+    if [[ "${OSTYPE}" == "darwin"* ]] && command -v terminal-notifier &> /dev/null; then
+        terminal-notifier -title "${title}" -message "${message}" -sound "${sound}" -contentImage "${logo}"
     fi
 }
 
@@ -20,12 +20,12 @@ send_notification() {
 main() {
     # Extract commit message for notification (first line only)
     local commit_summary
-    commit_summary=$(head -n 1 "$COMMIT_MSG_FILE" | sed 's/^#.*//')
+    commit_summary=$(head -n 1 "${COMMIT_MSG_FILE}" | sed 's/^#.*//')
 
-    if [ -n "$commit_summary" ]; then
+    if [[ -n "${commit_summary}" ]]; then
         # Success notification
         send_notification "🟢 Badgetizr Commit Successful" \
-            "$commit_summary" \
+            "${commit_summary}" \
             "Glass"
     fi
 }
