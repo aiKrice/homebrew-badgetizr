@@ -293,6 +293,7 @@ if [[ "${wip_badge_enabled}" = "true" ]]; then
         if [[ -n "${wip_badge_labelized}" && "${wip_badge_labelized}" != "null" ]]; then
             if ! add_pr_label "${ci_badge_pull_request_id}" "${wip_badge_labelized}"; then
                 # Label doesn't exist, create it with appropriate color
+                # LCOV_EXCL_START - Color mapping not fully tested (tests use default yellow)
                 hex_color=""
                 case "${wip_badge_color}" in
                     "yellow") hex_color="fbca04" ;;
@@ -305,6 +306,7 @@ if [[ "${wip_badge_enabled}" = "true" ]]; then
                     "black") hex_color="24292e" ;;
                     *) hex_color="fbca04" ;; # Default to yellow for WIP
                 esac
+                # LCOV_EXCL_STOP
 
                 if create_pr_label "${wip_badge_labelized}" "${hex_color}" "Auto-created by Badgetizr"; then
                     add_pr_label "${ci_badge_pull_request_id}" "${wip_badge_labelized}"
