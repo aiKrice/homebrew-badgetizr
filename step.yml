@@ -152,4 +152,4 @@ inputs:
           Specific version tag of badgetizr to download and use.
           Defaults to the latest release version.
         is_required: false
-        default_value: "2.3.0"
+        default_value: "2.5.0"

@@ -10,7 +10,7 @@ if [ -z "$pr_id" ]; then
 fi
 
 # Set default version if not provided
-BADGETIZR_VERSION="${badgetizr_version:-2.3.0}"
+BADGETIZR_VERSION="${badgetizr_version:-2.5.0}"
 
 echo "📦 Badgetizr version: $BADGETIZR_VERSION"
 
@@ -24,30 +24,17 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "📥 Installing yq..."
         brew install yq
     fi
-
-    # Install jq if not present
-    if ! command -v jq &> /dev/null; then
-        echo "📥 Installing jq..."
-        brew install jq
-    fi
 else
     echo "🐧 Running on Linux"
     OS_TYPE="linux"
 
-    # Install dependencies for Linux
-    echo "📥 Installing dependencies (curl, bash, yq, jq)..."
-
-    # Install yq
+    # Install yq for Linux
     if ! command -v yq &> /dev/null; then
+        echo "📥 Installing yq..."
         YQ_VERSION="v4.35.1"
         YQ_BINARY="yq_linux_amd64"
         wget "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY}" -O /usr/local/bin/yq
         chmod +x /usr/local/bin/yq
-    fi
-
-    # Install jq
-    if ! command -v jq &> /dev/null; then
-        apt-get update && apt-get install -y jq || true
     fi
 fi
 
