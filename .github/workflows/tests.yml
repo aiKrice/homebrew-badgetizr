@@ -22,16 +22,19 @@ jobs:
     outputs:
       coverage: ${{ steps.coverage.outputs.percentage }}
 
+    env:
+      KCOV_VERSION: 43
+
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Cache kcov
         id: cache-kcov
         uses: actions/cache@v4
         with:
           path: ~/.local/bin/kcov
-          key: kcov-v42-${{ runner.os }}
+          key: kcov-v${{ env.KCOV_VERSION }}-${{ runner.os }}
 
       - name: Install dependencies
         run: |
@@ -41,16 +44,16 @@ jobs:
       - name: Install kcov
         if: steps.cache-kcov.outputs.cache-hit != 'true'
         run: |
-          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
-          tar xzf v42.tar.gz
-          cd kcov-42
+          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v${{ env.KCOV_VERSION }}.tar.gz
+          tar xzf v${{ env.KCOV_VERSION }}.tar.gz
+          cd kcov-${{ env.KCOV_VERSION }}
           mkdir build
           cd build
           cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local ..
           make
           make install
           cd ../..
-          rm -rf kcov-42 v42.tar.gz
+          rm -rf kcov-${{ env.KCOV_VERSION }} v${{ env.KCOV_VERSION }}.tar.gz
 
       - name: Add kcov to PATH
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH

@@ -1,19 +1,25 @@
 name: Claude Code Review
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+      pr_author:
+        required: true
+        type: string
+      head_ref:
+        required: true
+        type: string
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
 
 jobs:
   claude-review:
     # Only run for aiKrice's PRs, skip Dependabot
-    if: ${{ github.event.pull_request.user.login == 'aiKrice' && !startsWith(github.head_ref, 'dependabot/') }}
+    if: ${{ inputs.pr_author == 'aiKrice' && !startsWith(inputs.head_ref, 'dependabot/') }}
 
     runs-on: ubuntu-latest
     continue-on-error: true  # Don't fail PR checks if review is cancelled or fails
@@ -25,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -36,7 +42,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR NUMBER: ${{ inputs.pr_number }}
 
             Please review this pull request and provide feedback on:
             - Code quality and best practices

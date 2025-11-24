@@ -23,41 +23,35 @@ BITRISE_DOC="BITRISE.md"
 VERSION="$1"
 
 red='\e[1;31m'
-green='\e[1;32m'
-yellow='\e[1;33m'
-blue='\e[1;34m'
-purple='\e[1;35m'
 cyan='\e[1;36m'
-white='\e[1;37m'
-orange='\e[38;5;208m'
 reset='\e[0m'
 
 function fail_if_error() {
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         echo -e ""
         echo -e "${red}🔴 Error${reset}: $1"
         exit 1
     fi
 }
 
-if [ -z "$VERSION" ]; then
-  echo -e "❌ Please provide a ${cyan}version${reset} (example: ./release.sh ${cyan}1.1.3${reset}). Please respect the semantic versioning notation."
-  exit 1
+if [[ -z "${VERSION}" ]]; then
+    echo -e "❌ Please provide a ${cyan}version${reset} (example: ./release.sh ${cyan}1.1.3${reset}). Please respect the semantic versioning notation."
+    exit 1
 fi
 
-if [ -z "$GITHUB_TOKEN" ]; then
-  echo -e "❌ Please provide a ${cyan}GitHub Token${reset} Example: export GITHUB_TOKEN=...."
-  exit 1
-fi 
+if [[ -z "${GITHUB_TOKEN}" ]]; then
+    echo -e "❌ Please provide a ${cyan}GitHub Token${reset} Example: export GITHUB_TOKEN=...."
+    exit 1
+fi
 
 git switch develop
 fail_if_error "Failed to switch develop. Please stash changes."
 git pull
 fail_if_error "Failed to pull develop. Please stash changes."
 
-echo "🟡 [Step 1/6] Bumping version to ${cyan}$VERSION${reset} in all files..."
+echo "🟡 [Step 1/6] Bumping version to ${cyan}${VERSION}${reset} in all files..."
 # Changing the version for -v option
-sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"$VERSION\"|" "$UTILS_PATH"
+sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"${VERSION}\"|" "${UTILS_PATH}"
 sed -i '' -E \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-darkgreen\\?logo=homebrew.*)@\1${VERSION}\2@" \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=github.*)@\1${VERSION}\2@" \
@@ -74,8 +68,8 @@ sed -i '' "s|badgetizr_version:-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*}|badgetizr
 sed -i '' "s|@[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|@${VERSION}|g" "${BITRISE_DOC}" "${README_PATH}"
 sed -i '' "s/| No | [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* |/| No | ${VERSION} |/" "${BITRISE_DOC}"
 
-git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH" "$BADGES_PATH" "$TROUBLESHOOTING_PATH" "$CONTRIBUTING_PATH" "$PUBLISHING_PATH" "$GITLAB_TESTING_PATH" "$BITRISE_STEP_YML" "$BITRISE_STEP_SH" "$BITRISE_DOC"
-git commit -m "Bump version to $VERSION for -v option"
+git add "${UTILS_PATH}" "${WORKFLOW_PATH}" "${README_PATH}" "${BADGES_PATH}" "${TROUBLESHOOTING_PATH}" "${CONTRIBUTING_PATH}" "${PUBLISHING_PATH}" "${GITLAB_TESTING_PATH}" "${BITRISE_STEP_YML}" "${BITRISE_STEP_SH}" "${BITRISE_DOC}"
+git commit --no-verify -m "Bump version to ${VERSION} for -v option"
 git push
 echo "🟢 [Step 1/6] Version bumped and pushed to develop."
 
@@ -87,36 +81,36 @@ fail_if_error "Failed to merge develop into master"
 echo "🟢 [Step 2/6] Master is updated."
 git push --no-verify
 
-echo "🟡 [Step 3/6] Creating the release tag ${cyan}$VERSION${reset}..."
-git tag -a "$VERSION" -m "Release $VERSION"
-git push origin "$VERSION" --no-verify
-fail_if_error "Failed to push tag $VERSION"
+echo "🟡 [Step 3/6] Creating the release tag ${cyan}${VERSION}${reset}..."
+git tag -a "${VERSION}" -m "Release ${VERSION}"
+git push origin "${VERSION}" --no-verify
+fail_if_error "Failed to push tag ${VERSION}"
 echo "🟢 [Step 3/6] Tag pushed, creating GitHub release..."
-gh release create $VERSION --title "$VERSION" --generate-notes --verify-tag --latest
+gh release create "${VERSION}" --title "${VERSION}" --generate-notes --verify-tag --latest
 fail_if_error "Failed to create GitHub release"
 echo "🟢 [Step 3/6] GitHub release created successfully"
 echo "📦 GitHub Marketplace: Release will appear automatically (action.yml detected)"
 
 # Download the archive and calculate SHA256 for Homebrew
-ARCHIVE_URL="https://github.com/$REPOSITORY/archive/refs/tags/$VERSION.tar.gz"
-echo "🟡 [Step 4/6] Downloading the archive $ARCHIVE_URL..."
+ARCHIVE_URL="https://github.com/${REPOSITORY}/archive/refs/tags/${VERSION}.tar.gz"
+echo "🟡 [Step 4/6] Downloading the archive ${ARCHIVE_URL}..."
 
-curl -L -o "badgetizr-$VERSION.tar.gz" "$ARCHIVE_URL" > /dev/null
+curl -L -o "badgetizr-${VERSION}.tar.gz" "${ARCHIVE_URL}" > /dev/null
 fail_if_error "Failed to download the archive"
 echo "🟢 [Step 4/6] Archive downloaded."
-SHA256=$(shasum -a 256 "badgetizr-$VERSION.tar.gz" | awk '{print $1}')
-echo -e "🟢 SHA256 generated: ${cyan}$SHA256${reset}"
+SHA256=$(shasum -a 256 "badgetizr-${VERSION}.tar.gz" | awk '{print $1}')
+echo -e "🟢 SHA256 generated: ${cyan}${SHA256}${reset}"
 
 # Update the formula
 sed -i "" -E \
-  -e "s#(url \").*(\".*)#\1$ARCHIVE_URL\2#" \
-  -e "s#(sha256 \").*(\".*)#\1$SHA256\2#" \
-  "$FORMULA_PATH"
+    -e "s#(url \").*(\".*)#\1${ARCHIVE_URL}\2#" \
+    -e "s#(sha256 \").*(\".*)#\1${SHA256}\2#" \
+    "${FORMULA_PATH}"
 
 # Commit and push
 echo "🟡 [Step 5/6] Committing the bump of the files..."
-git add "$FORMULA_PATH"
-git commit -m "Bump version $VERSION"
+git add "${FORMULA_PATH}"
+git commit --no-verify -m "Bump version ${VERSION}"
 fail_if_error "Failed to commit the bump"
 git push --no-verify
 fail_if_error "Failed to push the bump"
@@ -133,5 +127,5 @@ fail_if_error "Failed to backmerge to develop"
 git push --no-verify
 echo "🟢 [Step 6/6] Develop is updated."
 
-rm badgetizr-$VERSION.tar.gz
+rm "badgetizr-${VERSION}.tar.gz"
 echo "🚀 Done"
