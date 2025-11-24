@@ -9,6 +9,14 @@ if [ -z "$pr_id" ]; then
     exit 1
 fi
 
+# Validate authentication token
+if [ -z "$github_token" ] && [ -z "$gitlab_token" ]; then
+    echo "❌ Error: No authentication token provided"
+    echo "   Please configure GITHUB_TOKEN or GITLAB_TOKEN in Bitrise Secrets"
+    echo "   See: https://github.com/aiKrice/homebrew-badgetizr/blob/master/BITRISE.md#step-2-configure-secrets"
+    exit 1
+fi
+
 # Set default version if not provided
 BADGETIZR_VERSION="${badgetizr_version:-3.0.0}"
 
@@ -138,12 +146,13 @@ if [ -n "$provider" ]; then
     ARGS+=("--provider=$provider")
 fi
 
-# Execute badgetizr
+# Execute badgetizr from the source directory
 echo "🎯 Running Badgetizr with arguments: ${ARGS[@]}"
-./badgetizr "${ARGS[@]}"
+BADGETIZR_PATH="$(pwd)/badgetizr"
+cd "$BITRISE_SOURCE_DIR"
+"$BADGETIZR_PATH" "${ARGS[@]}"
 
 # Cleanup
-cd "$BITRISE_SOURCE_DIR"
 rm -rf "$TEMP_DIR"
 
 echo "✅ Badgetizr completed successfully!"
