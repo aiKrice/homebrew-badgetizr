@@ -17,6 +17,9 @@ TROUBLESHOOTING_PATH="TROUBLESHOOTING.md"
 CONTRIBUTING_PATH="CONTRIBUTING.md"
 PUBLISHING_PATH="PUBLISHING.md"
 GITLAB_TESTING_PATH="GITLAB-TESTING.md"
+BITRISE_STEP_YML="step.yml"
+BITRISE_STEP_SH="step.sh"
+BITRISE_DOC="BITRISE.md"
 VERSION="$1"
 
 red='\e[1;31m'
@@ -64,7 +67,13 @@ sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetiz
 sed -i '' "s|archive/refs/tags/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|g" "$README_PATH" "$GITLAB_TESTING_PATH"
 sed -i '' "s|BADGETIZR_VERSION: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION: \"${VERSION}\"|g" "$README_PATH" "$GITLAB_TESTING_PATH"
 
-git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH" "$BADGES_PATH" "$TROUBLESHOOTING_PATH" "$CONTRIBUTING_PATH" "$PUBLISHING_PATH" "$GITLAB_TESTING_PATH"
+# Update Bitrise step files
+sed -i '' "s|default_value: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|default_value: \"${VERSION}\"|" "$BITRISE_STEP_YML"
+sed -i '' "s|badgetizr_version:-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*}|badgetizr_version:-${VERSION}}|" "$BITRISE_STEP_SH"
+sed -i '' "s|@[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|@${VERSION}|g" "$BITRISE_DOC"
+sed -i '' "s/| No | [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* |/| No | ${VERSION} |/" "$BITRISE_DOC"
+
+git add "$UTILS_PATH" "$WORKFLOW_PATH" "$README_PATH" "$BADGES_PATH" "$TROUBLESHOOTING_PATH" "$CONTRIBUTING_PATH" "$PUBLISHING_PATH" "$GITLAB_TESTING_PATH" "$BITRISE_STEP_YML" "$BITRISE_STEP_SH" "$BITRISE_DOC"
 git commit -m "Bump version to $VERSION for -v option"
 git push
 echo "🟢 [Step 1/6] Version bumped and pushed to develop."

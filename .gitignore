@@ -24,3 +24,5 @@ Thumbs.db
 # Ruby gems (for bashcov)
 .bundle/
 vendor/
+
+publish_test.sh

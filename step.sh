@@ -10,7 +10,7 @@ if [ -z "$pr_id" ]; then
 fi
 
 # Set default version if not provided
-BADGETIZR_VERSION="${badgetizr_version:-2.5.0}"
+BADGETIZR_VERSION="${badgetizr_version:-3.0.0}"
 
 echo "📦 Badgetizr version: $BADGETIZR_VERSION"
 
