@@ -4,13 +4,13 @@ set -e
 echo "🚀 Starting Badgetizr for Bitrise"
 
 # Validate required inputs
-if [ -z "$pr_id" ]; then
+if [[ -z "${pr_id}" ]]; then
     echo "❌ Error: pr_id is required"
     exit 1
 fi
 
 # Validate authentication token
-if [ -z "$github_token" ] && [ -z "$gitlab_token" ]; then
+if [[ -z "${github_token}" ]] && [[ -z "${gitlab_token}" ]]; then
     echo "❌ Error: No authentication token provided"
     echo "   Please configure GITHUB_TOKEN or GITLAB_TOKEN in Bitrise Secrets"
     echo "   See: https://github.com/aiKrice/homebrew-badgetizr/blob/master/BITRISE.md#step-2-configure-secrets"
@@ -20,10 +20,10 @@ fi
 # Set default version if not provided
 BADGETIZR_VERSION="${badgetizr_version:-3.0.0}"
 
-echo "📦 Badgetizr version: $BADGETIZR_VERSION"
+echo "📦 Badgetizr version: ${BADGETIZR_VERSION}"
 
 # Detect OS and install dependencies
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [[ "${OSTYPE}" == "darwin"* ]]; then
     echo "🍎 Running on macOS"
     OS_TYPE="macos"
 
@@ -50,24 +50,24 @@ fi
 PROVIDER="${provider}"
 
 # Set up authentication tokens
-if [ -n "$github_token" ]; then
-    export GITHUB_TOKEN="$github_token"
-    export GH_TOKEN="$github_token"
+if [[ -n "${github_token}" ]]; then
+    export GITHUB_TOKEN="${github_token}"
+    export GH_TOKEN="${github_token}"
 fi
 
-if [ -n "$gitlab_token" ]; then
-    export GITLAB_TOKEN="$gitlab_token"
+if [[ -n "${gitlab_token}" ]]; then
+    export GITLAB_TOKEN="${gitlab_token}"
 fi
 
-if [ -n "$gitlab_host" ]; then
-    export GITLAB_HOST="$gitlab_host"
+if [[ -n "${gitlab_host}" ]]; then
+    export GITLAB_HOST="${gitlab_host}"
 fi
 
 # Install GitHub CLI if needed
-if [[ "$PROVIDER" == "github" ]] || [[ -z "$PROVIDER" ]]; then
+if [[ "${PROVIDER}" == "github" ]] || [[ -z "${PROVIDER}" ]]; then
     if ! command -v gh &> /dev/null; then
         echo "📥 Installing GitHub CLI..."
-        if [[ "$OS_TYPE" == "macos" ]]; then
+        if [[ "${OS_TYPE}" == "macos" ]]; then
             brew install gh
         else
             # Linux installation
@@ -81,11 +81,11 @@ if [[ "$PROVIDER" == "github" ]] || [[ -z "$PROVIDER" ]]; then
 fi
 
 # Install GitLab CLI if needed
-if [[ "$PROVIDER" == "gitlab" ]] || [[ -z "$PROVIDER" ]]; then
+if [[ "${PROVIDER}" == "gitlab" ]] || [[ -z "${PROVIDER}" ]]; then
     if ! command -v glab &> /dev/null; then
         echo "📥 Installing GitLab CLI..."
         GLAB_VERSION="1.72.0"
-        if [[ "$OS_TYPE" == "macos" ]]; then
+        if [[ "${OS_TYPE}" == "macos" ]]; then
             brew install glab
         else
             # Linux installation
@@ -99,7 +99,7 @@ fi
 # Download and extract badgetizr
 echo "📥 Downloading Badgetizr v${BADGETIZR_VERSION}..."
 TEMP_DIR=$(mktemp -d)
-cd "$TEMP_DIR"
+cd "${TEMP_DIR}"
 
 curl -sSL "https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/${BADGETIZR_VERSION}.tar.gz" | tar -xz
 cd homebrew-badgetizr-*
@@ -110,49 +110,51 @@ echo "🔧 Configuring Badgetizr..."
 ARGS=()
 
 # Add configuration file
-if [ -n "$configuration" ]; then
+if [[ -n "${configuration}" ]]; then
     # Make path absolute if it's relative (relative to original workspace)
-    if [[ "$configuration" != /* ]]; then
-        configuration="$BITRISE_SOURCE_DIR/$configuration"
+    if [[ "${configuration}" != /* ]]; then
+        # shellcheck disable=SC2154
+        configuration="${BITRISE_SOURCE_DIR}/${configuration}"
     fi
-    ARGS+=("-c" "$configuration")
+    ARGS+=("-c" "${configuration}")
 fi
 
 # Add PR ID (required)
-ARGS+=("--pr-id=$pr_id")
+ARGS+=("--pr-id=${pr_id}")
 
 # Add optional parameters
-if [ -n "$pr_destination_branch" ]; then
-    ARGS+=("--pr-destination-branch=$pr_destination_branch")
+if [[ -n "${pr_destination_branch}" ]]; then
+    ARGS+=("--pr-destination-branch=${pr_destination_branch}")
 fi
 
-if [ -n "$pr_build_number" ]; then
-    ARGS+=("--pr-build-number=$pr_build_number")
+if [[ -n "${pr_build_number}" ]]; then
+    ARGS+=("--pr-build-number=${pr_build_number}")
 fi
 
-if [ -n "$pr_build_url" ]; then
-    ARGS+=("--pr-build-url=$pr_build_url")
+if [[ -n "${pr_build_url}" ]]; then
+    ARGS+=("--pr-build-url=${pr_build_url}")
 fi
 
-if [ -n "$ci_status" ]; then
-    ARGS+=("--ci-status=$ci_status")
+if [[ -n "${ci_status}" ]]; then
+    ARGS+=("--ci-status=${ci_status}")
 fi
 
-if [ -n "$ci_text" ]; then
-    ARGS+=("--ci-text=$ci_text")
+if [[ -n "${ci_text}" ]]; then
+    ARGS+=("--ci-text=${ci_text}")
 fi
 
-if [ -n "$provider" ]; then
-    ARGS+=("--provider=$provider")
+if [[ -n "${provider}" ]]; then
+    ARGS+=("--provider=${provider}")
 fi
 
 # Execute badgetizr from the source directory
-echo "🎯 Running Badgetizr with arguments: ${ARGS[@]}"
+echo "🎯 Running Badgetizr with arguments: ${ARGS[*]}"
 BADGETIZR_PATH="$(pwd)/badgetizr"
-cd "$BITRISE_SOURCE_DIR"
-"$BADGETIZR_PATH" "${ARGS[@]}"
+# shellcheck disable=SC2154
+cd "${BITRISE_SOURCE_DIR}"
+"${BADGETIZR_PATH}" "${ARGS[@]}"
 
 # Cleanup
-rm -rf "$TEMP_DIR"
+rm -rf "${TEMP_DIR}"
 
 echo "✅ Badgetizr completed successfully!"
