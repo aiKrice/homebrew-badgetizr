@@ -40,6 +40,7 @@ inputs:
           For GitHub: Use `$BITRISE_PULL_REQUEST` or `$PR_NUMBER`
           For GitLab: Use `$BITRISE_PULL_REQUEST` or your custom variable
         is_required: true
+        default_value: "$BITRISE_PULL_REQUEST"
 
   - configuration:
       opts:
@@ -48,7 +49,7 @@ inputs:
         description: |
           Path to the YAML configuration file that defines which badges to display.
           Default: `.badgetizr.yml`
-        is_required: false
+        is_required: true
         default_value: ".badgetizr.yml"
 
   - pr_destination_branch:
@@ -111,6 +112,7 @@ inputs:
           Force a specific provider. If not set, auto-detection will be used.
           Valid values: github, gitlab
         is_required: false
+        default_value: "github"
         value_options:
           - "github"
           - "gitlab"
@@ -143,13 +145,3 @@ inputs:
           GitLab instance hostname (e.g., gitlab.example.com).
           Only needed for self-managed GitLab instances. Defaults to gitlab.com.
         is_required: false
-
-  - badgetizr_version:
-      opts:
-        title: "Badgetizr Version"
-        summary: "Version of badgetizr to use"
-        description: |
-          Specific version tag of badgetizr to download and use.
-          Defaults to the latest release version.
-        is_required: false
-        default_value: "3.0.0"

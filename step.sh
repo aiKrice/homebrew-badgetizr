@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# Cleanup trap handler
+TEMP_DIR=""
+cleanup() {
+    if [[ -n "${TEMP_DIR}" ]] && [[ -d "${TEMP_DIR}" ]]; then
+        rm -rf "${TEMP_DIR}"
+    fi
+}
+trap cleanup EXIT
+
 echo "🚀 Starting Badgetizr for Bitrise"
 
 # Validate required inputs
@@ -17,32 +26,30 @@ if [[ -z "${github_token}" ]] && [[ -z "${gitlab_token}" ]]; then
     exit 1
 fi
 
-# Set default version if not provided
-BADGETIZR_VERSION="${badgetizr_version:-3.0.0}"
+# Badgetizr version (matches step version)
+BADGETIZR_VERSION="3.0.0"
 
 echo "📦 Badgetizr version: ${BADGETIZR_VERSION}"
+
+# Create a local bin directory for tools (user-writable)
+LOCAL_BIN="${HOME}/.local/bin"
+mkdir -p "${LOCAL_BIN}"
+export PATH="${LOCAL_BIN}:${PATH}"
 
 # Detect OS and install dependencies
 if [[ "${OSTYPE}" == "darwin"* ]]; then
     echo "🍎 Running on macOS"
     OS_TYPE="macos"
-
-    # Install yq if not present
-    if ! command -v yq &> /dev/null; then
-        echo "📥 Installing yq..."
-        brew install yq
-    fi
+    # yq is pre-installed on Bitrise macOS stacks
 else
     echo "🐧 Running on Linux"
     OS_TYPE="linux"
 
-    # Install yq for Linux
+    # Install yq for Linux (latest version)
     if ! command -v yq &> /dev/null; then
         echo "📥 Installing yq..."
-        YQ_VERSION="v4.35.1"
-        YQ_BINARY="yq_linux_amd64"
-        wget "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY}" -O /usr/local/bin/yq
-        chmod +x /usr/local/bin/yq
+        wget -qO "${LOCAL_BIN}/yq" https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        chmod +x "${LOCAL_BIN}/yq"
     fi
 fi
 
@@ -70,12 +77,12 @@ if [[ "${PROVIDER}" == "github" ]] || [[ -z "${PROVIDER}" ]]; then
         if [[ "${OS_TYPE}" == "macos" ]]; then
             brew install gh
         else
-            # Linux installation
-            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-            chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            apt-get update
-            apt-get install -y gh
+            # Linux installation - download binary directly
+            GH_VERSION="2.83.1"
+            curl -sSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
+            mv "/tmp/gh_${GH_VERSION}_linux_amd64/bin/gh" "${LOCAL_BIN}/gh"
+            chmod +x "${LOCAL_BIN}/gh"
+            rm -rf "/tmp/gh_${GH_VERSION}_linux_amd64"
         fi
     fi
 fi
@@ -84,14 +91,15 @@ fi
 if [[ "${PROVIDER}" == "gitlab" ]] || [[ -z "${PROVIDER}" ]]; then
     if ! command -v glab &> /dev/null; then
         echo "📥 Installing GitLab CLI..."
-        GLAB_VERSION="1.72.0"
+        GLAB_VERSION="1.78.3"
         if [[ "${OS_TYPE}" == "macos" ]]; then
             brew install glab
         else
-            # Linux installation
+            # Linux installation - download binary directly
             curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
-            mv /tmp/bin/glab /usr/local/bin/glab
-            chmod +x /usr/local/bin/glab
+            mv /tmp/bin/glab "${LOCAL_BIN}/glab"
+            chmod +x "${LOCAL_BIN}/glab"
+            rm -rf /tmp/bin
         fi
     fi
 fi
@@ -153,8 +161,5 @@ BADGETIZR_PATH="$(pwd)/badgetizr"
 # shellcheck disable=SC2154
 cd "${BITRISE_SOURCE_DIR}"
 "${BADGETIZR_PATH}" "${ARGS[@]}"
-
-# Cleanup
-rm -rf "${TEMP_DIR}"
 
 echo "✅ Badgetizr completed successfully!"

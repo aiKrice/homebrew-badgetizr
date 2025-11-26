@@ -63,8 +63,7 @@ sed -i '' "s|archive/refs/tags/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|ar
 sed -i '' "s|BADGETIZR_VERSION: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION: \"${VERSION}\"|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
 
 # Update Bitrise step files
-sed -i '' "s|default_value: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|default_value: \"${VERSION}\"|" "${BITRISE_STEP_YML}"
-sed -i '' "s|badgetizr_version:-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*}|badgetizr_version:-${VERSION}}|" "${BITRISE_STEP_SH}"
+sed -i '' "s|BADGETIZR_VERSION=\"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION=\"${VERSION}\"|" "${BITRISE_STEP_SH}"
 sed -i '' "s|@[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|@${VERSION}|g" "${BITRISE_DOC}" "${README_PATH}"
 sed -i '' "s/| No | [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* |/| No | ${VERSION} |/" "${BITRISE_DOC}"
 

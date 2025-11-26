@@ -14,7 +14,7 @@ workflows:
                 echo "================================"
                 echo ""
                 echo "✅ GITHUB_TOKEN présent: ${GITHUB_TOKEN:+OUI}"
-                echo "✅ Branche: $(git branch --show-current)"
+                echo "✅ Branch: $(git branch --show-current)"
                 echo ""
 
       - path::./:
@@ -37,4 +37,4 @@ workflows:
             - content: |
                 #!/bin/bash
                 echo ""
-                echo "✅ Test terminé avec succès !"
+                echo "✅ Test completed successfully !"

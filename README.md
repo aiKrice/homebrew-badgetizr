@@ -105,7 +105,7 @@ badgetizr:
   image: alpine:latest
   variables:
     BADGETIZR_VERSION: "2.5.0"
-    GLAB_VERSION: "1.72.0"
+    GLAB_VERSION: "1.78.3"
     # Auto-detects: gitlab.com for SaaS, your instance for self-managed
     GITLAB_HOST: "${CI_SERVER_HOST}"
     BUILD_URL: "https://${CI_SERVER_HOST}/${CI_PROJECT_PATH}/-/pipelines/${CI_PIPELINE_ID}"
