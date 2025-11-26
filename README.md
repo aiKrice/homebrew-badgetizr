@@ -140,11 +140,26 @@ badgetizr:
 
 #### Bitrise CI
 
-Add the Badgetizr custom step to your Bitrise workflow. Works on both macOS and Linux stacks.
+Add the Badgetizr step to your Bitrise workflow. Works on both macOS and Linux stacks.
 
 **📚 Complete Documentation**: See [BITRISE.md](BITRISE.md) for detailed setup instructions, troubleshooting, and advanced configuration.
 
-**Quick Setup:**
+**Quick Setup (Official StepLib - Recommended):**
+
+```yaml
+workflows:
+  primary:
+    steps:
+      - git-clone: {}
+      - badgetizr@3.0.0:
+          title: Run Badgetizr
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - pr_build_url: $BITRISE_BUILD_URL
+            - github_token: $GITHUB_TOKEN
+```
+
+**Alternative (Custom Git Step):**
 
 ```yaml
 workflows:

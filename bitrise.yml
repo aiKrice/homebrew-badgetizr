@@ -1,0 +1,40 @@
+---
+format_version: "13"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+workflows:
+  test:
+    steps:
+      - script:
+          title: "Setup test environment"
+          inputs:
+            - content: |
+                #!/bin/bash
+                echo "🧪 Test Bitrise step sur PR #64"
+                echo "================================"
+                echo ""
+                echo "✅ GITHUB_TOKEN présent: ${GITHUB_TOKEN:+OUI}"
+                echo "✅ Branche: $(git branch --show-current)"
+                echo ""
+
+      - path::./:
+          title: "Test Badgetizr Step sur PR #64"
+          inputs:
+            - pr_id: "64"
+            - configuration: ".badgetizr.yml"
+            - pr_destination_branch: "develop"
+            - pr_build_number: "1"
+            - pr_build_url: "https://app.bitrise.io/build/test-local"
+            - ci_status: "passed"
+            - ci_text: "Test Local"
+            - github_token: "$GITHUB_TOKEN"
+            - badgetizr_version: "2.5.0"
+            - provider: "github"
+
+      - script:
+          title: "Test completed"
+          inputs:
+            - content: |
+                #!/bin/bash
+                echo ""
+                echo "✅ Test terminé avec succès !"

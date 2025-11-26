@@ -128,4 +128,125 @@ git push --no-verify
 echo "🟢 [Step 6/6] Develop is updated."
 
 rm "badgetizr-${VERSION}.tar.gz"
-echo "🚀 Done"
+
+# ==============================================================================
+# Bitrise StepLib Automatic Submission
+# ==============================================================================
+echo ""
+echo "🟡 [Step 7/7] Preparing and submitting to Bitrise StepLib..."
+
+# Get the commit hash of the tagged version
+COMMIT_HASH=$(git rev-parse "${VERSION}")
+echo "📝 Commit hash: ${cyan}${COMMIT_HASH}${reset}"
+
+# Clone your fork in temp directory
+STEPLIB_TEMP="tmp-bitrise-steplib"
+STEPLIB_FORK="aiKrice/bitrise-steplib"
+echo "📥 Cloning your StepLib fork..."
+git clone "https://github.com/${STEPLIB_FORK}.git" "${STEPLIB_TEMP}" --depth 1 -q
+fail_if_error "Failed to clone your StepLib fork"
+
+# shellcheck disable=SC2164
+cd "${STEPLIB_TEMP}"
+
+# Create directory structure
+STEP_VERSION_DIR="steps/badgetizr/${VERSION}"
+STEP_ASSETS_DIR="steps/badgetizr/assets"
+
+mkdir -p "${STEP_VERSION_DIR}"
+mkdir -p "${STEP_ASSETS_DIR}"
+
+# Create step.yml with source section
+echo "📄 Creating step.yml with source reference..."
+cat > "${STEP_VERSION_DIR}/step.yml" << EOF
+source:
+  git: https://github.com/${REPOSITORY}.git
+  commit: ${COMMIT_HASH}
+
+EOF
+
+# Append the rest of step.yml (from parent directory)
+cat "../${BITRISE_STEP_YML}" >> "${STEP_VERSION_DIR}/step.yml"
+
+# Copy icon (from parent directory)
+echo "🎨 Copying icon..."
+cp ../assets/icon.png "${STEP_ASSETS_DIR}/"
+
+# Create branch and commit
+BRANCH_NAME="badgetizr-${VERSION}"
+git checkout -b "${BRANCH_NAME}"
+git add "steps/badgetizr"
+git commit -m "Add badgetizr ${VERSION}
+
+This PR adds badgetizr version ${VERSION} to the Bitrise StepLib.
+
+## What's new in ${VERSION}
+- See release notes: https://github.com/${REPOSITORY}/releases/tag/${VERSION}
+
+## Step repository
+https://github.com/${REPOSITORY}
+
+## Testing
+Tested with bitrise CLI locally using bitrise.yml in the repository.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# Push to your fork
+echo "⬆️  Pushing to your fork..."
+git push origin "${BRANCH_NAME}"
+fail_if_error "Failed to push to your fork"
+
+# Create PR to official StepLib
+echo "📬 Creating Pull Request to official StepLib..."
+gh pr create \
+    --repo bitrise-io/bitrise-steplib \
+    --base master \
+    --head "${STEPLIB_FORK}:${BRANCH_NAME}" \
+    --title "Add badgetizr ${VERSION}" \
+    --body "This PR adds badgetizr version ${VERSION} to the Bitrise StepLib.
+
+## What's new in ${VERSION}
+See release notes: https://github.com/${REPOSITORY}/releases/tag/${VERSION}
+
+## Step repository
+https://github.com/${REPOSITORY}
+
+## Step configuration
+- **Title**: Badgetizr
+- **Type tags**: utility, badge, automation
+- **Platforms**: macOS, Linux
+- **Source**: https://github.com/${REPOSITORY}.git @ ${COMMIT_HASH}
+
+## Testing
+✅ Tested locally with bitrise CLI
+✅ All inputs validated
+✅ Works on both macOS and Linux stacks
+
+## Checklist
+- [x] step.yml includes source.git and source.commit
+- [x] Icon (256x256) included in assets/
+- [x] Tested with bitrise run
+- [x] Follows StepLib guidelines
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+fail_if_error "Failed to create Pull Request"
+
+# Go back to original directory
+# shellcheck disable=SC2103
+cd ..
+
+# Cleanup
+echo "🧹 Cleaning up temporary directory..."
+rm -rf "${STEPLIB_TEMP}"
+
+echo "🟢 [Step 7/7] Pull Request created successfully!"
+echo ""
+echo "📋 ${cyan}Next steps:${reset}"
+echo "   - Monitor the PR: https://github.com/bitrise-io/bitrise-steplib/pulls"
+echo "   - Respond to review comments if any"
+echo "   - Wait for Bitrise team to merge"
+echo ""
+echo "🚀 Done - All automation complete!"

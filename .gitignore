@@ -26,4 +26,3 @@ Thumbs.db
 vendor/
 
 publish_test.sh
-bitrise_test.yml

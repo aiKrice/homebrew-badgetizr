@@ -4,13 +4,35 @@ This guide provides detailed instructions for integrating Badgetizr with Bitrise
 
 ## Overview
 
-Badgetizr is available as a custom Bitrise step that automatically installs dependencies and runs the badge generation tool on your pull/merge requests.
+Badgetizr is available as a Bitrise step that automatically installs dependencies and runs the badge generation tool on your pull/merge requests.
+
+**Two installation methods:**
+- 🏪 **Official Bitrise StepLib** (recommended) - Simple syntax, auto-updates
+- 🔧 **Custom Git Step** - Direct from repository, version locked
 
 ## Quick Start
 
-### Step 1: Add the Custom Step
+### Step 1: Add the Step
 
-Add the Badgetizr custom step to your `bitrise.yml` workflow:
+**Option A: Official StepLib (Recommended)**
+
+```yaml
+workflows:
+  primary:
+    steps:
+      - git-clone: {}
+      - badgetizr@3.0.0:
+          title: Run Badgetizr
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - configuration: .badgetizr.yml
+            - pr_destination_branch: $BITRISEIO_GIT_BRANCH_DEST
+            - pr_build_number: $BITRISE_BUILD_NUMBER
+            - pr_build_url: $BITRISE_BUILD_URL
+            - github_token: $GITHUB_TOKEN
+```
+
+**Option B: Custom Git Step**
 
 ```yaml
 workflows:
@@ -76,6 +98,21 @@ The step uses the following Bitrise environment variables:
 
 ### GitHub Pull Requests
 
+**Using Official StepLib:**
+```yaml
+- badgetizr@3.0.0:
+    title: Add GitHub PR Badges
+    inputs:
+      - pr_id: $BITRISE_PULL_REQUEST
+      - configuration: .badgetizr.yml
+      - pr_destination_branch: $BITRISEIO_GIT_BRANCH_DEST
+      - pr_build_number: $BITRISE_BUILD_NUMBER
+      - pr_build_url: $BITRISE_BUILD_URL
+      - github_token: $GITHUB_TOKEN
+      - provider: github
+```
+
+**Using Custom Git Step:**
 ```yaml
 - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.0:
     title: Add GitHub PR Badges
@@ -91,6 +128,21 @@ The step uses the following Bitrise environment variables:
 
 ### GitLab Merge Requests
 
+**Using Official StepLib:**
+```yaml
+- badgetizr@3.0.0:
+    title: Add GitLab MR Badges
+    inputs:
+      - pr_id: $BITRISE_PULL_REQUEST
+      - configuration: .badgetizr.yml
+      - pr_destination_branch: $BITRISEIO_GIT_BRANCH_DEST
+      - pr_build_number: $BITRISE_BUILD_NUMBER
+      - pr_build_url: $BITRISE_BUILD_URL
+      - gitlab_token: $GITLAB_TOKEN
+      - provider: gitlab
+```
+
+**Using Custom Git Step:**
 ```yaml
 - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.0:
     title: Add GitLab MR Badges
