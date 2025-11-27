@@ -9,16 +9,22 @@ on:
       - edited
       - closed
 
+concurrency:
+  group: badgetizr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
-  badgetizr:
+  badgetizr-start:
+    # Skip Dependabot PRs - they have restricted permissions and don't need badges
+    if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Badgetizr - Installing Dependencies
-        uses: aiKrice/homebrew-badgetizr@2.5.0
+      - name: Badgetizr - Running Tests
+        uses: aiKrice/homebrew-badgetizr@3.0.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -26,130 +32,52 @@ jobs:
           pr_build_number: ${{ github.run_id }}
           pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           ci_status: "started"
-          ci_text: "Installing Dependencies"
+          ci_text: "Running Tests & Coverage"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache kcov
-        id: cache-kcov
-        uses: actions/cache@v4
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v6
+
+      - name: Run shellcheck with reviewdog
+        uses: reviewdog/action-shellcheck@v1
         with:
-          path: ~/.local/bin/kcov
-          key: kcov-v42-${{ runner.os }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          filter_mode: diff_context
+          shellcheck_flags: "-x badgetizr configure providers/*.sh githooks/*"
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y bats jq cmake g++ pkg-config libcurl4-openssl-dev libelf-dev libdw-dev binutils-dev libiberty-dev
-
-      - name: Install kcov
-        if: steps.cache-kcov.outputs.cache-hit != 'true'
-        run: |
-          wget https://github.com/SimonKagstrom/kcov/archive/refs/tags/v42.tar.gz
-          tar xzf v42.tar.gz
-          cd kcov-42
-          mkdir build
-          cd build
-          cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local ..
-          make
-          make install
-          cd ../..
-          rm -rf kcov-42 v42.tar.gz
-
-      - name: Add kcov to PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Badgetizr - Running Unit Tests
-        uses: aiKrice/homebrew-badgetizr@2.5.0
+      - name: Run shfmt with reviewdog
+        uses: reviewdog/action-shfmt@v1
         with:
-          pr_id: ${{ github.event.pull_request.number }}
-          configuration: .badgetizr.yml
-          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
-          pr_build_number: ${{ github.run_id }}
-          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          ci_status: "started"
-          ci_text: "Running Unit Tests"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          filter_mode: diff_context
+          shfmt_flags: "-i 4 -ci -sr"
 
-      - name: Run tests with coverage
-        run: make test-coverage
+  tests:
+    # Run tests only if shellcheck succeeded
+    # ShellCheck runs for all PRs (including Dependabot) as it requires no special permissions
+    # For regular PRs: badgetizr-start runs first, then shellcheck, then tests
+    # For Dependabot PRs: shellcheck runs, then tests (badges are skipped)
+    needs: shellcheck
+    uses: ./.github/workflows/tests.yml
+    secrets: inherit
 
-      - name: Badgetizr - Generating Coverage Report
-        uses: aiKrice/homebrew-badgetizr@2.5.0
-        with:
-          pr_id: ${{ github.event.pull_request.number }}
-          configuration: .badgetizr.yml
-          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
-          pr_build_number: ${{ github.run_id }}
-          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          ci_status: "started"
-          ci_text: "Generating Coverage Report"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  badgetizr-result:
+    needs: [shellcheck, tests]
+    runs-on: ubuntu-latest
+    # Always run if shellcheck or tests ran, but skip for Dependabot PRs
+    if: ${{ always() && !startsWith(github.head_ref, 'dependabot/') }}
 
-      - name: Generate coverage report
-        run: |
-          if [ -f coverage/index.html ]; then
-            COVERAGE=$(grep -oP 'percent_covered">\K[0-9.]+' coverage/index.html | head -1 || echo "0")
-            echo "COVERAGE_PERCENT=$COVERAGE" >> $GITHUB_ENV
-            echo "### Coverage Report" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Coverage: ${COVERAGE}%**" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Full report available in artifacts." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Coverage report not generated"
-            echo "COVERAGE_PERCENT=0" >> $GITHUB_ENV
-          fi
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 30
-
-      - name: Check coverage threshold
-        run: |
-          THRESHOLD=70
-          COVERAGE=${{ env.COVERAGE_PERCENT }}
-          echo "Coverage: ${COVERAGE}%"
-          echo "Threshold: ${THRESHOLD}%"
-          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
-            echo "⚠️  Warning: Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
-            # Don't fail the build, just warn
-          else
-            echo "✅ Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
-          fi
-
-      - name: Badgetizr - Uploading to Codecov
-        uses: aiKrice/homebrew-badgetizr@2.5.0
-        with:
-          pr_id: ${{ github.event.pull_request.number }}
-          configuration: .badgetizr.yml
-          pr_destination_branch: ${{ github.event.pull_request.base.ref }}
-          pr_build_number: ${{ github.run_id }}
-          pr_build_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          ci_status: "started"
-          ci_text: "Uploading to Codecov"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/bats.*/cobertura.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true
-        continue-on-error: true
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v6
 
       - name: Badgetizr - Success
-        if: success()
-        uses: aiKrice/homebrew-badgetizr@2.5.0
+        if: needs.shellcheck.result == 'success' && needs.tests.result == 'success'
+        uses: aiKrice/homebrew-badgetizr@3.0.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -161,8 +89,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Badgetizr - Failed
-        if: failure()
-        uses: aiKrice/homebrew-badgetizr@2.5.0
+        if: needs.shellcheck.result != 'success' || needs.tests.result != 'success'
+        uses: aiKrice/homebrew-badgetizr@3.0.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -172,3 +100,15 @@ jobs:
           ci_status: "failed"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  claude-review:
+    # Only run Claude review if all checks passed
+    needs: [shellcheck, tests, badgetizr-result]
+    if: ${{ needs.shellcheck.result == 'success' && needs.tests.result == 'success' }}
+    uses: ./.github/workflows/claude-code-review.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      pr_author: ${{ github.event.pull_request.user.login }}
+      head_ref: ${{ github.head_ref }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

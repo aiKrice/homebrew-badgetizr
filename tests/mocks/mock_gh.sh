@@ -94,6 +94,15 @@ gh_pr_view() {
         body)
             echo "$MOCK_PR_BODY"
             ;;
+        title,body)
+            # Support combined title,body request (for optimization)
+            cat <<JSON
+{
+  "title": "$MOCK_PR_TITLE",
+  "body": "$MOCK_PR_BODY"
+}
+JSON
+            ;;
         baseRefName)
             echo "$MOCK_PR_BASE_BRANCH"
             ;;

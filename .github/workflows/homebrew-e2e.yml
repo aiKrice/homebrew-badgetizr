@@ -1,0 +1,159 @@
+name: Homebrew E2E Test
+
+on:
+  pull_request:
+    branches: [develop, master]
+    paths:
+      - 'Formula/badgetizr.rb'
+      - 'badgetizr'
+      - 'utils.sh'
+      - 'providers/**'
+      - '.github/workflows/homebrew-e2e.yml'
+  push:
+    branches: [develop, master]
+    paths:
+      - 'Formula/badgetizr.rb'
+      - 'badgetizr'
+      - 'utils.sh'
+      - 'providers/**'
+      - '.github/workflows/homebrew-e2e.yml'
+
+jobs:
+  test-homebrew-installation:
+    name: Test Homebrew libexec installation on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-15-intel, ubuntu-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # ------------------------------------------------------------------
+      # Install Homebrew on Linux (macOS has it preinstalled)
+      # ------------------------------------------------------------------
+      - name: Install Homebrew (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          if ! command -v brew &>/dev/null; then
+            echo "📦 Installing Homebrew on Linux..."
+            NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+            echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          else
+            echo "Homebrew already installed (cache restored)"
+          fi
+
+      # ------------------------------------------------------------------
+      # Now that brew exists → compute paths safely
+      # ------------------------------------------------------------------
+      - name: Setup Homebrew dynamic paths
+        run: |
+          BREW_REPO=$(brew --repository)
+          BREW_PREFIX=$(brew --prefix)
+
+          echo "BREW_REPO=$BREW_REPO" >> $GITHUB_ENV
+          echo "BREW_PREFIX=$BREW_PREFIX" >> $GITHUB_ENV
+
+          echo "TAP_NAME=badgetizr-test/badgetizr" >> $GITHUB_ENV
+          echo "TAP_PATH=$BREW_REPO/Library/Taps/badgetizr-test" >> $GITHUB_ENV
+
+          echo "INSTALL_PATH=$BREW_PREFIX/opt/badgetizr/libexec" >> $GITHUB_ENV
+          echo "WRAPPER_PATH=$BREW_PREFIX/bin/badgetizr" >> $GITHUB_ENV
+
+      # ------------------------------------------------------------------
+      # Install Badgetizr
+      # ------------------------------------------------------------------
+      - name: Install badgetizr from local formula
+        run: |
+          echo "📦 Installing badgetizr via Homebrew..."
+
+          mkdir -p "$TAP_PATH"
+          cp -r . "$TAP_PATH/homebrew-badgetizr"
+
+          brew install --build-from-source "$TAP_NAME/badgetizr"
+
+      # ------------------------------------------------------------------
+      # Verification
+      # ------------------------------------------------------------------
+      - name: Verify installation structure
+        run: |
+          echo "=== 📂 Checking libexec structure ==="
+          ls -la "$INSTALL_PATH"
+
+          echo ""
+          echo "=== 🔗 Wrapper ==="
+          cat "$WRAPPER_PATH"
+
+          echo ""
+          if ! grep -q "UTILS_PATH" "$WRAPPER_PATH"; then
+            echo "❌ UTILS_PATH missing in wrapper"
+            exit 1
+          fi
+          echo "UTILS_PATH OK"
+
+      - name: Test badgetizr --version
+        run: badgetizr --version
+
+      - name: Test badgetizr --help
+        run: badgetizr --help | head -20
+
+      - name: Test badgetizr error handling
+        run: |
+          set +e
+          OUTPUT=$(badgetizr 2>&1)
+          EXIT=$?
+          set -e
+
+          echo "Exit: $EXIT"
+          echo "Output: $OUTPUT"
+
+          if [ $EXIT -ne 1 ]; then
+            echo "❌ Expected exit code 1"
+            exit 1
+          fi
+
+          if ! echo "$OUTPUT" | grep -q "Error.*--pr-id"; then
+            echo "❌ Expected error not found"
+            exit 1
+          fi
+
+          echo "✅ Error handling OK"
+
+      - name: Test providers accessibility
+        run: |
+          if [ ! -d "$INSTALL_PATH/providers" ]; then
+            echo "❌ providers/ missing!"
+            exit 1
+          fi
+          echo "providers/ OK"
+          ls -la "$INSTALL_PATH/providers"
+
+      # ------------------------------------------------------------------
+      # Cleanup
+      # ------------------------------------------------------------------
+      - name: Cleanup
+        if: always()
+        run: |
+          brew uninstall badgetizr || true
+          brew untap "$TAP_NAME" || true
+          rm -rf "$TAP_PATH" || true
+
+  homebrew-e2e-summary:
+    runs-on: ubuntu-latest
+    needs: [test-homebrew-installation]
+    if: always()
+
+    steps:
+      - name: Summary
+        run: |
+          echo "Matrix job result: ${{ needs.test-homebrew-installation.result }}"
+          case "${{ needs.test-homebrew-installation.result }}" in
+            success) echo "✅ All platforms passed"; exit 0;;
+            failure) echo "❌ A platform failed"; exit 1;;
+            cancelled) echo "⚠️ Cancelled"; exit 1;;
+            *) echo "⏭️ Skipped"; exit 0;;
+          esac

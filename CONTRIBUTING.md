@@ -12,21 +12,20 @@ We welcome contributions to Badgetizr! Whether you're fixing bugs, adding featur
 
 2. **Set up your development environment**:
    ```bash
-   # Install dependencies
-   ./configure
+   # Install all contributor dependencies (includes testing & development tools)
+   ./configure --contributor
 
    # Set up authentication
    export GITHUB_TOKEN="your_github_token"     # For GitHub testing
    export GITLAB_TOKEN="your_gitlab_token"     # For GitLab testing
    ```
 
-3. **Install test dependencies**:
-   ```bash
-   # Install bats-core for running tests
-   brew install bats-core   # macOS/Linux with Homebrew
-   # or
-   npm install -g bats      # Using npm
-   ```
+   > **Note**: The `--contributor` flag installs additional development tools from `Brewfile.dev` including:
+   > - Testing frameworks (bats-core, kcov)
+   > - Code quality tools (shellcheck, shfmt)
+   > - Development utilities (terminal-notifier)
+   >
+   > For basic usage without these tools, run `./configure` without the flag.
 
 4. **Run unit tests**:
    ```bash

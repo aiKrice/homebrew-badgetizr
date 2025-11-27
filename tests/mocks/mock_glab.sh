@@ -19,6 +19,9 @@ MOCK_MR_LABELS="${MOCK_MR_LABELS:-}"
 # Mock auth status
 MOCK_GLAB_AUTH_SUCCESS="${MOCK_GLAB_AUTH_SUCCESS:-true}"
 
+# Mock label creation status
+MOCK_GLAB_LABEL_CREATE_SUCCESS="${MOCK_GLAB_LABEL_CREATE_SUCCESS:-true}"
+
 # Mock glab command
 # NOTE: This intentionally overrides the system 'glab' command when sourced.
 # This is the desired behavior for testing - it allows us to intercept all
@@ -245,8 +248,13 @@ glab_label() {
                 esac
             done
 
-            echo "$label_name" >> "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt"
-            return 0
+            if [ "$MOCK_GLAB_LABEL_CREATE_SUCCESS" = "true" ]; then
+                echo "$label_name" >> "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt"
+                return 0
+            else
+                echo "Error creating label" >&2
+                return 1
+            fi
             ;;
         list)
             # Return list of created labels

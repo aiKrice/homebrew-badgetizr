@@ -350,16 +350,28 @@ kcov --exclude-pattern=/usr,/tmp coverage bats tests
 
 ### 🔧 Code Quality & CI/CD Improvements (High Priority)
 
-#### 1. ShellCheck Integration
-- [ ] **Add ShellCheck linter** to CI workflow
-  - Install shellcheck in GitHub Actions
-  - Run on all .sh files and main badgetizr script
-  - Configure .shellcheckrc with project-specific rules
-- [ ] **Fix all ShellCheck warnings**
-  - Address quoting issues
-  - Fix variable expansion warnings
-  - Resolve shellcheck directives
-  - Document any intentional suppressions
+#### 1. ShellCheck Integration ✅ COMPLETED
+- ✅ **ShellCheck linter configuration added**
+  - `.shellcheckrc` with comprehensive linting rules
+  - Configured to be restrictive but practical
+  - Catches style issues, warnings, and errors
+- ✅ **Documentation added**
+  - `LINTING_SETUP.md` with GitHub Actions workflow integration guide
+  - Instructions for running ShellCheck locally
+  - Common issues and fixes documented
+- ✅ **CI workflow integration added** 
+  - Add shellcheck step to GitHub Actions
+  - Run before tests to catch issues early
+  - Update Badgetizr badge on linting failure
+- [ ] **Pre-commit Git hook** (future enhancement)
+  - Automatic ShellCheck on commit
+  - Prevent committing code with linting issues
+
+**For Claude Code Contributors:**
+Before committing changes to shell scripts (`.sh` files, `badgetizr`):
+1. Run: `shellcheck -x configure *.sh providers/*.sh badgetizr`
+2. Fix all errors and warnings
+3. Test changes to ensure functionality preserved
 
 #### 2. Danger Integration
 - [ ] **Setup Danger for PR automation**
@@ -376,7 +388,7 @@ kcov --exclude-pattern=/usr,/tmp coverage bats tests
 #### 3. Docker Image Distribution
 - [ ] **Create official Docker image**
   - Multi-stage Dockerfile with minimal footprint
-  - Include all dependencies (gh, glab, yq, jq)
+  - Include all dependencies (gh, glab, yq)
   - Support for both GitHub and GitLab
   - Published to Docker Hub and GitHub Container Registry
   - Version tags matching releases

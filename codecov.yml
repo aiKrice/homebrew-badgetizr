@@ -16,9 +16,9 @@ coverage:
         informational: false
     patch:
       default:
-        target: 70%
+        target: 80%
         threshold: 5%
-        informational: true
+        informational: false
 
 comment:
   layout: "reach,diff,flags,tree,footer"
