@@ -1,6 +1,11 @@
 # CODEOWNERS file - Define code ownership and automatic PR reviewers
 # Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# Global owner - all files in the repository
+# Critical files requiring owner approval
+# These files control CI/CD, releases, and automation workflows
+.github/workflows/* @aiKrice
+publish.sh @aiKrice
+
+# Global owner - all other files in the repository
 # This includes Dependabot PRs, regular PRs, and any code changes
 * @aiKrice

@@ -6,6 +6,7 @@
 ![Static Badge](https://img.shields.io/badge/2.5.0-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
 [![Static Badge](https://img.shields.io/badge/2.5.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
 [![Static Badge](https://img.shields.io/badge/2.5.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/2.5.0-purple?logo=bitrise&logoColor=white&label=Bitrise)
 [![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/graph/badge.svg?token=4NSN7QGO0E)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
 </h1>
 
@@ -27,6 +28,7 @@
   - [CI/CD Integration (Automated)](#cicd-integration-automated)
     - [GitHub Actions](#github-actions)
     - [GitLab CI](#gitlab-ci)
+    - [Bitrise CI](#bitrise-ci)
   - [Manual Installation](#manual-installation)
     - [Homebrew (macOS/Linux)](#homebrew-macoslinux)
     - [Direct Installation (macOS/Linux)](#direct-installation-macoslinux)
@@ -59,6 +61,7 @@ Badgetizr automatically adds customizable badges to your GitHub and GitLab pull/
 ✅ **GitLab** - Full support via GitLab CLI
 ✅ **GitHub Actions** - Native integration
 ✅ **GitLab CI** - Native integration
+✅ **Bitrise CI** - Custom step for macOS and Linux
 
 ## Installation
 
@@ -102,7 +105,7 @@ badgetizr:
   image: alpine:latest
   variables:
     BADGETIZR_VERSION: "2.5.0"
-    GLAB_VERSION: "1.72.0"
+    GLAB_VERSION: "1.78.3"
     # Auto-detects: gitlab.com for SaaS, your instance for self-managed
     GITLAB_HOST: "${CI_SERVER_HOST}"
     BUILD_URL: "https://${CI_SERVER_HOST}/${CI_PROJECT_PATH}/-/pipelines/${CI_PIPELINE_ID}"
@@ -134,6 +137,45 @@ badgetizr:
 - ✅ **Customizable**: Modify variables at the top for your setup
 
 **For custom ports or URLs**: Replace `BUILD_URL` with your specific format (e.g., using `$CI_SERVER_PORT` or `$CI_SERVER_URL`)
+
+#### Bitrise CI
+
+Add the Badgetizr step to your Bitrise workflow. Works on both macOS and Linux stacks.
+
+**📚 Complete Documentation**: See [BITRISE.md](BITRISE.md) for detailed setup instructions, troubleshooting, and advanced configuration.
+
+**Quick Setup (Official StepLib - Recommended):**
+
+```yaml
+workflows:
+  primary:
+    steps:
+      - git-clone: {}
+      - badgetizr@3.0.0:
+          title: Run Badgetizr
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - pr_build_url: $BITRISE_BUILD_URL
+            - github_token: $GITHUB_TOKEN
+```
+
+**Alternative (Custom Git Step):**
+
+```yaml
+workflows:
+  primary:
+    steps:
+      - git-clone: {}
+      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.0:
+          title: Run Badgetizr
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - pr_build_url: $BITRISE_BUILD_URL
+            - github_token: $GITHUB_TOKEN
+```
+
+**Configure secrets in Bitrise:**
+- Add `GITHUB_TOKEN` (for GitHub PRs) or `GITLAB_TOKEN` (for GitLab MRs) to your Bitrise Secrets
 
 ---
 
