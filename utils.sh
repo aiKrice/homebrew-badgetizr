@@ -1,5 +1,5 @@
 #!/bin/bash
-BADGETIZR_VERSION="3.0.1"
+BADGETIZR_VERSION="3.0.2"
 
 # URL encode a string for shields.io badge API
 # Shields.io requires special escaping:
