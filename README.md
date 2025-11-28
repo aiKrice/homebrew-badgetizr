@@ -3,10 +3,10 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/3.0.1-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
+![Static Badge](https://img.shields.io/badge/3.0.1-grey?logo=homebrew&logoColor=white&label=Homebrew-tap&labelColor=darkgreen)
 [![Static Badge](https://img.shields.io/badge/3.0.1-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
 [![Static Badge](https://img.shields.io/badge/3.0.1-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
-![Static Badge](https://img.shields.io/badge/3.0.1-purple?logo=bitrise&logoColor=white&label=Bitrise)
+![Static Badge](https://img.shields.io/badge/3.0.1-grey?logo=bitrise&logoColor=white&label=Bitrise&labelColor=purple)
 [![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/graph/badge.svg?token=4NSN7QGO0E)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
 </h1>
 
