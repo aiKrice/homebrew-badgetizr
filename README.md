@@ -3,10 +3,10 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/3.0.1-darkgreen?logo=homebrew&logoColor=white&label=Homebrew-tap)
-[![Static Badge](https://img.shields.io/badge/3.0.1-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/3.0.1-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
-![Static Badge](https://img.shields.io/badge/3.0.1-purple?logo=bitrise&logoColor=white&label=Bitrise)
+![Static Badge](https://img.shields.io/badge/3.0.2-grey?logo=homebrew&logoColor=white&label=Homebrew-tap&labelColor=darkgreen)
+[![Static Badge](https://img.shields.io/badge/3.0.2-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/3.0.2-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/3.0.2-grey?logo=bitrise&logoColor=white&label=Bitrise&labelColor=purple)
 [![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/graph/badge.svg?token=4NSN7QGO0E)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
 </h1>
 
@@ -80,7 +80,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@3.0.1
+        uses: aiKrice/homebrew-badgetizr@3.0.2
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -104,7 +104,7 @@ badgetizr:
   stage: build
   image: alpine:latest
   variables:
-    BADGETIZR_VERSION: "3.0.1"
+    BADGETIZR_VERSION: "3.0.2"
     GLAB_VERSION: "1.78.3"
     # Auto-detects: gitlab.com for SaaS, your instance for self-managed
     GITLAB_HOST: "${CI_SERVER_HOST}"
@@ -151,7 +151,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - badgetizr@3.0.1:
+      - badgetizr@3.0.2:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -166,7 +166,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.1:
+      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST

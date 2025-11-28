@@ -27,7 +27,7 @@ if [[ -z "${github_token}" ]] && [[ -z "${gitlab_token}" ]]; then
 fi
 
 # Badgetizr version (matches step version)
-BADGETIZR_VERSION="3.0.1"
+BADGETIZR_VERSION="3.0.2"
 
 echo "📦 Badgetizr version: ${BADGETIZR_VERSION}"
 

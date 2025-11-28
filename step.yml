@@ -35,8 +35,8 @@ deps:
     - name: wget
 
 inputs:
-  - pr_id:
-      opts:
+  - pr_id: "$BITRISE_PULL_REQUEST"
+    opts:
         title: "Pull/Merge Request ID"
         summary: "The ID of the pull request or merge request"
         description: |
@@ -45,20 +45,18 @@ inputs:
           For GitHub: Use `$BITRISE_PULL_REQUEST` or `$PR_NUMBER`
           For GitLab: Use `$BITRISE_PULL_REQUEST` or your custom variable
         is_required: true
-        default_value: "$BITRISE_PULL_REQUEST"
 
-  - configuration:
-      opts:
-        title: "Configuration file path"
-        summary: "Path to the badgetizr configuration file"
-        description: |
-          Path to the YAML configuration file that defines which badges to display.
-          Default: `.badgetizr.yml`
-        is_required: true
-        default_value: ".badgetizr.yml"
+  - configuration: ".badgetizr.yml"
+    opts:
+      title: "Configuration file path"
+      summary: "Path to the badgetizr configuration file"
+      description: |
+        Path to the YAML configuration file that defines which badges to display.
+        Default: `.badgetizr.yml`
+      is_required: true
 
   - pr_destination_branch:
-      opts:
+    opts:
         title: "PR destination branch"
         summary: "Target branch for the pull/merge request"
         description: |
@@ -69,7 +67,7 @@ inputs:
         is_required: false
 
   - pr_build_number:
-      opts:
+    opts:
         title: "Build number"
         summary: "Current build number"
         description: |
@@ -78,7 +76,7 @@ inputs:
         is_required: false
 
   - pr_build_url:
-      opts:
+    opts:
         title: "Build URL"
         summary: "URL to the current build"
         description: |
@@ -87,7 +85,7 @@ inputs:
         is_required: false
 
   - ci_status:
-      opts:
+    opts:
         title: "CI Status"
         summary: "Current CI/CD pipeline status"
         description: |
@@ -101,7 +99,7 @@ inputs:
           - "failed"
 
   - ci_text:
-      opts:
+    opts:
         title: "CI Badge Text"
         summary: "Custom text for the CI badge"
         description: |
@@ -109,21 +107,20 @@ inputs:
           If not provided, defaults to the status or build number.
         is_required: false
 
-  - provider:
-      opts:
-        title: "Provider"
-        summary: "Force specific provider (github or gitlab)"
-        description: |
-          Force a specific provider. If not set, auto-detection will be used.
-          Valid values: github, gitlab
-        is_required: false
-        default_value: "github"
-        value_options:
-          - "github"
-          - "gitlab"
+  - provider: "github"
+    opts:
+      title: "Provider"
+      summary: "Force specific provider (github or gitlab)"
+      description: |
+        Force a specific provider. If not set, auto-detection will be used.
+        Valid values: github, gitlab
+      is_required: false
+      value_options:
+        - "github"
+        - "gitlab"
 
   - github_token:
-      opts:
+    opts:
         title: "GitHub Token"
         summary: "GitHub authentication token"
         description: |
@@ -134,7 +131,7 @@ inputs:
         is_expand: true
 
   - gitlab_token:
-      opts:
+    opts:
         title: "GitLab Token"
         summary: "GitLab authentication token"
         description: |
@@ -145,7 +142,7 @@ inputs:
         is_expand: true
 
   - gitlab_host:
-      opts:
+    opts:
         title: "GitLab Host"
         summary: "GitLab instance hostname"
         description: |
