@@ -17,9 +17,7 @@ source_code_url: https://github.com/aiKrice/homebrew-badgetizr
 support_url: https://github.com/aiKrice/homebrew-badgetizr/issues
 
 type_tags:
-  - utility
-  - badge
-  - automation
+  - notification
 
 is_requires_admin_user: false
 is_always_run: false
@@ -28,6 +26,13 @@ is_skippable: false
 toolkit:
   bash:
     entry_file: step.sh
+
+deps:
+  brew:
+    - name: gh
+    - name: glab
+  apt_get:
+    - name: wget
 
 inputs:
   - pr_id:
@@ -126,6 +131,7 @@ inputs:
           Required when using GitHub provider.
         is_required: false
         is_sensitive: true
+        is_expand: true
 
   - gitlab_token:
       opts:
@@ -136,6 +142,7 @@ inputs:
           Required when using GitLab provider.
         is_required: false
         is_sensitive: true
+        is_expand: true
 
   - gitlab_host:
       opts:
