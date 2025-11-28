@@ -31,21 +31,15 @@ BADGETIZR_VERSION="3.0.0"
 
 echo "📦 Badgetizr version: ${BADGETIZR_VERSION}"
 
-# Create a local bin directory for tools (user-writable)
-LOCAL_BIN="${HOME}/.local/bin"
-mkdir -p "${LOCAL_BIN}"
-export PATH="${LOCAL_BIN}:${PATH}"
+# Verify dependencies (gh and glab installed by Bitrise CLI via deps section)
+echo "🔍 Verifying dependencies..."
 
-# Detect OS and install dependencies
-if [[ "${OSTYPE}" == "darwin"* ]]; then
-    echo "🍎 Running on macOS"
-    OS_TYPE="macos"
-    # yq is pre-installed on Bitrise macOS stacks
-else
-    echo "🐧 Running on Linux"
-    OS_TYPE="linux"
+# Install yq for Linux (not in apt_get deps, installed manually)
+if [[ "${OSTYPE}" != "darwin"* ]]; then
+    LOCAL_BIN="${HOME}/.local/bin"
+    mkdir -p "${LOCAL_BIN}"
+    export PATH="${LOCAL_BIN}:${PATH}"
 
-    # Install yq for Linux (latest version)
     if ! command -v yq &> /dev/null; then
         echo "📥 Installing yq..."
         wget -qO "${LOCAL_BIN}/yq" https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
@@ -53,8 +47,25 @@ else
     fi
 fi
 
-# Install provider CLIs based on provider setting or auto-detection
-PROVIDER="${provider}"
+# Verify all required tools are available
+MISSING_DEPS=()
+if ! command -v yq &> /dev/null; then
+    MISSING_DEPS+=("yq")
+fi
+if ! command -v gh &> /dev/null; then
+    MISSING_DEPS+=("gh")
+fi
+if ! command -v glab &> /dev/null; then
+    MISSING_DEPS+=("glab")
+fi
+
+if [[ ${#MISSING_DEPS[@]} -gt 0 ]]; then
+    echo "❌ Missing dependencies: ${MISSING_DEPS[*]}"
+    echo "   These should be installed automatically by Bitrise CLI"
+    exit 1
+fi
+
+echo "✅ All dependencies available"
 
 # Set up authentication tokens
 if [[ -n "${github_token}" ]]; then
@@ -68,40 +79,6 @@ fi
 
 if [[ -n "${gitlab_host}" ]]; then
     export GITLAB_HOST="${gitlab_host}"
-fi
-
-# Install GitHub CLI if needed
-if [[ "${PROVIDER}" == "github" ]] || [[ -z "${PROVIDER}" ]]; then
-    if ! command -v gh &> /dev/null; then
-        echo "📥 Installing GitHub CLI..."
-        if [[ "${OS_TYPE}" == "macos" ]]; then
-            brew install gh
-        else
-            # Linux installation - download binary directly
-            GH_VERSION="2.83.1"
-            curl -sSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
-            mv "/tmp/gh_${GH_VERSION}_linux_amd64/bin/gh" "${LOCAL_BIN}/gh"
-            chmod +x "${LOCAL_BIN}/gh"
-            rm -rf "/tmp/gh_${GH_VERSION}_linux_amd64"
-        fi
-    fi
-fi
-
-# Install GitLab CLI if needed
-if [[ "${PROVIDER}" == "gitlab" ]] || [[ -z "${PROVIDER}" ]]; then
-    if ! command -v glab &> /dev/null; then
-        echo "📥 Installing GitLab CLI..."
-        GLAB_VERSION="1.78.3"
-        if [[ "${OS_TYPE}" == "macos" ]]; then
-            brew install glab
-        else
-            # Linux installation - download binary directly
-            curl -sSL "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
-            mv /tmp/bin/glab "${LOCAL_BIN}/glab"
-            chmod +x "${LOCAL_BIN}/glab"
-            rm -rf /tmp/bin
-        fi
-    fi
 fi
 
 # Download and extract badgetizr
