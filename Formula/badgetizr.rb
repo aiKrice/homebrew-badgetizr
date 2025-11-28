@@ -1,9 +1,9 @@
 class Badgetizr < Formula
     desc "Badgetizr is a tool to allow custom badges automatically added and updated according the content of your pull request."
     homepage "https://github.com/aiKrice/homebrew-badgetizr"
-    url "https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/3.0.0.tar.gz"
+    url "https://github.com/aiKrice/homebrew-badgetizr/archive/refs/tags/3.0.1.tar.gz"
     head "https://github.com/aiKrice/homebrew-badgetizr.git", branch: "master"
-    sha256 "9cdcac2442af844b9475863076f09bb33b742fb076d1eaecb6a17e87e6a7aff8"
+    sha256 "517f6079f084b35a91ab37b38645f72d766d83023bca719662087586fe61ea82"
     license "MIT"
 
     depends_on "yq"
