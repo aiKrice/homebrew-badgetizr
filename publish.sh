@@ -1,10 +1,19 @@
-#!/bin/zsh
+#!/bin/bash
 
 # The script publish.sh is useful to:
 # - Generate the sha256 for Homebrew formula
 # - Update the workflow with the right new version
 # - Update documentation files (README.md and related docs) for the best developer experience during integration
 # It will create a tag, update the formula and create a PR.
+
+# Detect OS for sed compatibility
+if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS uses BSD sed (requires empty string after -i)
+    SED_INPLACE="sed -i ''"
+else
+    # Linux uses GNU sed (no empty string needed)
+    SED_INPLACE="sed -i"
+fi
 
 # Configuration
 REPOSITORY="aiKrice/homebrew-badgetizr"
@@ -20,7 +29,24 @@ GITLAB_TESTING_PATH="GITLAB-TESTING.md"
 BITRISE_STEP_YML="step.yml"
 BITRISE_STEP_SH="step.sh"
 BITRISE_DOC="BITRISE.md"
-VERSION="$1"
+STEPLIB_TEMP="tmp-bitrise-steplib"
+
+# Parse arguments
+VERSION=""
+UPLOAD_BITRISE=false
+
+while [[ $# -gt 0 ]]; do
+    case ${1} in
+        --upload-bitrise)
+            UPLOAD_BITRISE=true
+            shift
+            ;;
+        *)
+            VERSION="${1}"
+            shift
+            ;;
+    esac
+done
 
 red='\e[1;31m'
 cyan='\e[1;36m'
@@ -44,6 +70,12 @@ if [[ -z "${GITHUB_TOKEN}" ]]; then
     exit 1
 fi
 
+# Cleanup temporary Bitrise directory if it exists from previous failed run
+if [[ -d "${STEPLIB_TEMP}" ]]; then
+    echo "🧹 Cleaning up temporary directory from previous run..."
+    rm -rf "${STEPLIB_TEMP}"
+fi
+
 git switch develop
 fail_if_error "Failed to switch develop. Please stash changes."
 git pull
@@ -51,21 +83,21 @@ fail_if_error "Failed to pull develop. Please stash changes."
 
 echo "🟡 [Step 1/6] Bumping version to ${cyan}${VERSION}${reset} in all files..."
 # Changing the version for -v option
-sed -i '' "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"${VERSION}\"|" "${UTILS_PATH}"
-sed -i '' -E \
+${SED_INPLACE} "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"${VERSION}\"|" "${UTILS_PATH}"
+${SED_INPLACE} -E \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=homebrew.*)@\1${VERSION}\2@" \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=github.*)@\1${VERSION}\2@" \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-pink\\?logo=gitlab.*)@\1${VERSION}\2@" \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=bitrise.*)@\1${VERSION}\2@" \
     "${README_PATH}"
-sed -i '' "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "${WORKFLOW_PATH}" "${README_PATH}"
-sed -i '' "s|archive/refs/tags/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
-sed -i '' "s|BADGETIZR_VERSION: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION: \"${VERSION}\"|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
+${SED_INPLACE} "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "${WORKFLOW_PATH}" "${README_PATH}"
+${SED_INPLACE} "s|archive/refs/tags/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
+${SED_INPLACE} "s|BADGETIZR_VERSION: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION: \"${VERSION}\"|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
 
 # Update Bitrise step files
-sed -i '' "s|BADGETIZR_VERSION=\"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION=\"${VERSION}\"|" "${BITRISE_STEP_SH}"
-sed -i '' "s|@[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|@${VERSION}|g" "${BITRISE_DOC}" "${README_PATH}"
-sed -i '' "s/| No | [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* |/| No | ${VERSION} |/" "${BITRISE_DOC}"
+${SED_INPLACE} "s|BADGETIZR_VERSION=\"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION=\"${VERSION}\"|" "${BITRISE_STEP_SH}"
+${SED_INPLACE} "s|@[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|@${VERSION}|g" "${BITRISE_DOC}" "${README_PATH}"
+${SED_INPLACE} "s/| No | [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* |/| No | ${VERSION} |/" "${BITRISE_DOC}"
 
 git add "${UTILS_PATH}" "${WORKFLOW_PATH}" "${README_PATH}" "${BADGES_PATH}" "${TROUBLESHOOTING_PATH}" "${CONTRIBUTING_PATH}" "${PUBLISHING_PATH}" "${GITLAB_TESTING_PATH}" "${BITRISE_STEP_YML}" "${BITRISE_STEP_SH}" "${BITRISE_DOC}"
 git commit --no-verify -m "Bump version to ${VERSION} for -v option"
@@ -101,7 +133,7 @@ SHA256=$(shasum -a 256 "badgetizr-${VERSION}.tar.gz" | awk '{print $1}')
 echo -e "🟢 SHA256 generated: ${cyan}${SHA256}${reset}"
 
 # Update the formula
-sed -i "" -E \
+${SED_INPLACE} -E \
     -e "s#(url \").*(\".*)#\1${ARCHIVE_URL}\2#" \
     -e "s#(sha256 \").*(\".*)#\1${SHA256}\2#" \
     "${FORMULA_PATH}"
@@ -131,15 +163,22 @@ rm "badgetizr-${VERSION}.tar.gz"
 # ==============================================================================
 # Bitrise StepLib Automatic Submission
 # ==============================================================================
+if [[ "${UPLOAD_BITRISE}" != true ]]; then
+    echo ""
+    echo "⏭️  Bitrise StepLib submission skipped (use --upload-bitrise to enable)"
+    echo ""
+    echo "🚀 Done - Release complete!"
+    exit 0
+fi
+
 echo ""
 echo "🟡 [Step 7/7] Preparing and submitting to Bitrise StepLib..."
 
-# Get the commit hash of the tagged version
-COMMIT_HASH=$(git rev-parse "${VERSION}")
+# Get the commit hash of the tagged version (^{} dereferences annotated tags to get the actual commit)
+COMMIT_HASH=$(git rev-parse "${VERSION}^{}")
 echo "📝 Commit hash: ${cyan}${COMMIT_HASH}${reset}"
 
 # Clone your fork in temp directory
-STEPLIB_TEMP="tmp-bitrise-steplib"
 STEPLIB_FORK="aiKrice/bitrise-steplib"
 echo "📥 Cloning your StepLib fork..."
 git clone "https://github.com/${STEPLIB_FORK}.git" "${STEPLIB_TEMP}" --depth 1 -q
