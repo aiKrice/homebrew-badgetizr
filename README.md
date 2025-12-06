@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img src="logo.png" alt="Badgetizr Logo" width="120"/>
+    <img src="logo.png" alt="Badgetizr Logo" width="150"/>
     <br/>
     Badgetizr
 
