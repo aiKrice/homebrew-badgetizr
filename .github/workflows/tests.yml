@@ -31,7 +31,7 @@ jobs:
 
       - name: Cache kcov
         id: cache-kcov
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.local/bin/kcov
           key: kcov-v${{ env.KCOV_VERSION }}-${{ runner.os }}
@@ -80,7 +80,7 @@ jobs:
           fi
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: coverage/
