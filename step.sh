@@ -120,6 +120,34 @@ if [[ -n "${pr_build_url}" ]]; then
     ARGS+=("--pr-build-url=${pr_build_url}")
 fi
 
+# Automatic CI status detection based on Bitrise environment variables
+if [[ "${ci_status}" == "automatic" ]]; then
+    echo "🔍 Detecting CI status automatically from Bitrise environment..."
+
+    # Check if pipeline succeeded (only explicit success states)
+    pipeline_success=false
+    # shellcheck disable=SC2154
+    case "${BITRISE_PIPELINE_BUILD_STATUS}" in
+        "succeeded" | "succeeded_with_abort")
+            pipeline_success=true
+            ;;
+        "" | *)
+            # Empty or any other value (failed, aborted, etc.) = not success
+            pipeline_success=false
+            ;;
+    esac
+
+    # Determine final status based on pipeline and build status
+    # shellcheck disable=SC2154
+    if [[ "${pipeline_success}" == "true" ]] && [[ "${BITRISE_BUILD_STATUS}" -eq 0 ]]; then
+        ci_status="passed"
+        echo "✅ Detected status: passed (build: ${BITRISE_BUILD_STATUS}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
+    else
+        ci_status="failed"
+        echo "❌ Detected status: failed (build: ${BITRISE_BUILD_STATUS}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
+    fi
+fi
+
 if [[ -n "${ci_status}" ]]; then
     ARGS+=("--ci-status=${ci_status}")
 fi
