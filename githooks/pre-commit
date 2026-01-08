@@ -39,8 +39,25 @@ send_notification() {
     local sound="${3:-default}"
     local logo="${4:-logo.png}"
 
-    if [[ "${OSTYPE}" == "darwin"* ]] && command -v terminal-notifier &> /dev/null; then
-        terminal-notifier -title "${title}" -message "${message}" -sound "${sound}" -contentImage "${logo}"
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
+        # Use local terminal-notifier v3 if available, fallback to system version
+        local notifier
+        if [[ -x "./terminal-notifier.app/Contents/MacOS/terminal-notifier" ]]; then
+            notifier="./terminal-notifier.app/Contents/MacOS/terminal-notifier"
+        elif command -v terminal-notifier &> /dev/null; then
+            notifier="terminal-notifier"
+        else
+            return 0 # No notifier available, skip silently
+        fi
+
+        # Convert relative path to file:// URL for v3 compatibility
+        local logo_url
+        if [[ -f "${logo}" ]]; then
+            logo_url="file://$(cd "$(dirname "${logo}")" && pwd)/$(basename "${logo}")"
+            "${notifier}" -title "${title}" -message "${message}" -sound "${sound}" -contentImage "${logo_url}"
+        else
+            "${notifier}" -title "${title}" -message "${message}" -sound "${sound}"
+        fi
     fi
 }
 
