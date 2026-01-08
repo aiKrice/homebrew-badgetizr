@@ -21,7 +21,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - badgetizr@3.0.2:
+      - badgetizr@3.0.3:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -39,7 +39,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -79,7 +79,7 @@ Both platforms are fully supported with automatic dependency installation.
 | `github_token` | GitHub authentication token | Conditional** | - |
 | `gitlab_token` | GitLab authentication token | Conditional** | - |
 | `gitlab_host` | GitLab instance hostname | No | gitlab.com |
-| `badgetizr_version` | Version to use | No | 3.0.2 |
+| `badgetizr_version` | Version to use | No | 3.0.3 |
 
 \* Required depending on which badges are enabled in your configuration
 \*\* At least one token is required based on your provider
@@ -100,7 +100,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Official StepLib:**
 ```yaml
-- badgetizr@3.0.2:
+- badgetizr@3.0.3:
     title: Add GitHub PR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -114,7 +114,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Custom Git Step:**
 ```yaml
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
     title: Add GitHub PR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -130,7 +130,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Official StepLib:**
 ```yaml
-- badgetizr@3.0.2:
+- badgetizr@3.0.3:
     title: Add GitLab MR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -144,7 +144,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Custom Git Step:**
 ```yaml
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
     title: Add GitLab MR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -160,7 +160,7 @@ The step uses the following Bitrise environment variables:
 ### Self-Managed GitLab
 
 ```yaml
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
     title: Add GitLab MR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -193,7 +193,7 @@ workflows:
             - content: |
                 #!/bin/bash
                 npm test
-      - badgetizr@3.0.2:
+      - badgetizr@3.0.3:
           title: Update PR Badges
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -224,7 +224,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - badgetizr@3.0.2:
+      - badgetizr@3.0.3:
           title: Badges - Started
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -242,7 +242,7 @@ workflows:
           inputs:
             - content: npm test
 
-      - badgetizr@3.0.2:
+      - badgetizr@3.0.3:
           title: Badges - Completed
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
