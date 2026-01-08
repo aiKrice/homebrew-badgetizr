@@ -21,7 +21,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - badgetizr@3.0.2:
+      - badgetizr@3.0.3:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -39,7 +39,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -79,7 +79,7 @@ Both platforms are fully supported with automatic dependency installation.
 | `github_token` | GitHub authentication token | Conditional** | - |
 | `gitlab_token` | GitLab authentication token | Conditional** | - |
 | `gitlab_host` | GitLab instance hostname | No | gitlab.com |
-| `badgetizr_version` | Version to use | No | 3.0.2 |
+| `badgetizr_version` | Version to use | No | 3.0.3 |
 
 \* Required depending on which badges are enabled in your configuration
 \*\* At least one token is required based on your provider
@@ -100,7 +100,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Official StepLib:**
 ```yaml
-- badgetizr@3.0.2:
+- badgetizr@3.0.3:
     title: Add GitHub PR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -114,7 +114,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Custom Git Step:**
 ```yaml
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
     title: Add GitHub PR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -130,7 +130,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Official StepLib:**
 ```yaml
-- badgetizr@3.0.2:
+- badgetizr@3.0.3:
     title: Add GitLab MR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -144,7 +144,7 @@ The step uses the following Bitrise environment variables:
 
 **Using Custom Git Step:**
 ```yaml
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
     title: Add GitLab MR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -160,7 +160,7 @@ The step uses the following Bitrise environment variables:
 ### Self-Managed GitLab
 
 ```yaml
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
+- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
     title: Add GitLab MR Badges
     inputs:
       - pr_id: $BITRISE_PULL_REQUEST
@@ -172,27 +172,102 @@ The step uses the following Bitrise environment variables:
       - provider: gitlab
 ```
 
-### With CI Status
+### With CI Status - Automatic Mode (Recommended)
+
+**Best practice:** Use `ci_status: automatic` as the **final step** in your workflow to automatically detect the build status.
 
 ```yaml
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
-    title: Add Badges - Started
-    inputs:
-      - pr_id: $BITRISE_PULL_REQUEST
-      - pr_build_url: $BITRISE_BUILD_URL
-      - ci_status: started
-      - github_token: $GITHUB_TOKEN
-
-# ... your build steps ...
-
-- git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.2:
-    title: Add Badges - Passed
-    inputs:
-      - pr_id: $BITRISE_PULL_REQUEST
-      - pr_build_url: $BITRISE_BUILD_URL
-      - ci_status: passed
-      - github_token: $GITHUB_TOKEN
+workflows:
+  primary:
+    steps:
+      - git-clone: {}
+      - script:
+          title: Build
+          inputs:
+            - content: |
+                #!/bin/bash
+                npm run build
+      - script:
+          title: Test
+          inputs:
+            - content: |
+                #!/bin/bash
+                npm test
+      - badgetizr@3.0.3:
+          title: Update PR Badges
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - pr_build_number: $BITRISE_BUILD_NUMBER
+            - pr_build_url: $BITRISE_BUILD_URL
+            - ci_status: automatic  # ← Automatically detects passed/failed
+            - github_token: $GITHUB_TOKEN
 ```
+
+**How it works:**
+- ✅ **Passed (green)**: All previous steps succeeded
+- ❌ **Failed (red)**: Any previous step failed
+- Uses `$BITRISE_BUILD_STATUS` and `$BITRISE_PIPELINE_BUILD_STATUS`
+
+**⚠️ Critical placement rule:**
+- MUST be the **last step** in your workflow
+- If placed earlier, it won't reflect the final build status
+- Don't add steps after badgetizr with `automatic` mode
+
+---
+
+### With CI Status - Manual Mode
+
+**Use case:** For complex workflows where you want fine-grained control or intermediate status updates.
+
+```yaml
+workflows:
+  primary:
+    steps:
+      - git-clone: {}
+      - badgetizr@3.0.3:
+          title: Badges - Started
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - pr_build_url: $BITRISE_BUILD_URL
+            - ci_status: started  # Yellow badge: build in progress
+            - github_token: $GITHUB_TOKEN
+
+      - script:
+          title: Build
+          inputs:
+            - content: npm run build
+
+      - script:
+          title: Test
+          inputs:
+            - content: npm test
+
+      - badgetizr@3.0.3:
+          title: Badges - Completed
+          inputs:
+            - pr_id: $BITRISE_PULL_REQUEST
+            - pr_build_url: $BITRISE_BUILD_URL
+            - ci_status: passed  # Green badge: manually set
+            - github_token: $GITHUB_TOKEN
+```
+
+**Manual status options:**
+- `started` - Yellow (use at workflow start)
+- `passed` - Green (success)
+- `warning` - Orange (success with warnings)
+- `failed` - Red (failure)
+
+---
+
+### Automatic vs Manual: When to Use Each
+
+| Scenario | Recommended Mode | Why |
+|----------|-----------------|-----|
+| Simple linear workflow | **automatic** | Simplest, most reliable |
+| Want final status only | **automatic** | One step, no manual tracking |
+| Complex multi-stage pipeline | **manual** | Fine-grained control at each stage |
+| Show "in progress" at start | **manual** (`started`) | User feedback during long builds |
+| Custom status logic | **manual** | Full control over badge color/text |
 
 ## Configuration File
 

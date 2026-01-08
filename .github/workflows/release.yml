@@ -1,0 +1,89 @@
+name: Manual Release (Maintainer Only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 3.0.3)'
+        required: true
+        type: string
+      upload_bitrise:
+        description: 'Upload to Bitrise StepLib'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: production  # Protected environment - only aiKrice can approve
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Validate version format
+        run: |
+          VERSION="${{ inputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Error: Version must follow semantic versioning (X.Y.Z)"
+            exit 1
+          fi
+          echo "✅ Version format valid: $VERSION"
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PAT }}  # PAT required to bypass branch protections
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install dependencies
+        run: |
+          # Install gh CLI (for GitHub operations)
+          type -p gh > /dev/null || {
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh -y
+          }
+
+          # Install stepman (for Bitrise step audit) only if uploading to Bitrise
+          if [[ "${{ inputs.upload_bitrise }}" == "true" ]]; then
+            mkdir -p ~/.local/bin
+            curl -fL https://github.com/bitrise-io/stepman/releases/latest/download/stepman-$(uname -s)-$(uname -m) -o ~/.local/bin/stepman || true
+            chmod +x ~/.local/bin/stepman || true
+          fi
+
+      - name: Run publish script
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          # Make publish.sh executable
+          chmod +x publish.sh
+
+          # Run the publish script with optional Bitrise upload
+          if [[ "${{ inputs.upload_bitrise }}" == "true" ]]; then
+            ./publish.sh "${VERSION}" --upload-bitrise
+          else
+            ./publish.sh "${VERSION}"
+          fi
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "🎉 Release ${{ inputs.version }} published successfully!"
+          echo ""
+          echo "📦 GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ inputs.version }}"
+          echo "📋 Homebrew Formula: Updated automatically"
+          if [[ "${{ inputs.upload_bitrise }}" == "true" ]]; then
+            echo "🚀 Bitrise PR: Check https://github.com/bitrise-io/bitrise-steplib/pulls"
+          else
+            echo "⏭️  Bitrise upload skipped (enable with 'Upload to Bitrise StepLib' checkbox)"
+          fi
