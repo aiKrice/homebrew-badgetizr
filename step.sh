@@ -1,6 +1,16 @@
 #!/bin/bash
 set -e
 
+# Bitrise status constants
+readonly BITRISE_STATUS_SUCCEEDED="succeeded"
+readonly BITRISE_STATUS_SUCCEEDED_WITH_ABORT="succeeded_with_abort"
+readonly BITRISE_BUILD_STATUS_SUCCESS=0
+
+# CI status constants
+readonly CI_STATUS_PASSED="passed"
+readonly CI_STATUS_FAILED="failed"
+readonly CI_STATUS_AUTOMATIC="automatic"
+
 # Cleanup trap handler
 TEMP_DIR=""
 cleanup() {
@@ -118,6 +128,34 @@ fi
 
 if [[ -n "${pr_build_url}" ]]; then
     ARGS+=("--pr-build-url=${pr_build_url}")
+fi
+
+# Automatic CI status detection based on Bitrise environment variables
+if [[ "${ci_status}" == "${CI_STATUS_AUTOMATIC}" ]]; then
+    echo "🔍 Detecting CI status automatically from Bitrise environment..."
+
+    # Check if pipeline succeeded (only explicit success states)
+    pipeline_success=false
+    # shellcheck disable=SC2154
+    case "${BITRISE_PIPELINE_BUILD_STATUS}" in
+        "${BITRISE_STATUS_SUCCEEDED}" | "${BITRISE_STATUS_SUCCEEDED_WITH_ABORT}")
+            pipeline_success=true
+            ;;
+        "" | *)
+            # Empty or any other value (failed, aborted, etc.) = not success
+            pipeline_success=false
+            ;;
+    esac
+
+    # Determine final status based on pipeline and build status
+    # shellcheck disable=SC2154
+    if [[ "${pipeline_success}" == "true" ]] && [[ "${BITRISE_BUILD_STATUS:-1}" -eq ${BITRISE_BUILD_STATUS_SUCCESS} ]]; then
+        ci_status="${CI_STATUS_PASSED}"
+        echo "✅ Detected status: ${CI_STATUS_PASSED} (build: ${BITRISE_BUILD_STATUS:-1}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
+    else
+        ci_status="${CI_STATUS_FAILED}"
+        echo "❌ Detected status: ${CI_STATUS_FAILED} (build: ${BITRISE_BUILD_STATUS:-1}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
+    fi
 fi
 
 if [[ -n "${ci_status}" ]]; then
