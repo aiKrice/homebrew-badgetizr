@@ -11,7 +11,7 @@ description: |
   - Highlight target branches for better merge awareness
 
   This step works on both macOS and Linux stacks by cloning the repository and running the badgetizr script.
-
+maintainer: community
 website: https://github.com/aiKrice/homebrew-badgetizr
 source_code_url: https://github.com/aiKrice/homebrew-badgetizr
 support_url: https://github.com/aiKrice/homebrew-badgetizr/issues
@@ -97,11 +97,33 @@ inputs:
             - Uses $BITRISE_BUILD_STATUS and $BITRISE_PIPELINE_BUILD_STATUS
             - Returns "passed" (green) or "failed" (red) at build end
 
+            **⚠️ IMPORTANT - Timing:**
+            - MUST be used as the FINAL step in your workflow
+            - Place AFTER all build, test, and deploy steps complete
+            - Only then will $BITRISE_BUILD_STATUS reflect the true final status
+
+            **Example workflow:**
+            ```yaml
+            workflows:
+              primary:
+                steps:
+                  - git-clone: {}
+                  - script: { title: "Build" }
+                  - script: { title: "Test" }
+                  - script: { title: "Deploy" }
+                  - badgetizr: { ci_status: "automatic" }  # ← Final step
+            ```
+
           - **Manual status** (for intermediate steps or custom control):
-            - started = yellow (use for running/in-progress builds)
+            - started = yellow (use for running/in-progress builds at workflow START)
             - passed = green
             - warning = orange
             - failed = red
+
+            **Use cases:**
+            - Show "started" at beginning of workflow
+            - Update to "passed"/"failed" at specific checkpoints
+            - Custom statuses for complex multi-stage pipelines
 
           - **Empty**: Build number mode - static badge with build number (requires --pr-build-number)
 

@@ -1,6 +1,16 @@
 #!/bin/bash
 set -e
 
+# Bitrise status constants
+readonly BITRISE_STATUS_SUCCEEDED="succeeded"
+readonly BITRISE_STATUS_SUCCEEDED_WITH_ABORT="succeeded_with_abort"
+readonly BITRISE_BUILD_STATUS_SUCCESS=0
+
+# CI status constants
+readonly CI_STATUS_PASSED="passed"
+readonly CI_STATUS_FAILED="failed"
+readonly CI_STATUS_AUTOMATIC="automatic"
+
 # Cleanup trap handler
 TEMP_DIR=""
 cleanup() {
@@ -121,14 +131,14 @@ if [[ -n "${pr_build_url}" ]]; then
 fi
 
 # Automatic CI status detection based on Bitrise environment variables
-if [[ "${ci_status}" == "automatic" ]]; then
+if [[ "${ci_status}" == "${CI_STATUS_AUTOMATIC}" ]]; then
     echo "🔍 Detecting CI status automatically from Bitrise environment..."
 
     # Check if pipeline succeeded (only explicit success states)
     pipeline_success=false
     # shellcheck disable=SC2154
     case "${BITRISE_PIPELINE_BUILD_STATUS}" in
-        "succeeded" | "succeeded_with_abort")
+        "${BITRISE_STATUS_SUCCEEDED}" | "${BITRISE_STATUS_SUCCEEDED_WITH_ABORT}")
             pipeline_success=true
             ;;
         "" | *)
@@ -139,12 +149,12 @@ if [[ "${ci_status}" == "automatic" ]]; then
 
     # Determine final status based on pipeline and build status
     # shellcheck disable=SC2154
-    if [[ "${pipeline_success}" == "true" ]] && [[ "${BITRISE_BUILD_STATUS}" -eq 0 ]]; then
-        ci_status="passed"
-        echo "✅ Detected status: passed (build: ${BITRISE_BUILD_STATUS}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
+    if [[ "${pipeline_success}" == "true" ]] && [[ "${BITRISE_BUILD_STATUS:-1}" -eq ${BITRISE_BUILD_STATUS_SUCCESS} ]]; then
+        ci_status="${CI_STATUS_PASSED}"
+        echo "✅ Detected status: ${CI_STATUS_PASSED} (build: ${BITRISE_BUILD_STATUS:-1}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
     else
-        ci_status="failed"
-        echo "❌ Detected status: failed (build: ${BITRISE_BUILD_STATUS}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
+        ci_status="${CI_STATUS_FAILED}"
+        echo "❌ Detected status: ${CI_STATUS_FAILED} (build: ${BITRISE_BUILD_STATUS:-1}, pipeline: ${BITRISE_PIPELINE_BUILD_STATUS:-empty})"
     fi
 fi
 
