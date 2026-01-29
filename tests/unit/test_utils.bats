@@ -16,7 +16,7 @@ setup() {
 }
 
 @test "show_help function exists" {
-    declare -f show_help > /dev/null
+    declare -f show_help >/dev/null
 }
 
 @test "show_help outputs usage information" {
@@ -49,7 +49,7 @@ setup() {
 # ============================================================================
 
 @test "url_encode_shields function exists" {
-    declare -f url_encode_shields > /dev/null
+    declare -f url_encode_shields >/dev/null
 }
 
 @test "url_encode_shields: spaces become %20" {

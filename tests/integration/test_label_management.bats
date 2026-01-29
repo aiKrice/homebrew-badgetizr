@@ -24,7 +24,8 @@ teardown() {
 @test "WIP badge adds label when labelized is enabled" {
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
-    local wip_labelized_config=$(create_temp_config "$(cat <<EOF
+    local wip_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -32,7 +33,7 @@ badge_wip:
     label: "WIP"
     labelized: "work in progress"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$wip_labelized_config"
@@ -46,7 +47,8 @@ EOF
 @test "WIP badge removes label when title no longer has WIP" {
     # Arrange
     export MOCK_PR_TITLE="Normal PR title"
-    local wip_labelized_config=$(create_temp_config "$(cat <<EOF
+    local wip_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -54,7 +56,7 @@ badge_wip:
     label: "WIP"
     labelized: "work in progress"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$wip_labelized_config"
@@ -67,7 +69,8 @@ EOF
 @test "WIP badge creates label if it doesn't exist" {
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
-    local wip_labelized_config=$(create_temp_config "$(cat <<EOF
+    local wip_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -75,7 +78,7 @@ badge_wip:
     label: "WIP"
     labelized: "work in progress"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$wip_labelized_config"
@@ -95,7 +98,8 @@ EOF
     export MOCK_PR_TITLE="Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
-    local hotfix_labelized_config=$(create_temp_config "$(cat <<EOF
+    local hotfix_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -104,7 +108,7 @@ badge_hotfix:
     label: "HOTFIX"
     labelized: "hotfix"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$hotfix_labelized_config"
@@ -120,7 +124,8 @@ EOF
     export MOCK_PR_TITLE="Normal PR"
     export MOCK_PR_BASE_BRANCH="develop"
     export MOCK_PR_HEAD_BRANCH="feature/normal"
-    local hotfix_labelized_config=$(create_temp_config "$(cat <<EOF
+    local hotfix_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -129,7 +134,7 @@ badge_hotfix:
     label: "HOTFIX"
     labelized: "hotfix"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$hotfix_labelized_config"
@@ -144,7 +149,8 @@ EOF
     export MOCK_PR_TITLE="Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
-    local hotfix_labelized_config=$(create_temp_config "$(cat <<EOF
+    local hotfix_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -153,7 +159,7 @@ badge_hotfix:
     label: "HOTFIX"
     labelized: "hotfix"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$hotfix_labelized_config"
@@ -173,14 +179,15 @@ EOF
 @test "WIP badge without labelized does not manage labels" {
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
-    local wip_no_label_config=$(create_temp_config "$(cat <<EOF
+    local wip_no_label_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
     color: "yellow"
     label: "WIP"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$wip_no_label_config"
@@ -189,8 +196,8 @@ EOF
     assert_success
     assert_badge_type_exists "wip"
     # No labels should be added
-    [ ! -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ] || \
-    [ ! -s "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ]
+    [ ! -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ] ||
+        [ ! -s "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ]
 }
 
 @test "Hotfix badge without labelized does not manage labels" {
@@ -198,7 +205,8 @@ EOF
     export MOCK_PR_TITLE="Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
-    local hotfix_no_label_config=$(create_temp_config "$(cat <<EOF
+    local hotfix_no_label_config=$(create_temp_config "$(
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -206,7 +214,7 @@ badge_hotfix:
     text_color: "white"
     label: "HOTFIX"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$hotfix_no_label_config"
@@ -215,8 +223,8 @@ EOF
     assert_success
     assert_badge_type_exists "hotfix"
     # No labels should be added
-    [ ! -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ] || \
-    [ ! -s "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ]
+    [ ! -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ] ||
+        [ ! -s "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ]
 }
 
 # ============================================================================
@@ -226,7 +234,8 @@ EOF
 @test "Label is created with correct color for WIP" {
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
-    local wip_labelized_config=$(create_temp_config "$(cat <<EOF
+    local wip_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -234,7 +243,7 @@ badge_wip:
     label: "WIP"
     labelized: "wip-label"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$wip_labelized_config"
@@ -250,7 +259,8 @@ EOF
     export MOCK_PR_TITLE="[WIP] Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent"
-    local multi_labelized_config=$(create_temp_config "$(cat <<EOF
+    local multi_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -264,7 +274,7 @@ badge_hotfix:
     label: "HOTFIX"
     labelized: "hotfix"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$multi_labelized_config"
@@ -276,8 +286,8 @@ EOF
 
     # Both labels should be managed
     if [ -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ]; then
-        local label_count=$(wc -l < "$MOCK_GH_RESPONSES_DIR/added_labels.txt" | tr -d ' ')
-        [ "$label_count" -ge 1 ]  # At least one label added
+        local label_count=$(wc -l <"$MOCK_GH_RESPONSES_DIR/added_labels.txt" | tr -d ' ')
+        [ "$label_count" -ge 1 ] # At least one label added
     fi
 }
 
@@ -291,7 +301,8 @@ EOF
     export MOCK_GIT_REMOTE="https://gitlab.com/test/repo.git"
     mock_git
 
-    local wip_labelized_config=$(create_temp_config "$(cat <<EOF
+    local wip_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -299,7 +310,7 @@ badge_wip:
     label: "WIP"
     labelized: "work in progress"
 EOF
-)")
+    )")
 
     # Act
     # Note: This would normally use GitLab provider, but for now we test the concept
@@ -311,14 +322,15 @@ EOF
 
     # Assert
     # Either GitHub or GitLab labels should be tracked
-    [ -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ] || \
-    [ -f "$MOCK_GLAB_RESPONSES_DIR/added_labels.txt" ] || true
+    [ -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ] ||
+        [ -f "$MOCK_GLAB_RESPONSES_DIR/added_labels.txt" ] || true
 }
 
 @test "Label removal is tracked correctly" {
     # Arrange
     export MOCK_PR_TITLE="Normal title without WIP"
-    local wip_labelized_config=$(create_temp_config "$(cat <<EOF
+    local wip_labelized_config=$(create_temp_config "$(
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -326,7 +338,7 @@ badge_wip:
     label: "WIP"
     labelized: "work in progress"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$wip_labelized_config"

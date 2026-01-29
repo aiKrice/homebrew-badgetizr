@@ -55,12 +55,12 @@ setup() {
 @test "CI status validation - started" {
     status="started"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
-            valid=true
-            ;;
-        *)
-            valid=false
-            ;;
+    "started" | "passed" | "warning" | "failed")
+        valid=true
+        ;;
+    *)
+        valid=false
+        ;;
     esac
     [ "$valid" = "true" ]
 }
@@ -68,12 +68,12 @@ setup() {
 @test "CI status validation - passed" {
     status="passed"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
-            valid=true
-            ;;
-        *)
-            valid=false
-            ;;
+    "started" | "passed" | "warning" | "failed")
+        valid=true
+        ;;
+    *)
+        valid=false
+        ;;
     esac
     [ "$valid" = "true" ]
 }
@@ -81,12 +81,12 @@ setup() {
 @test "CI status validation - warning" {
     status="warning"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
-            valid=true
-            ;;
-        *)
-            valid=false
-            ;;
+    "started" | "passed" | "warning" | "failed")
+        valid=true
+        ;;
+    *)
+        valid=false
+        ;;
     esac
     [ "$valid" = "true" ]
 }
@@ -94,12 +94,12 @@ setup() {
 @test "CI status validation - failed" {
     status="failed"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
-            valid=true
-            ;;
-        *)
-            valid=false
-            ;;
+    "started" | "passed" | "warning" | "failed")
+        valid=true
+        ;;
+    *)
+        valid=false
+        ;;
     esac
     [ "$valid" = "true" ]
 }
@@ -107,12 +107,12 @@ setup() {
 @test "CI status validation - invalid status" {
     status="invalid"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
-            valid=true
-            ;;
-        *)
-            valid=false
-            ;;
+    "started" | "passed" | "warning" | "failed")
+        valid=true
+        ;;
+    *)
+        valid=false
+        ;;
     esac
     [ "$valid" = "false" ]
 }
