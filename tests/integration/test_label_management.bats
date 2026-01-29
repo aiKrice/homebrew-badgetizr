@@ -25,7 +25,7 @@ teardown() {
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -48,7 +48,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="Normal PR title"
     local wip_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -70,7 +70,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -99,7 +99,7 @@ EOF
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
     local hotfix_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -125,7 +125,7 @@ EOF
     export MOCK_PR_BASE_BRANCH="develop"
     export MOCK_PR_HEAD_BRANCH="feature/normal"
     local hotfix_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -150,7 +150,7 @@ EOF
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
     local hotfix_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -180,7 +180,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_no_label_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -206,7 +206,7 @@ EOF
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
     local hotfix_no_label_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -235,7 +235,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -260,7 +260,7 @@ EOF
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent"
     local multi_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -286,7 +286,7 @@ EOF
 
     # Both labels should be managed
     if [ -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ]; then
-        local label_count=$(wc -l <"$MOCK_GH_RESPONSES_DIR/added_labels.txt" | tr -d ' ')
+        local label_count=$(wc -l < "$MOCK_GH_RESPONSES_DIR/added_labels.txt" | tr -d ' ')
         [ "$label_count" -ge 1 ] # At least one label added
     fi
 }
@@ -302,7 +302,7 @@ EOF
     mock_git
 
     local wip_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -330,7 +330,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="Normal title without WIP"
     local wip_labelized_config=$(create_temp_config "$(
-        cat <<EOF
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:

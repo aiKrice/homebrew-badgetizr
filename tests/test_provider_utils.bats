@@ -10,12 +10,12 @@ setup() {
 }
 
 @test "detect_provider function exists" {
-    declare -f detect_provider >/dev/null
+    declare -f detect_provider > /dev/null
 }
 
 teardown() {
     # Clean up any mock functions to prevent test pollution
-    unset -f git 2>/dev/null || true
+    unset -f git 2> /dev/null || true
 }
 
 @test "detect_provider returns github for github.com URLs" {
@@ -65,7 +65,7 @@ teardown() {
 }
 
 @test "check_provider_cli function exists" {
-    declare -f check_provider_cli >/dev/null
+    declare -f check_provider_cli > /dev/null
 }
 
 @test "check_provider_cli validates github provider" {
@@ -81,33 +81,33 @@ teardown() {
 }
 
 @test "load_provider function exists" {
-    declare -f load_provider >/dev/null
+    declare -f load_provider > /dev/null
 }
 
 @test "get_pr_info wrapper function exists" {
-    declare -f get_pr_info >/dev/null
+    declare -f get_pr_info > /dev/null
 }
 
 @test "update_pr_description wrapper function exists" {
-    declare -f update_pr_description >/dev/null
+    declare -f update_pr_description > /dev/null
 }
 
 @test "add_pr_label wrapper function exists" {
-    declare -f add_pr_label >/dev/null
+    declare -f add_pr_label > /dev/null
 }
 
 @test "remove_pr_label wrapper function exists" {
-    declare -f remove_pr_label >/dev/null
+    declare -f remove_pr_label > /dev/null
 }
 
 @test "create_pr_label wrapper function exists" {
-    declare -f create_pr_label >/dev/null
+    declare -f create_pr_label > /dev/null
 }
 
 @test "test_provider_auth wrapper function exists" {
-    declare -f test_provider_auth >/dev/null
+    declare -f test_provider_auth > /dev/null
 }
 
 @test "get_destination_branch wrapper function exists" {
-    declare -f get_destination_branch >/dev/null
+    declare -f get_destination_branch > /dev/null
 }

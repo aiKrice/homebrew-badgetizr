@@ -10,7 +10,7 @@ setup() {
     source "$PROJECT_ROOT/utils.sh"
 
     # Create a test config with challenging label values
-    cat >"${TEST_TEMP_DIR}/escaping_test.yml" <<'EOF'
+    cat > "${TEST_TEMP_DIR}/escaping_test.yml" << 'EOF'
 badge_dynamic:
   enabled: true
   settings:
@@ -154,7 +154,7 @@ teardown() {
     local ci_label="Build & Test"
 
     # Act - Current implementation (BUGGY)
-    local sed_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<<"${ci_label}")
+    local sed_escaped=$(sed -E 's/ /_/g; s/-/--/g' <<< "${ci_label}")
 
     # Act - Correct implementation
     local ci_label_escaped=$(url_encode_shields "${ci_label}")
@@ -317,7 +317,7 @@ teardown() {
 @test "Integration: CI badge with ampersand in label from config" {
     # Arrange
     # Create config with CI badge enabled
-    cat >"${TEST_TEMP_DIR}/ci_test.yml" <<'EOF'
+    cat > "${TEST_TEMP_DIR}/ci_test.yml" << 'EOF'
 badge_ci:
   enabled: true
   settings:
@@ -381,7 +381,7 @@ EOF
 
 @test "Dynamic badge: empty label does not crash" {
     # Arrange
-    cat >"${TEST_TEMP_DIR}/empty_label.yml" <<'EOF'
+    cat > "${TEST_TEMP_DIR}/empty_label.yml" << 'EOF'
 badge_dynamic:
   enabled: true
   settings:

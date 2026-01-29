@@ -49,8 +49,8 @@ teardown() {
     [[ "$result" =~ "title" ]]
     [[ "$result" =~ "body" ]]
     # Verify it's valid JSON by parsing it
-    local title=$(jq -r '.title' <<<"$result")
-    local body=$(jq -r '.body' <<<"$result")
+    local title=$(jq -r '.title' <<< "$result")
+    local body=$(jq -r '.body' <<< "$result")
     [ "$title" = "[WIP] Add new feature" ]
     [ "$body" = "This is a work in progress PR" ]
 }
@@ -188,8 +188,8 @@ teardown() {
     [[ "$result" =~ "title" ]]
     [[ "$result" =~ "description" ]]
     # Verify it's valid JSON by parsing it
-    local title=$(jq -r '.title' <<<"$result")
-    local description=$(jq -r '.description' <<<"$result")
+    local title=$(jq -r '.title' <<< "$result")
+    local description=$(jq -r '.description' <<< "$result")
     [ "$title" = "Add new feature" ]
     [ "$description" = "Test MR description" ]
 }
