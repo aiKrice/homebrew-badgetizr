@@ -1,23 +1,32 @@
 #!/bin/bash
 # Common test helper functions for badgetizr tests
+# shellcheck disable=SC1090
 
 # Get the project root directory
 get_project_root() {
-    echo "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+    cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
 }
 
 # Setup test environment
 setup_test_env() {
-    export PROJECT_ROOT="$(get_project_root)"
-    export BADGETIZR_SCRIPT="$PROJECT_ROOT/badgetizr"
-    export UTILS_SCRIPT="$PROJECT_ROOT/utils.sh"
-    export TEST_CONFIG="$PROJECT_ROOT/tests/fixtures/test-config.yml"
+    PROJECT_ROOT="$(get_project_root)"
+    export PROJECT_ROOT
+    export BADGETIZR_SCRIPT="${PROJECT_ROOT}/badgetizr"
+    export UTILS_SCRIPT="${PROJECT_ROOT}/utils.sh"
+    export TEST_CONFIG="${PROJECT_ROOT}/tests/fixtures/test-config.yml"
 
     # Create temp directory for test artifacts
-    export TEST_TEMP_DIR="$(mktemp -d)"
+    TEST_TEMP_DIR="$(mktemp -d)"
+    export TEST_TEMP_DIR
+
+    # Setup mock response directories
+    export MOCK_GH_RESPONSES_DIR="${MOCK_GH_RESPONSES_DIR:-/tmp/mock_gh_responses}"
+    export MOCK_GLAB_RESPONSES_DIR="${MOCK_GLAB_RESPONSES_DIR:-/tmp/mock_glab_responses}"
+    mkdir -p "${MOCK_GH_RESPONSES_DIR}"
+    mkdir -p "${MOCK_GLAB_RESPONSES_DIR}"
 
     # Setup PATH to include mocks
-    export PATH="$PROJECT_ROOT/tests/mocks:$PATH"
+    export PATH="${PROJECT_ROOT}/tests/mocks:${PATH}"
 
     # Set default mock auth to success
     export MOCK_AUTH_SUCCESS="true"
@@ -26,40 +35,40 @@ setup_test_env() {
 
 # Cleanup test environment
 cleanup_test_env() {
-    if [ -n "$TEST_TEMP_DIR" ] && [ -d "$TEST_TEMP_DIR" ]; then
-        rm -rf "$TEST_TEMP_DIR"
+    if [[ -n "${TEST_TEMP_DIR}" ]] && [[ -d "${TEST_TEMP_DIR}" ]]; then
+        rm -rf "${TEST_TEMP_DIR}"
     fi
 
     # Cleanup mock directories
-    mock_gh_cleanup 2>/dev/null || true
-    mock_glab_cleanup 2>/dev/null || true
+    mock_gh_cleanup 2> /dev/null || true
+    mock_glab_cleanup 2> /dev/null || true
 }
 
 # Load badgetizr functions without executing the script
 load_badgetizr_functions() {
     # Source utils.sh first
-    if [ -f "$UTILS_SCRIPT" ]; then
-        source "$UTILS_SCRIPT"
+    if [[ -f "${UTILS_SCRIPT}" ]]; then
+        source "${UTILS_SCRIPT}"
     fi
 
     # Source provider utils
-    if [ -f "$PROJECT_ROOT/providers/provider_utils.sh" ]; then
-        source "$PROJECT_ROOT/providers/provider_utils.sh"
+    if [[ -f "${PROJECT_ROOT}/providers/provider_utils.sh" ]]; then
+        source "${PROJECT_ROOT}/providers/provider_utils.sh"
     fi
 }
 
 # Create a temporary config file
 create_temp_config() {
     local config_content="$1"
-    local config_file="$TEST_TEMP_DIR/test-config.yml"
+    local config_file="${TEST_TEMP_DIR}/test-config.yml"
 
-    echo "$config_content" > "$config_file"
-    echo "$config_file"
+    echo "${config_content}" > "${config_file}"
+    echo "${config_file}"
 }
 
 # Get default test config
 get_default_test_config() {
-    cat <<EOF
+    cat << EOF
 badge_ci:
   enabled: "false"
   settings:
@@ -107,7 +116,7 @@ EOF
 
 # Get CI badge config
 get_ci_badge_config() {
-    cat <<EOF
+    cat << EOF
 badge_ci:
   enabled: "true"
   settings:
@@ -120,7 +129,7 @@ EOF
 
 # Get ticket badge config
 get_ticket_badge_config() {
-    cat <<EOF
+    cat << EOF
 badge_ticket:
   enabled: "true"
   settings:
@@ -134,7 +143,7 @@ EOF
 
 # Get branch badge config
 get_branch_badge_config() {
-    cat <<EOF
+    cat << EOF
 badge_base_branch:
   enabled: "true"
   settings:
@@ -152,15 +161,16 @@ mock_git() {
         return 0
     fi
 
+    # shellcheck disable=SC2329  # Function is exported and invoked externally
     git() {
-        case "$1" in
+        case "${1}" in
             remote)
-                if [ "$2" = "get-url" ]; then
+                if [[ "${2}" = "get-url" ]]; then
                     echo "${MOCK_GIT_REMOTE:-https://github.com/test/repo.git}"
                 fi
                 ;;
             rev-parse)
-                if [ "$2" = "--abbrev-ref" ] && [ "$3" = "HEAD" ]; then
+                if [[ "${2}" = "--abbrev-ref" ]] && [[ "${3}" = "HEAD" ]]; then
                     echo "${MOCK_GIT_BRANCH:-main}"
                 fi
                 ;;
@@ -183,26 +193,26 @@ wait_for_file() {
     local timeout="${2:-5}"
     local elapsed=0
 
-    while [ ! -f "$file" ] && [ $elapsed -lt $timeout ]; do
+    while [[ ! -f "${file}" ]] && [[ ${elapsed} -lt ${timeout} ]]; do
         sleep 0.1
         elapsed=$((elapsed + 1))
     done
 
-    [ -f "$file" ]
+    [[ -f "${file}" ]]
 }
 
 # Extract badges from PR description
 extract_badges_section() {
     local pr_description="$1"
 
-    echo "$pr_description" | sed -n '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/p'
+    echo "${pr_description}" | sed -n '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/p'
 }
 
 # Count badges in output
 count_badges() {
     local output="$1"
 
-    echo "$output" | grep -o 'shields.io' | wc -l | tr -d ' '
+    echo "${output}" | grep -o 'shields.io' | wc -l | tr -d ' '
 }
 
 # Get badge URL by type
@@ -210,15 +220,15 @@ get_badge_url_by_type() {
     local output="$1"
     local badge_type="$2"
 
-    case "$badge_type" in
+    case "${badge_type}" in
         wip)
-            echo "$output" | grep -o 'https://[^ ]*shields.io[^ ]*WIP[^ ]*'
+            echo "${output}" | grep -o 'https://[^ ]*shields.io[^ ]*WIP[^ ]*'
             ;;
         hotfix)
-            echo "$output" | grep -o 'https://[^ ]*shields.io[^ ]*HOTFIX[^ ]*'
+            echo "${output}" | grep -o 'https://[^ ]*shields.io[^ ]*HOTFIX[^ ]*'
             ;;
         ci)
-            echo "$output" | grep -o 'https://[^ ]*shields.io[^ ]*Build[^ ]*'
+            echo "${output}" | grep -o 'https://[^ ]*shields.io[^ ]*Build[^ ]*'
             ;;
         *)
             echo ""
@@ -231,12 +241,12 @@ validate_badge_url() {
     local url="$1"
 
     # Check if it's a shields.io URL
-    if ! echo "$url" | grep -q "shields.io"; then
+    if ! echo "${url}" | grep -q "shields.io"; then
         return 1
     fi
 
     # Check if it has required format: /badge/text-color
-    if ! echo "$url" | grep -qE "/badge/[^-]+-[a-z]+"; then
+    if ! echo "${url}" | grep -qE "/badge/[^-]+-[a-z]+"; then
         return 1
     fi
 
@@ -248,18 +258,18 @@ create_pr_description_fixture() {
     local fixture_name="$1"
     local content="$2"
 
-    local fixture_file="$PROJECT_ROOT/tests/fixtures/pr-descriptions/${fixture_name}.txt"
-    echo "$content" > "$fixture_file"
-    echo "$fixture_file"
+    local fixture_file="${PROJECT_ROOT}/tests/fixtures/pr-descriptions/${fixture_name}.txt"
+    echo "${content}" > "${fixture_file}"
+    echo "${fixture_file}"
 }
 
 # Load PR description fixture
 load_pr_description_fixture() {
     local fixture_name="$1"
-    local fixture_file="$PROJECT_ROOT/tests/fixtures/pr-descriptions/${fixture_name}.txt"
+    local fixture_file="${PROJECT_ROOT}/tests/fixtures/pr-descriptions/${fixture_name}.txt"
 
-    if [ -f "$fixture_file" ]; then
-        cat "$fixture_file"
+    if [[ -f "${fixture_file}" ]]; then
+        cat "${fixture_file}"
     else
         echo ""
     fi
@@ -268,7 +278,7 @@ load_pr_description_fixture() {
 # Simulate badgetizr execution with mocks
 simulate_badgetizr_run() {
     local pr_id="$1"
-    local config_file="${2:-$TEST_CONFIG}"
+    local config_file="${2:-${TEST_CONFIG}}"
     shift 2
     # Remaining arguments are additional badgetizr arguments
 
@@ -279,48 +289,48 @@ simulate_badgetizr_run() {
     export MOCK_GLAB_AUTH_SUCCESS
 
     # Prepend mocks directory to PATH so our fake gh/glab are found first
-    local MOCK_DIR="$PROJECT_ROOT/tests/mocks"
+    local MOCK_DIR="${PROJECT_ROOT}/tests/mocks"
 
     # Run badgetizr with mocked environment (capture any stderr/stdout for debugging)
     local stderr_output
-    stderr_output=$(PATH="$MOCK_DIR:$PATH" bash "$BADGETIZR_SCRIPT" \
-        -c "$config_file" \
-        --pr-id="$pr_id" \
+    stderr_output=$(PATH="${MOCK_DIR}:${PATH}" bash "${BADGETIZR_SCRIPT}" \
+        -c "${config_file}" \
+        --pr-id="${pr_id}" \
         "$@" 2>&1)
 
     local exit_code=$?
 
     # Output the PR body that was set by the mock
     # This allows assertions to check the badge content
-    if [ -f "$MOCK_GH_RESPONSES_DIR/pr_body.txt" ]; then
-        cat "$MOCK_GH_RESPONSES_DIR/pr_body.txt"
-    elif [ -f "$MOCK_GLAB_RESPONSES_DIR/mr_description.txt" ]; then
-        cat "$MOCK_GLAB_RESPONSES_DIR/mr_description.txt"
+    if [[ -f "${MOCK_GH_RESPONSES_DIR}/pr_body.txt" ]]; then
+        cat "${MOCK_GH_RESPONSES_DIR}/pr_body.txt"
+    elif [[ -f "${MOCK_GLAB_RESPONSES_DIR}/mr_description.txt" ]]; then
+        cat "${MOCK_GLAB_RESPONSES_DIR}/mr_description.txt"
     else
         # If no mock file was created, output stderr for debugging
-        echo "$stderr_output"
+        echo "${stderr_output}"
     fi
 
-    return $exit_code
+    return "${exit_code}"
 }
 
 # Debug helper: print all mock state
 debug_print_mock_state() {
     echo "=== Mock State ==="
-    echo "PR Title: $MOCK_PR_TITLE"
-    echo "PR Body: $MOCK_PR_BODY"
-    echo "PR Base: $MOCK_PR_BASE_BRANCH"
-    echo "PR Head: $MOCK_PR_HEAD_BRANCH"
-    echo "PR State: $MOCK_PR_STATE"
-    echo "PR Labels: $MOCK_PR_LABELS"
+    echo "PR Title: ${MOCK_PR_TITLE}"
+    echo "PR Body: ${MOCK_PR_BODY}"
+    echo "PR Base: ${MOCK_PR_BASE_BRANCH}"
+    echo "PR Head: ${MOCK_PR_HEAD_BRANCH}"
+    echo "PR State: ${MOCK_PR_STATE}"
+    echo "PR Labels: ${MOCK_PR_LABELS}"
 
-    if [ -d "/tmp/mock_gh_responses" ]; then
+    if [[ -d "/tmp/mock_gh_responses" ]]; then
         echo "=== Mock Actions ==="
-        [ -f "/tmp/mock_gh_responses/added_labels.txt" ] && \
+        [[ -f "/tmp/mock_gh_responses/added_labels.txt" ]] &&
             echo "Added labels:" && cat "/tmp/mock_gh_responses/added_labels.txt"
-        [ -f "/tmp/mock_gh_responses/removed_labels.txt" ] && \
+        [[ -f "/tmp/mock_gh_responses/removed_labels.txt" ]] &&
             echo "Removed labels:" && cat "/tmp/mock_gh_responses/removed_labels.txt"
-        [ -f "/tmp/mock_gh_responses/created_labels.txt" ] && \
+        [[ -f "/tmp/mock_gh_responses/created_labels.txt" ]] &&
             echo "Created labels:" && cat "/tmp/mock_gh_responses/created_labels.txt"
     fi
     echo "=================="
