@@ -159,8 +159,13 @@ glab_mr_update() {
         echo "${label_to_add}" >> "${MOCK_GLAB_RESPONSES_DIR}/added_labels.txt"
     fi
 
-    # Track label removals
+    # Track label removals (unless simulating failure)
     if [[ -n "${label_to_remove}" ]]; then
+        # shellcheck disable=SC2154  # MOCK_LABEL_REMOVAL_FAILS set by test environment
+        if [[ "${MOCK_LABEL_REMOVAL_FAILS}" == "true" ]]; then
+            # Simulate label not present on MR
+            return 1
+        fi
         echo "${label_to_remove}" >> "${MOCK_GLAB_RESPONSES_DIR}/removed_labels.txt"
     fi
 

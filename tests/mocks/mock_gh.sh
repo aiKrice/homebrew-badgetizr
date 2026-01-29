@@ -151,7 +151,12 @@ gh_pr_edit() {
                 shift 2
                 ;;
             --remove-label)
-                # Track label removals
+                # Track label removals (unless simulating failure)
+                # shellcheck disable=SC2154  # MOCK_LABEL_REMOVAL_FAILS set by test environment
+                if [[ "${MOCK_LABEL_REMOVAL_FAILS}" == "true" ]]; then
+                    # Simulate label not present on PR
+                    return 1
+                fi
                 echo "$2" >> "${MOCK_GH_RESPONSES_DIR}/removed_labels.txt"
                 shift 2
                 ;;
