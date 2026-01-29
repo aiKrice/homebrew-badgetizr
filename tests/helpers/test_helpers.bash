@@ -1,6 +1,5 @@
 #!/bin/bash
 # Common test helper functions for badgetizr tests
-# shellcheck disable=SC1090
 
 # Get the project root directory
 get_project_root() {
@@ -48,11 +47,13 @@ cleanup_test_env() {
 load_badgetizr_functions() {
     # Source utils.sh first
     if [[ -f "${UTILS_SCRIPT}" ]]; then
+        # shellcheck disable=SC1090  # Dynamic source path
         source "${UTILS_SCRIPT}"
     fi
 
     # Source provider utils
     if [[ -f "${PROJECT_ROOT}/providers/provider_utils.sh" ]]; then
+        # shellcheck disable=SC1090  # Dynamic source path
         source "${PROJECT_ROOT}/providers/provider_utils.sh"
     fi
 }
