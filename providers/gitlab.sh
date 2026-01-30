@@ -23,18 +23,10 @@ provider_add_pr_label() {
 
     echo "🏷️  Adding GitLab label: ${label_name}"
 
-    # Check if label already exists with proper colors (avoid recreation)
-    if glab label list --repo="${CI_PROJECT_PATH}" 2> /dev/null | grep -F "${label_name}" > /dev/null 2>&1; then
-        # Label exists, just add it normally
-        if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
-            echo "✅ Label '${label_name}' added successfully"
-            return 0
-        else
-            return 1
-        fi
+    if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
+        echo "✅ Label '${label_name}' added successfully"
+        return 0
     else
-        # Label doesn't exist, force creation with colors
-        echo "⚠️  Label '${label_name}' doesn't exist, will create with proper colors"
         return 1
     fi
 }
@@ -57,27 +49,34 @@ provider_create_pr_label() {
     local hex_color="$2"
     local description="$3"
 
-    echo "⚠️  Label '${label_name}' doesn't exist, creating it..."
-
     # GitLab expects color with # prefix
     local gitlab_color="#${hex_color}"
 
-    # Delete label first if it exists, then recreate with correct colors
-    echo "🗑️  Deleting existing label '${label_name}'..."
-    glab label delete "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null || true
+    # Check if label already exists with correct description
+    local existing_description
+    existing_description=$(glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null |
+        yq -r ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
 
-    echo "🔧 Creating label: glab label create --name \"${label_name}\" --color \"${gitlab_color}\" --description \"${description}\" --repo=\"${CI_PROJECT_PATH}\""
+    if [[ -n "${existing_description}" ]]; then
+        if [[ "${existing_description}" == "${description}" ]]; then
+            echo "ℹ️  Label '${label_name}' already exists with correct description"
+            return 0
+        else
+            echo "⚠️  Label '${label_name}' exists but with different description"
+            echo "    Existing: '${existing_description}'"
+            echo "    Expected: '${description}'"
+            echo "    Using existing label to avoid conflicts"
+            return 0
+        fi
+    fi
+
+    # Label doesn't exist, create it
+    echo "🔧 Creating label '${label_name}' with color ${gitlab_color}"
     local result
     result=$(glab label create --name "${label_name}" --color "${gitlab_color}" --description "${description}" --repo="${CI_PROJECT_PATH}" 2>&1)
     local exit_code=$?
 
-    echo "🐛 glab exit code: ${exit_code}"
-    echo "🐛 glab output: ${result}"
-
-    if [[ "${result}" == *"Label already exists"* ]]; then
-        echo "ℹ️  Label '${label_name}' already exists (shouldn't happen after delete)"
-        return 0
-    elif [[ ${exit_code} -eq 0 ]]; then
+    if [[ "${result}" == *"Label already exists"* ]] || [[ ${exit_code} -eq 0 ]]; then
         echo "✅ Label '${label_name}' created successfully"
         return 0
     else

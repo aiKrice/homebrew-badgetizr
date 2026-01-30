@@ -47,8 +47,26 @@ provider_create_pr_label() {
     local hex_color="$2"
     local description="$3"
 
-    echo "⚠️  Label '${label_name}' doesn't exist, creating it..."
+    # Check if label already exists with correct description
+    local existing_description
+    existing_description=$(gh label list --json name,description \
+        --jq ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
 
+    if [[ -n "${existing_description}" ]]; then
+        if [[ "${existing_description}" == "${description}" ]]; then
+            echo "ℹ️  Label '${label_name}' already exists with correct description"
+            return 0
+        else
+            echo "⚠️  Label '${label_name}' exists but with different description"
+            echo "    Existing: '${existing_description}'"
+            echo "    Expected: '${description}'"
+            echo "    Using existing label to avoid conflicts"
+            return 0
+        fi
+    fi
+
+    # Label doesn't exist, create it
+    echo "🔧 Creating label '${label_name}' with color ${hex_color}"
     if gh label create "${label_name}" --color "${hex_color}" --description "${description}" 2> /dev/null; then
         echo "✅ Label '${label_name}' created successfully"
         return 0
