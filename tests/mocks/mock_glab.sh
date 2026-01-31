@@ -157,11 +157,10 @@ glab_mr_update() {
     # Track label additions
     if [[ -n "${label_to_add}" ]]; then
         # Check if label exists in labels_db before allowing add
-        if [[ -f "${MOCK_GLAB_RESPONSES_DIR}/labels_db.txt" ]]; then
-            if ! grep -q "^${label_to_add}|" "${MOCK_GLAB_RESPONSES_DIR}/labels_db.txt"; then
-                # Label doesn't exist, fail the add operation
-                return 1
-            fi
+        if [[ ! -f "${MOCK_GLAB_RESPONSES_DIR}/labels_db.txt" ]] ||
+            ! grep -q "^${label_to_add}|" "${MOCK_GLAB_RESPONSES_DIR}/labels_db.txt"; then
+            # Label doesn't exist or db doesn't exist, fail the add operation
+            return 1
         fi
         echo "${label_to_add}" >> "${MOCK_GLAB_RESPONSES_DIR}/added_labels.txt"
     fi

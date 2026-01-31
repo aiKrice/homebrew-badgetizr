@@ -148,11 +148,10 @@ gh_pr_edit() {
             --add-label)
                 # Check if label exists in labels_db before allowing add
                 local label_to_add="$2"
-                if [[ -f "${MOCK_GH_RESPONSES_DIR}/labels_db.txt" ]]; then
-                    if ! grep -q "^${label_to_add}|" "${MOCK_GH_RESPONSES_DIR}/labels_db.txt"; then
-                        # Label doesn't exist, fail the add operation
-                        return 1
-                    fi
+                if [[ ! -f "${MOCK_GH_RESPONSES_DIR}/labels_db.txt" ]] ||
+                    ! grep -q "^${label_to_add}|" "${MOCK_GH_RESPONSES_DIR}/labels_db.txt"; then
+                    # Label doesn't exist or db doesn't exist, fail the add operation
+                    return 1
                 fi
                 # Track label additions
                 echo "$2" >> "${MOCK_GH_RESPONSES_DIR}/added_labels.txt"
