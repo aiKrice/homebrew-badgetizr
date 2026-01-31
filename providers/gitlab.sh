@@ -54,8 +54,7 @@ provider_create_pr_label() {
 
     # Check if label already exists with correct description
     local existing_description
-    existing_description=$(glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null |
-        yq -r ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
+    existing_description=$(glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null | yq -r ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
 
     if [[ -n "${existing_description}" ]]; then
         if [[ "${existing_description}" == "${description}" ]]; then
@@ -138,8 +137,7 @@ provider_is_label_managed() {
 
     # Fetch label description from GitLab
     local description
-    description=$(glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null |
-        yq -r ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
+    description=$(glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null | yq -r ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
 
     # Check if description matches exactly
     # shellcheck disable=SC2154  # BADGETIZR_LABEL_DESCRIPTION is defined in provider_utils.sh

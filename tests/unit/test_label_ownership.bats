@@ -288,3 +288,58 @@ teardown() {
     assert_success
     [[ "$output" == *"was not present on this MR"* ]] || [[ "$output" == *"removed successfully"* ]]
 }
+
+# ============================================================================
+# Label Creation with Different Description Tests
+# ============================================================================
+
+@test "GitHub: create_pr_label with existing label (different description)" {
+    # Arrange - Label exists with different description
+    mkdir -p "$MOCK_GH_RESPONSES_DIR"
+    echo "test-label|fbca04|Team's manual label" > "$MOCK_GH_RESPONSES_DIR/labels_db.txt"
+
+    export DETECTED_PROVIDER="github"
+    source "$PROJECT_ROOT/providers/github.sh"
+
+    # Act - Try to create label with Badgetizr description
+    run provider_create_pr_label "test-label" "fbca04" "${BADGETIZR_LABEL_DESCRIPTION}"
+
+    # Assert
+    assert_success
+
+    # Should see warning message about different description
+    echo "$output" | grep -q "exists but with different description"
+    echo "$output" | grep -q "Team's manual label"
+    echo "$output" | grep -q "Using existing label to avoid conflicts"
+
+    # Label should NOT be recreated
+    if [ -f "$MOCK_GH_RESPONSES_DIR/created_labels.txt" ]; then
+        ! grep -q "test-label" "$MOCK_GH_RESPONSES_DIR/created_labels.txt"
+    fi
+}
+
+@test "GitLab: create_pr_label with existing label (different description)" {
+    # Arrange - Label exists with different description
+    mkdir -p "$MOCK_GLAB_RESPONSES_DIR"
+    echo "test-label|fbca04|Team's manual GitLab label" > "$MOCK_GLAB_RESPONSES_DIR/labels_db.txt"
+
+    export DETECTED_PROVIDER="gitlab"
+    export CI_PROJECT_PATH="test/repo"
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act - Try to create label with Badgetizr description
+    run provider_create_pr_label "test-label" "fbca04" "${BADGETIZR_LABEL_DESCRIPTION}"
+
+    # Assert
+    assert_success
+
+    # Should see warning message about different description
+    echo "$output" | grep -q "exists but with different description"
+    echo "$output" | grep -q "Team's manual GitLab label"
+    echo "$output" | grep -q "Using existing label to avoid conflicts"
+
+    # Label should NOT be recreated
+    if [ -f "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt" ]; then
+        ! grep -q "test-label" "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt"
+    fi
+}
