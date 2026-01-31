@@ -252,10 +252,11 @@ teardown() {
 
 @test "GitLab provider: add_pr_label adds label to MR" {
     # Arrange
+    source "$PROJECT_ROOT/providers/provider_utils.sh"
     source "$PROJECT_ROOT/providers/gitlab.sh"
 
-    # Pre-create the label so it exists in the mock
-    provider_create_pr_label "wip" "yellow" "Work in progress"
+    # Pre-create the label with Badgetizr description so it's recognized as managed
+    provider_create_pr_label "wip" "yellow" "${BADGETIZR_LABEL_DESCRIPTION}"
 
     # Act
     provider_add_pr_label 123 "wip"
