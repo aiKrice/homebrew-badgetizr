@@ -308,9 +308,18 @@ teardown() {
     assert_success
 
     # Should see warning message about different description
-    echo "$output" | grep -q "exists but with different description"
-    echo "$output" | grep -q "Team's manual label"
-    echo "$output" | grep -q "Using existing label to avoid conflicts"
+    echo "$output" | grep -q "exists but with different description" || {
+        echo "ERROR: Expected 'exists but with different description' not found"
+        return 1
+    }
+    echo "$output" | grep -q "Team's manual label" || {
+        echo "ERROR: Expected 'Team's manual label' not found"
+        return 1
+    }
+    echo "$output" | grep -q "Using existing label to avoid conflicts" || {
+        echo "ERROR: Expected 'Using existing label to avoid conflicts' not found"
+        return 1
+    }
 
     # Label should NOT be recreated
     if [ -f "$MOCK_GH_RESPONSES_DIR/created_labels.txt" ]; then

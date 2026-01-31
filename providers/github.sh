@@ -56,10 +56,10 @@ provider_create_pr_label() {
             echo "ℹ️  Label '${label_name}' already exists with correct description"
             return 0
         else
-            echo "⚠️  Label '${label_name}' exists but with different description
-    Existing: '${existing_description}'
-    Expected: '${description}'
-    Using existing label to avoid conflicts"
+            printf "⚠️  Label '%s' exists but with different description\n" "${label_name}"
+            printf "    Existing: '%s'\n" "${existing_description}"
+            printf "    Expected: '%s'\n" "${description}"
+            printf "    Using existing label to avoid conflicts\n"
             return 0
         fi
     fi
