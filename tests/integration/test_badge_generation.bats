@@ -447,3 +447,50 @@ EOF
     assert_success
     assert_badge_has_color "purple"
 }
+
+@test "Ready for approval badge appears in first position" {
+    # Arrange - Enable multiple badges including ready for approval
+    local config=$(
+        cat << EOF
+badge_wip:
+  enabled: "true"
+  settings:
+    color: "yellow"
+    label: "WIP"
+
+badge_ci:
+  enabled: "true"
+  settings:
+    status: "passed"
+    label: "CI"
+
+badge_ready_for_approval:
+  enabled: "true"
+  settings:
+    label: "Ready"
+    color: "green"
+    logo: "checkmarx"
+EOF
+    )
+    local test_config=$(create_temp_config "$config")
+
+    # Setup PR with WIP title and all checkboxes checked (triggers ready badge)
+    export MOCK_PR_TITLE="[WIP] Test PR with ready badge"
+    export MOCK_PR_BODY="- [x] Task 1
+- [x] Task 2
+- [x] Task 3"
+
+    # Act - Pass CI parameters since CI badge is enabled
+    run simulate_badgetizr_run 123 "$test_config" --ci-status=passed --pr-build-url=https://ci.example.com/123
+
+    # Assert - Success and has badges
+    assert_success
+    [[ "$output" =~ "badgetizr" ]]
+
+    # Extract all badges from output and verify ready badge is first
+    local badges_section=$(echo "$output" | sed -n '/<!--begin:badgetizr-->/,/<!--end:badgetizr-->/p')
+    local first_badge=$(echo "$badges_section" | grep -o "!\[Static Badge\](https://[^)]*)" | head -1)
+
+    # Verify first badge is the ready for approval badge (contains "Ready" label)
+    [[ "$first_badge" =~ "Ready" ]] || [[ "$first_badge" =~ "ready" ]]
+}
