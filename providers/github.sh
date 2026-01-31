@@ -5,7 +5,7 @@
 provider_get_pr_info() {
     local pr_id="$1"
 
-    gh pr view "${pr_id}" --json title,body 2>/dev/null
+    gh pr view "${pr_id}" --json title,body 2> /dev/null
 }
 
 provider_update_pr_description() {
@@ -21,7 +21,7 @@ provider_add_pr_label() {
 
     echo "🏷️  Adding GitHub label: ${label_name}"
 
-    if gh pr edit "${pr_id}" --add-label "${label_name}" 2>/dev/null; then
+    if gh pr edit "${pr_id}" --add-label "${label_name}" 2> /dev/null; then
         echo "✅ Label '${label_name}' added successfully"
         return 0
     else
@@ -35,7 +35,7 @@ provider_remove_pr_label() {
 
     echo "🏷️  Removing GitHub label: ${label_name}"
 
-    if gh pr edit "${pr_id}" --remove-label "${label_name}" 2>/dev/null; then
+    if gh pr edit "${pr_id}" --remove-label "${label_name}" 2> /dev/null; then
         echo "✅ Label '${label_name}' removed successfully"
     else
         echo "ℹ️  Label '${label_name}' was not present on this PR"
@@ -47,9 +47,26 @@ provider_create_pr_label() {
     local hex_color="$2"
     local description="$3"
 
-    echo "⚠️  Label '${label_name}' doesn't exist, creating it..."
+    # Check if label already exists with correct description
+    local existing_description
+    existing_description=$(gh label list --json name,description --jq ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
 
-    if gh label create "${label_name}" --color "${hex_color}" --description "${description}" 2>/dev/null; then
+    if [[ -n "${existing_description}" ]]; then
+        if [[ "${existing_description}" == "${description}" ]]; then
+            echo "ℹ️  Label '${label_name}' already exists with correct description"
+            return 0
+        else
+            printf "⚠️  Label '%s' exists but with different description\n" "${label_name}"
+            printf "    Existing: '%s'\n" "${existing_description}"
+            printf "    Expected: '%s'\n" "${description}"
+            printf "    Using existing label to avoid conflicts\n"
+            return 0
+        fi
+    fi
+
+    # Label doesn't exist, create it
+    echo "🔧 Creating label '${label_name}' with color ${hex_color}"
+    if gh label create "${label_name}" --color "${hex_color}" --description "${description}" 2> /dev/null; then
         echo "✅ Label '${label_name}' created successfully"
         return 0
     else
@@ -61,13 +78,13 @@ provider_create_pr_label() {
 provider_get_destination_branch() {
     local pr_id="$1"
 
-    gh pr view "${pr_id}" --json baseRefName --jq '.baseRefName' 2>/dev/null
+    gh pr view "${pr_id}" --json baseRefName --jq '.baseRefName' 2> /dev/null
 }
 
 provider_test_auth() {
     echo "🔐 Testing GitHub authentication..."
 
-    if gh auth status >/dev/null 2>&1; then
+    if gh auth status > /dev/null 2>&1; then
         echo "✅ GitHub authentication is working"
         return 0
     else
@@ -75,4 +92,16 @@ provider_test_auth() {
         echo "   Or set a valid GITHUB_TOKEN environment variable"
         return 1
     fi
+}
+
+provider_is_label_managed() {
+    local label_name="$1"
+
+    # Fetch label description from GitHub
+    local description
+    description=$(gh label list --json name,description --jq ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
+
+    # Check if description matches exactly
+    # shellcheck disable=SC2154  # BADGETIZR_LABEL_DESCRIPTION is defined in provider_utils.sh
+    [[ "${description}" == "${BADGETIZR_LABEL_DESCRIPTION}" ]]
 }

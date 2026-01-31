@@ -15,7 +15,7 @@ setup() {
 
 teardown() {
     # Clean up any mock functions to prevent test pollution
-    unset -f git 2>/dev/null || true
+    unset -f git 2> /dev/null || true
 }
 
 @test "detect_provider returns github for github.com URLs" {

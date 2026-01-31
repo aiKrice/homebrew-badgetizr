@@ -76,7 +76,8 @@ teardown() {
 @test "Hotfix badge is generated for hotfix branch" {
     # Arrange
     setup_hotfix_pr
-    local hotfix_config=$(create_temp_config "$(cat <<EOF
+    local hotfix_config=$(create_temp_config "$(
+        cat << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -84,7 +85,7 @@ badge_hotfix:
     text_color: "white"
     label: "HOTFIX"
 EOF
-)")
+    )")
 
     # Act - Hotfix badge checks if PR targets main/master (via provider)
     run simulate_badgetizr_run 123 "$hotfix_config"
@@ -98,7 +99,8 @@ EOF
 @test "Hotfix badge contains HOTFIX text" {
     # Arrange
     setup_hotfix_pr
-    local hotfix_config=$(create_temp_config "$(cat <<EOF
+    local hotfix_config=$(create_temp_config "$(
+        cat << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -106,7 +108,7 @@ badge_hotfix:
     text_color: "white"
     label: "HOTFIX"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$hotfix_config"
@@ -119,7 +121,8 @@ EOF
     # Arrange - PR targeting develop (not main/master)
     export MOCK_PR_HEAD_BRANCH="feature/normal-feature"
     export MOCK_PR_BASE_BRANCH="develop"
-    local hotfix_config=$(create_temp_config "$(cat <<EOF
+    local hotfix_config=$(create_temp_config "$(
+        cat << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -127,7 +130,7 @@ badge_hotfix:
     text_color: "white"
     label: "HOTFIX"
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$hotfix_config"
@@ -144,7 +147,8 @@ EOF
 @test "CI badge is generated with started status" {
     # Arrange
     setup_ci_started
-    local ci_config=$(create_temp_config "$(cat <<EOF
+    local ci_config=$(create_temp_config "$(
+        cat << EOF
 badge_ci:
   enabled: "true"
   settings:
@@ -153,7 +157,7 @@ badge_ci:
     logo: "github"
     color: darkgreen
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$ci_config" --ci-status=started --ci-text="Running tests" --pr-build-url=https://ci.example.com/123
@@ -298,7 +302,8 @@ EOF
     export MOCK_PR_BASE_BRANCH="main"
 
     # Config with multiple badges enabled
-    local multi_config=$(create_temp_config "$(cat <<EOF
+    local multi_config=$(create_temp_config "$(
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -323,7 +328,7 @@ badge_ci:
     label: "Build"
     color: darkgreen
 EOF
-)")
+    )")
 
     # Act
     run simulate_badgetizr_run 123 "$multi_config" --ci-status=started --pr-build-url=https://ci.example.com/123
@@ -333,7 +338,7 @@ EOF
 
     # Should have WIP, Hotfix, Ticket, and CI badges
     local badge_count=$(count_badges "$output")
-    [ "$badge_count" -ge 3 ]  # At least 3 badges
+    [ "$badge_count" -ge 3 ] # At least 3 badges
 }
 
 @test "Badges are wrapped in badgetizr delimiters" {
@@ -395,7 +400,8 @@ EOF
 
 @test "Badge generation respects disabled badges in config" {
     # Arrange
-    local config_with_disabled=$(cat <<EOF
+    local config_with_disabled=$(
+        cat << EOF
 badge_wip:
   enabled: "false"
 badge_hotfix:
@@ -404,7 +410,7 @@ badge_hotfix:
     color: "red"
     label: "HOTFIX"
 EOF
-)
+    )
     local custom_config=$(create_temp_config "$config_with_disabled")
     export MOCK_PR_TITLE="[WIP] Test"
     export MOCK_PR_BASE_BRANCH="main"
@@ -422,14 +428,15 @@ EOF
 
 @test "Badge colors can be customized via config" {
     # Arrange
-    local config_custom_color=$(cat <<EOF
+    local config_custom_color=$(
+        cat << EOF
 badge_wip:
   enabled: "true"
   settings:
     color: "purple"
     label: "WIP"
 EOF
-)
+    )
     local custom_config=$(create_temp_config "$config_custom_color")
     setup_wip_pr
 
