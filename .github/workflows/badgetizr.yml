@@ -102,9 +102,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   claude-review:
-    # Only run Claude review if all checks passed
+    # Only run Claude review if all checks passed AND claude-review-needed label is present
     needs: [shellcheck, tests, badgetizr-result]
-    if: ${{ needs.shellcheck.result == 'success' && needs.tests.result == 'success' }}
+    if: ${{ needs.shellcheck.result == 'success' && needs.tests.result == 'success' && contains(github.event.pull_request.labels.*.name, 'claude-review-needed') }}
     uses: ./.github/workflows/claude-code-review.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}
