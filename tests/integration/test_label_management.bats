@@ -263,6 +263,43 @@ EOF
     assert_label_created "wip-label" || assert_label_added "wip-label"
 }
 
+@test "Label with different description is not recreated (GitHub)" {
+    # Arrange - Create a label with a different (manual) description
+    mkdir -p "$MOCK_GH_RESPONSES_DIR"
+    echo "work in progress|fbca04|Team's custom WIP label" > "$MOCK_GH_RESPONSES_DIR/labels_db.txt"
+
+    export MOCK_PR_TITLE="[WIP] Add new feature"
+    local wip_labelized_config=$(create_temp_config "$(
+        cat << EOF
+badge_wip:
+  enabled: "true"
+  settings:
+    color: "yellow"
+    label: "WIP"
+    labelized: "work in progress"
+EOF
+    )")
+
+    # Act
+    run simulate_badgetizr_run 123 "$wip_labelized_config"
+
+    # Assert
+    assert_success
+
+    # Label should be used as-is, not recreated
+    if [ -f "$MOCK_GH_RESPONSES_DIR/created_labels.txt" ]; then
+        ! grep -q "work in progress" "$MOCK_GH_RESPONSES_DIR/created_labels.txt" || {
+            echo "ERROR: Label should not have been recreated!"
+            return 1
+        }
+    fi
+
+    # Should see warning message in output
+    echo "$output" | grep -q "exists but with different description" || {
+        echo "WARNING: Expected warning message not found in output"
+    }
+}
+
 @test "Multiple badges can manage labels simultaneously" {
     # Arrange
     export MOCK_PR_TITLE="[WIP] Fix critical bug"
@@ -333,6 +370,50 @@ EOF
     # Either GitHub or GitLab labels should be tracked
     [ -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ] ||
         [ -f "$MOCK_GLAB_RESPONSES_DIR/added_labels.txt" ] || true
+}
+
+@test "GitLab: Label with different description is not recreated" {
+    # Arrange - Create a GitLab label with a different (manual) description
+    mkdir -p "$MOCK_GLAB_RESPONSES_DIR"
+    echo "work in progress|fbca04|Team's custom WIP label for GitLab" > "$MOCK_GLAB_RESPONSES_DIR/labels_db.txt"
+
+    export MOCK_MR_TITLE="[WIP] Add new feature"
+    export MOCK_GIT_REMOTE="https://gitlab.com/test/repo.git"
+    mock_git
+
+    local wip_labelized_config=$(create_temp_config "$(
+        cat << EOF
+badge_wip:
+  enabled: "true"
+  settings:
+    color: "yellow"
+    label: "WIP"
+    labelized: "work in progress"
+EOF
+    )")
+
+    # Act
+    export PROVIDER="gitlab"
+    run simulate_badgetizr_run 123 "$wip_labelized_config"
+
+    # Cleanup
+    unmock_git
+
+    # Assert
+    assert_success
+
+    # Label should be used as-is, not recreated
+    if [ -f "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt" ]; then
+        ! grep -q "work in progress" "$MOCK_GLAB_RESPONSES_DIR/created_labels.txt" || {
+            echo "ERROR: GitLab label should not have been recreated!"
+            return 1
+        }
+    fi
+
+    # Should see warning message in output
+    echo "$output" | grep -q "exists but with different description" || {
+        echo "WARNING: Expected warning message not found in GitLab output"
+    }
 }
 
 @test "Label removal is tracked correctly" {
