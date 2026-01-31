@@ -107,6 +107,9 @@ teardown() {
 
 @test "GitHub provider: add_pr_label adds label to PR" {
     # Arrange
+    mkdir -p "$MOCK_GH_RESPONSES_DIR"
+    # Create the label in labels_db so the mock allows adding it
+    echo "wip|fbca04|WIP label" > "$MOCK_GH_RESPONSES_DIR/labels_db.txt"
     source "$PROJECT_ROOT/providers/github.sh"
 
     # Act
