@@ -23,10 +23,31 @@ provider_add_pr_label() {
 
     echo "🏷️  Adding GitLab label: ${label_name}"
 
-    if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
-        echo "✅ Label '${label_name}' added successfully"
-        return 0
+    # Check if label already exists
+    if glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null | yq -r '.[].name' 2> /dev/null | grep -F "${label_name}" > /dev/null 2>&1; then
+        # Label exists - check if it's managed by Badgetizr
+        if provider_is_label_managed "${label_name}"; then
+            # Label is managed by Badgetizr, safe to add it
+            if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
+                echo "✅ Label '${label_name}' added successfully"
+                return 0
+            else
+                return 1
+            fi
+        else
+            # Label exists but not managed by Badgetizr - warn but still add it
+            echo "⚠️  Label '${label_name}' exists but was not created by Badgetizr"
+            echo "    Using existing label to avoid conflicts"
+            if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
+                echo "✅ Label '${label_name}' added successfully"
+                return 0
+            else
+                return 1
+            fi
+        fi
     else
+        # Label doesn't exist, force creation with proper colors
+        echo "⚠️  Label '${label_name}' doesn't exist, will create with proper colors"
         return 1
     fi
 }
