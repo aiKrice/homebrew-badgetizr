@@ -365,9 +365,9 @@ if [[ "${ready_for_approval_badge_enabled}" = "true" ]]; then
     else
         echo "✅ All checkboxes are checked, PR ready for approval"
 
-        # Create ready for approval badge
+        # Create ready for approval badge (forced to first position)
         ready_for_approval_badge="![Static Badge](https://img.shields.io/badge/${ready_for_approval_badge_label}-${ready_for_approval_badge_color}?logo=${ready_for_approval_badge_logo}&logoColor=white&color=${ready_for_approval_badge_color})"
-        all_badges="${all_badges} ${ready_for_approval_badge}"
+        all_badges="${ready_for_approval_badge} ${all_badges}"
 
         # Add ready for approval label if configured
         if [[ -n "${ready_for_approval_badge_labelized}" && "${ready_for_approval_badge_labelized}" != "null" ]]; then
