@@ -9,6 +9,48 @@ detect_base_path() {
     fi
 }
 
+# Detect if current branch originated from production branch (hotfix) or develop (feature)
+# This determines if a PR is a true hotfix (urgent fix from production)
+# Returns: "production" if branch was created from production branch, "develop" otherwise
+detect_source_branch() {
+    local develop_branch="${1:-develop}"
+    local production_branch="${2:-master}"
+
+    # Test mode: allow override via environment variable
+    if [[ -n "${BADGETIZR_TEST_SOURCE_BRANCH}" ]]; then
+        echo "${BADGETIZR_TEST_SOURCE_BRANCH}"
+        return 0
+    fi
+
+    # Try to find merge-base with production branch
+    local merge_base_prod merge_base_develop
+    merge_base_prod=$(git merge-base HEAD "${production_branch}" 2> /dev/null || git merge-base HEAD "origin/${production_branch}" 2> /dev/null || echo "")
+
+    # Try to find merge-base with develop
+    merge_base_develop=$(git merge-base HEAD "${develop_branch}" 2> /dev/null || git merge-base HEAD "origin/${develop_branch}" 2> /dev/null || echo "")
+
+    # If both merge-bases exist, compare their timestamps
+    if [[ -n "${merge_base_prod}" && -n "${merge_base_develop}" ]]; then
+        local prod_timestamp develop_timestamp
+        prod_timestamp=$(git show -s --format=%ct "${merge_base_prod}" 2> /dev/null || echo "0")
+        develop_timestamp=$(git show -s --format=%ct "${merge_base_develop}" 2> /dev/null || echo "0")
+
+        # More recent merge-base indicates the source branch
+        if [[ ${prod_timestamp} -gt ${develop_timestamp} ]]; then
+            echo "production"
+            return 0
+        fi
+    elif [[ -n "${merge_base_prod}" ]]; then
+        # Only production merge-base exists, likely branched from main/master
+        echo "production"
+        return 0
+    fi
+
+    # Default to develop (feature branch)
+    echo "develop"
+    return 0
+}
+
 # load extra files
 BASE_PATH=$(detect_base_path)
 source "${BASE_PATH}/utils.sh"
@@ -165,6 +207,7 @@ if [[ -f "${config_file}" && -s "${config_file}" ]]; then
     hotfix_badge_text_color=$(yq e '.badge_hotfix.settings.text_color // "white"' "${config_file}")
     hotfix_badge_label=$(yq e '.badge_hotfix.settings.label // "HOTFIX"' "${config_file}")
     hotfix_badge_labelized=$(yq e '.badge_hotfix.settings.labelized // ""' "${config_file}")
+    hotfix_badge_production_branch=$(yq e '.badge_hotfix.settings.production_branch // "master"' "${config_file}")
 
     branch_badge_enabled=$(yq e '.badge_base_branch.enabled // "false"' "${config_file}")
     branch_badge_base_branch=$(yq e '.badge_base_branch.settings.base_branch // "develop"' "${config_file}")
@@ -203,6 +246,7 @@ else
     hotfix_badge_color="red"
     hotfix_badge_text_color="white"
     hotfix_badge_label="HOTFIX"
+    hotfix_badge_production_branch="master"
 
     branch_badge_enabled="true"
     branch_badge_base_branch="develop"
@@ -219,7 +263,6 @@ fi
 pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}")
 pull_request_title=$(yq -r '.title' <<< "${pr_info_json}")
 pull_request_body_raw=$(yq -r '.body // .description // ""' <<< "${pr_info_json}")
-destination_branch=$(get_destination_branch "${ci_badge_pull_request_id}")
 
 # Remove existing badgetizr badges and carriage returns from PR body
 pull_request_body=$(awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' <<< "${pull_request_body_raw}" | tr -d '\r')
@@ -257,7 +300,10 @@ fi
 
 # Hotfix Badge
 if [[ "${hotfix_badge_enabled}" = "true" ]]; then
-    if [[ "${destination_branch}" == "main" || "${destination_branch}" == "master" ]]; then
+    # Detect if branch originated from production (main/master) = hotfix
+    source_branch=$(detect_source_branch "${branch_badge_base_branch}" "${hotfix_badge_production_branch}")
+
+    if [[ "${source_branch}" == "production" ]]; then
         hotfix_badge="![Static Badge](https://img.shields.io/badge/${hotfix_badge_label}-${hotfix_badge_color}?logoColor=${hotfix_badge_text_color}&color=${hotfix_badge_color})"
         all_badges="${all_badges} ${hotfix_badge}"
 
@@ -271,7 +317,7 @@ if [[ "${hotfix_badge_enabled}" = "true" ]]; then
             fi
         fi
     else
-        # PR is not targeting main/master, remove label if configured
+        # Branch originated from develop, not a hotfix - remove label if configured
         if [[ -n "${hotfix_badge_labelized}" && "${hotfix_badge_labelized}" != "null" ]]; then
             remove_pr_label "${ci_badge_pull_request_id}" "${hotfix_badge_labelized}"
         fi
