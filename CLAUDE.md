@@ -287,12 +287,12 @@ Automatic categorization based on diff size:
 
 ### 💡 Creative Features
 
-#### 7. Hotfix Detection Badge
+#### 7. Hotfix Detection Badge ✅ IMPLEMENTED (v2.5.0+)
 Automatic detection of hotfix PRs:
-- 🚨 Hotfix (when branch comes from `main`/`master`)
-- 🔥 Emergency (based on keywords)
+- 🚨 Hotfix (when branch originates from `main`/`master`) - **DONE**
+- 🔥 Emergency (based on keywords) - Future enhancement
 
-**Implementation**: Branch analysis and keyword detection.
+**Implementation**: Uses `git merge-base` to detect branch origin. Configurable via `badge_hotfix.settings.production_branch`.
 
 #### 8. Dependencies Badge
 Security and maintenance awareness:

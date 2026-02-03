@@ -116,10 +116,10 @@ When `labelized` is configured, automatically adds/removes the specified label o
 
 ### 🚨 Hotfix Badge
 
-Automatically detects when a PR targets `main` or `master` branches and displays a hotfix warning badge.
+Automatically detects when a PR branch was created from production (main/master) and displays a hotfix warning badge.
 
 **Status**: Disabled by default
-**Example**: PR to `main` → ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red)
+**Example**: Branch from `master` → ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red)
 
 #### Configuration
 
@@ -130,6 +130,7 @@ badge_hotfix:
     color: "red"
     text_color: "white"
     label: "HOTFIX"
+    production_branch: "master"  # Your production branch (main/master)
     labelized: "Hotfix"  # Optional: auto-manage GitHub/GitLab labels
 ```
 
@@ -140,13 +141,20 @@ badge_hotfix:
 | `color` | Badge background color | `red` | No |
 | `text_color` | Badge text color | `white` | No |
 | `label` | Badge text | `HOTFIX` | No |
+| `production_branch` | Production branch name | `master` | No |
 | `labelized` | Auto-manage platform labels | - | No |
 
 #### Detection Logic
 
-- **Automatic detection**: Badge appears when PR targets `main` or `master` branch
-- **No configuration needed**: Branch detection is hardcoded for simplicity
+- **Source branch detection**: Badge appears when branch was **created from** production branch
+- **Git merge-base analysis**: Uses `git merge-base` to determine branch origin
+- **Configurable**: Specify your production branch via `production_branch` setting
+- **Works with GitFlow and trunk-based**: Accurate for both development workflows
 - **Cross-platform**: Works on both GitHub and GitLab
+
+**Example scenarios:**
+- `git checkout master && git checkout -b hotfix/urgent-fix` → ✅ Hotfix detected
+- `git checkout develop && git checkout -b feat/new-feature` → ❌ Not a hotfix
 
 #### Label Management
 

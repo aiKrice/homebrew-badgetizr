@@ -305,7 +305,7 @@ Badgetizr supports multiple badge types that can be customized to track differen
 |-----------|----------------|---------|---------|-----------|
 | 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) | - |
 | ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) | ✅ |
-| 🚨 **Hotfix** | Disabled | Automatically detects PRs targeting main/master | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) | ✅ |
+| 🚨 **Hotfix** | Disabled | Detects branches created from production | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) | ✅ |
 | 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-darkgreen) | - |
 | 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) | - |
 | 🚀 **CI** | Disabled | Shows CI status and build info with clickable links | ![Build-456](https://img.shields.io/badge/456-ignored?label=Build&color=darkgreen&logo=github) | - |
