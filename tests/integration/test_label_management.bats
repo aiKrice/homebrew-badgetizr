@@ -28,7 +28,7 @@ teardown() {
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -50,11 +50,11 @@ EOF
 @test "WIP badge removes label when title no longer has WIP" {
     # Arrange - Create Badgetizr-managed label first
     mkdir -p "${MOCK_GH_RESPONSES_DIR}"
-    echo "work in progress|fbca04|${BADGETIZR_LABEL_DESCRIPTION}" > "${MOCK_GH_RESPONSES_DIR}/labels_db.txt"
+    echo "work in progress|fbca04|${BADGETIZR_LABEL_DESCRIPTION}" >"${MOCK_GH_RESPONSES_DIR}/labels_db.txt"
 
     export MOCK_PR_TITLE="Normal PR title"
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -76,7 +76,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -104,9 +104,9 @@ EOF
     export MOCK_PR_TITLE="Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"  # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
     local hotfix_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -129,13 +129,13 @@ EOF
 @test "Hotfix badge removes label when not targeting main/master" {
     # Arrange - Create Badgetizr-managed label first
     mkdir -p "${MOCK_GH_RESPONSES_DIR}"
-    echo "hotfix|d73a49|${BADGETIZR_LABEL_DESCRIPTION}" > "${MOCK_GH_RESPONSES_DIR}/labels_db.txt"
+    echo "hotfix|d73a49|${BADGETIZR_LABEL_DESCRIPTION}" >"${MOCK_GH_RESPONSES_DIR}/labels_db.txt"
 
     export MOCK_PR_TITLE="Normal PR"
     export MOCK_PR_BASE_BRANCH="develop"
     export MOCK_PR_HEAD_BRANCH="feature/normal"
     local hotfix_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -160,7 +160,7 @@ EOF
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
     local hotfix_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -190,7 +190,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_no_label_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -215,9 +215,9 @@ EOF
     export MOCK_PR_TITLE="Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"  # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
     local hotfix_no_label_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -246,7 +246,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -268,11 +268,11 @@ EOF
 @test "Label with different description is not recreated (GitHub)" {
     # Arrange - Create a label with a different (manual) description
     mkdir -p "$MOCK_GH_RESPONSES_DIR"
-    echo "work in progress|fbca04|Team's custom WIP label" > "$MOCK_GH_RESPONSES_DIR/labels_db.txt"
+    echo "work in progress|fbca04|Team's custom WIP label" >"$MOCK_GH_RESPONSES_DIR/labels_db.txt"
 
     export MOCK_PR_TITLE="[WIP] Add new feature"
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -307,9 +307,9 @@ EOF
     export MOCK_PR_TITLE="[WIP] Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"  # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
     local multi_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -335,7 +335,7 @@ EOF
 
     # Both labels should be managed
     if [ -f "$MOCK_GH_RESPONSES_DIR/added_labels.txt" ]; then
-        local label_count=$(wc -l < "$MOCK_GH_RESPONSES_DIR/added_labels.txt" | tr -d ' ')
+        local label_count=$(wc -l <"$MOCK_GH_RESPONSES_DIR/added_labels.txt" | tr -d ' ')
         [ "$label_count" -ge 1 ] # At least one label added
     fi
 }
@@ -351,7 +351,7 @@ EOF
     mock_git
 
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -378,14 +378,14 @@ EOF
 @test "GitLab: Label with different description is not recreated" {
     # Arrange - Create a GitLab label with a different (manual) description
     mkdir -p "$MOCK_GLAB_RESPONSES_DIR"
-    echo "work in progress|fbca04|Team's custom WIP label for GitLab" > "$MOCK_GLAB_RESPONSES_DIR/labels_db.txt"
+    echo "work in progress|fbca04|Team's custom WIP label for GitLab" >"$MOCK_GLAB_RESPONSES_DIR/labels_db.txt"
 
     export MOCK_MR_TITLE="[WIP] Add new feature"
     export MOCK_GIT_REMOTE="https://gitlab.com/test/repo.git"
     mock_git
 
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -423,7 +423,7 @@ EOF
     # Arrange
     export MOCK_PR_TITLE="Normal title without WIP"
     local wip_labelized_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:

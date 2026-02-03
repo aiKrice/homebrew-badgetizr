@@ -77,7 +77,7 @@ teardown() {
     # Arrange
     setup_hotfix_pr
     local hotfix_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -100,7 +100,7 @@ EOF
     # Arrange
     setup_hotfix_pr
     local hotfix_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -122,7 +122,7 @@ EOF
     export MOCK_PR_HEAD_BRANCH="feature/normal-feature"
     export MOCK_PR_BASE_BRANCH="develop"
     local hotfix_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -148,7 +148,7 @@ EOF
     # Arrange
     setup_ci_started
     local ci_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_ci:
   enabled: "true"
   settings:
@@ -303,7 +303,7 @@ EOF
 
     # Config with multiple badges enabled
     local multi_config=$(create_temp_config "$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -401,7 +401,7 @@ EOF
 @test "Badge generation respects disabled badges in config" {
     # Arrange
     local config_with_disabled=$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "false"
 badge_hotfix:
@@ -415,7 +415,7 @@ EOF
     export MOCK_PR_TITLE="[WIP] Test"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/test"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"  # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
 
     # Act
     run simulate_badgetizr_run 123 "$custom_config"
@@ -430,7 +430,7 @@ EOF
 @test "Badge colors can be customized via config" {
     # Arrange
     local config_custom_color=$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -452,7 +452,7 @@ EOF
 @test "Ready for approval badge appears in first position" {
     # Arrange - Enable multiple badges including ready for approval
     local config=$(
-        cat << EOF
+        cat <<EOF
 badge_wip:
   enabled: "true"
   settings:
