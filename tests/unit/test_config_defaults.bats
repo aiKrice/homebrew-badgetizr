@@ -18,7 +18,7 @@ teardown() {
 @test "Hotfix badge: production_branch defaults to 'master' when not specified" {
     # Arrange - Create config without production_branch
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -37,7 +37,7 @@ EOF
 @test "Hotfix badge: production_branch uses configured value when specified" {
     # Arrange - Create config with production_branch set to "main"
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -57,7 +57,7 @@ EOF
 @test "Hotfix badge: production_branch uses configured value 'trunk'" {
     # Arrange - Create config with production_branch set to "trunk"
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -75,7 +75,7 @@ EOF
 @test "Hotfix badge: empty production_branch value defaults to 'master'" {
     # Arrange - Create config with empty production_branch
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -92,7 +92,7 @@ EOF
 @test "Hotfix badge: null production_branch value defaults to 'master'" {
     # Arrange - Create config with null production_branch
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_hotfix:
   enabled: "true"
   settings:
@@ -113,7 +113,7 @@ EOF
 @test "WIP badge: color defaults to 'yellow' when not specified" {
     # Arrange
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_wip:
   enabled: "true"
   settings:
@@ -130,7 +130,7 @@ EOF
 @test "Branch badge: base_branch defaults to 'develop' when not specified" {
     # Arrange
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_base_branch:
   enabled: "true"
   settings:
@@ -147,7 +147,7 @@ EOF
 @test "CI badge: color defaults to 'purple' when not specified" {
     # Arrange
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_ci:
   enabled: "true"
   settings:
@@ -164,7 +164,7 @@ EOF
 @test "Ticket badge: color defaults to 'blue' when not specified" {
     # Arrange
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_ticket:
   enabled: "true"
   settings:
@@ -181,7 +181,7 @@ EOF
 @test "Ready for approval badge: color defaults to 'green' when not specified" {
     # Arrange
     local config_file="${TEST_TEMP_DIR}/config.yml"
-    cat >"${config_file}" <<EOF
+    cat > "${config_file}" << EOF
 badge_ready_for_approval:
   enabled: "true"
   settings:
