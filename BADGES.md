@@ -116,10 +116,10 @@ When `labelized` is configured, automatically adds/removes the specified label o
 
 ### 🚨 Hotfix Badge
 
-Automatically detects when a PR branch was created from production (main/master) and displays a hotfix warning badge.
+Automatically detects hotfix PRs based on target branch and title, displaying a warning badge for urgent production fixes.
 
 **Status**: Disabled by default
-**Example**: Branch from `master` → ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red)
+**Example**: `[HOTFIX] Fix bug` → `master` → ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red)
 
 #### Configuration
 
@@ -130,7 +130,7 @@ badge_hotfix:
     color: "red"
     text_color: "white"
     label: "HOTFIX"
-    production_branch: "master"  # Your production branch (main/master)
+    production_branch: "master"  # Your production branch (main/master/trunk)
     labelized: "Hotfix"  # Optional: auto-manage GitHub/GitLab labels
 ```
 
@@ -146,21 +146,25 @@ badge_hotfix:
 
 #### Detection Logic
 
-- **Source branch detection**: Badge appears when branch was **created from** production branch
-- **Git merge-base analysis**: Uses `git merge-base` to determine branch origin
-- **Configurable**: Specify your production branch via `production_branch` setting
-- **Works with GitFlow and trunk-based**: Accurate for both development workflows
-- **Cross-platform**: Works on both GitHub and GitLab
+**Simple and predictable**: Badge appears when **both conditions** are met:
+
+1. ✅ **MR/PR targets production branch** (main/master or configured `production_branch`)
+2. ✅ **Title contains "hotfix"** (case insensitive)
+
+**Works on all CI platforms** without additional configuration. No git history required.
 
 **Example scenarios:**
-- `git checkout master && git checkout -b hotfix/urgent-fix` → ✅ Hotfix detected
-- `git checkout develop && git checkout -b feat/new-feature` → ❌ Not a hotfix
+- `[HOTFIX] Fix critical bug` → `master` → ✅ Hotfix badge shown
+- `Hotfix: urgent fix` → `main` → ✅ Hotfix badge shown
+- `[GL-123] Test - hotfix` → `master` → ✅ Hotfix badge shown (hotfix anywhere in title)
+- `Add new feature` → `master` → ❌ Not a hotfix (no keyword)
+- `Hotfix: bug fix` → `develop` → ❌ Not a hotfix (not targeting production)
 
 #### Label Management
 
 When `labelized` is configured, automatically adds/removes the specified label:
 - **Hotfix detected**: Badge shown + Red label added
-- **Regular PR**: Badge hidden + Label removed
+- **Not a hotfix**: Badge hidden + Label removed
 - **Label color**: Always red (non-customizable for consistency)
 
 ### 📊 Dynamic Badges
