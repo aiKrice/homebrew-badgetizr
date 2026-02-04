@@ -9,17 +9,16 @@ detect_base_path() {
     fi
 }
 
-# Detect if current branch originated from production branch (hotfix) or develop (feature)
-# This determines if a PR is a true hotfix (urgent fix from production)
-# Returns: "production" if branch was created from production branch, "develop" otherwise
+# Detect if a PR/MR should have the hotfix badge
+# Simple logic: MR targets production (main/master) AND title contains "hotfix"
+# Returns: "production" if hotfix detected, "develop" otherwise
 #
 # Parameters:
-#   $1 - develop_branch (default: "develop")
+#   $1 - develop_branch (unused, kept for compatibility)
 #   $2 - production_branch (default: "master")
-#   $3 - mr_base_branch (optional: base branch of MR/PR for fallback detection)
-#   $4 - pr_title (optional: PR/MR title for fallback detection)
+#   $3 - mr_base_branch (required: base branch of MR/PR)
+#   $4 - pr_title (required: PR/MR title)
 detect_source_branch() {
-    local develop_branch="${1:-develop}"
     local production_branch="${2:-master}"
     local mr_base_branch="${3:-}"
     local pr_title="${4:-}"
@@ -30,55 +29,15 @@ detect_source_branch() {
         return 0
     fi
 
-    # Check if we're in a shallow clone
-    local is_shallow
-    is_shallow=$(git rev-parse --is-shallow-repository 2> /dev/null || echo "false")
-
-    # Try to find merge-base with production branch
-    local merge_base_prod merge_base_develop
-    merge_base_prod=$(git merge-base HEAD "${production_branch}" 2> /dev/null || git merge-base HEAD "origin/${production_branch}" 2> /dev/null || echo "")
-
-    # Try to find merge-base with develop
-    merge_base_develop=$(git merge-base HEAD "${develop_branch}" 2> /dev/null || git merge-base HEAD "origin/${develop_branch}" 2> /dev/null || echo "")
-
-    # If both merge-bases exist, compare their timestamps (most accurate method)
-    if [[ -n "${merge_base_prod}" && -n "${merge_base_develop}" ]]; then
-        local prod_timestamp develop_timestamp
-        prod_timestamp=$(git show -s --format=%ct "${merge_base_prod}" 2> /dev/null || echo "0")
-        develop_timestamp=$(git show -s --format=%ct "${merge_base_develop}" 2> /dev/null || echo "0")
-
-        # More recent merge-base indicates the source branch
-        if [[ ${prod_timestamp} -gt ${develop_timestamp} ]]; then
+    # Simple logic: MR targets production + title contains "hotfix" = hotfix badge
+    if [[ "${mr_base_branch}" == "main" || "${mr_base_branch}" == "master" || "${mr_base_branch}" == "${production_branch}" ]]; then
+        if [[ "${pr_title}" =~ [Hh][Oo][Tt][Ff][Ii][Xx] ]]; then
             echo "production"
             return 0
         fi
-    elif [[ -n "${merge_base_prod}" ]]; then
-        # Only production merge-base exists, likely branched from main/master
-        echo "production"
-        return 0
     fi
 
-    # Fallback detection for shallow clones
-    if [[ "${is_shallow}" == "true" ]]; then
-        echo "⚠️  Shallow clone detected - using fallback hotfix detection" >&2
-        echo "💡 For accurate detection, configure your CI:" >&2
-        echo "   • GitHub Actions: fetch-depth: 0" >&2
-        echo "   • GitLab CI: GIT_DEPTH: 0" >&2
-        echo "   • Bitrise: clone_depth: -1" >&2
-
-        # Fallback: MR targets production AND title contains "hotfix"
-        if [[ "${mr_base_branch}" == "main" || "${mr_base_branch}" == "master" || "${mr_base_branch}" == "${production_branch}" ]]; then
-            if [[ "${pr_title}" =~ [Hh][Oo][Tt][Ff][Ii][Xx] ]]; then
-                echo "🔍 Fallback: MR targets '${mr_base_branch}' + title contains 'hotfix' → treating as hotfix" >&2
-                echo "production"
-                return 0
-            else
-                echo "🔍 Fallback: MR targets '${mr_base_branch}' but title missing 'hotfix' keyword → not a hotfix" >&2
-            fi
-        fi
-    fi
-
-    # Default to develop (feature branch)
+    # Default: not a hotfix
     echo "develop"
     return 0
 }

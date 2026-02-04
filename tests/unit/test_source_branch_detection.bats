@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Unit tests for detect_source_branch function
+# Unit tests for detect_source_branch function (simplified logic)
 
 setup() {
     export BASE_PATH="${BATS_TEST_DIRNAME}/../.."
@@ -37,7 +37,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master")
+    result=$(detect_source_branch "develop" "master" "master" "Test PR")
 
     # Assert
     [ "${result}" = "production" ]
@@ -51,299 +51,196 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master")
+    result=$(detect_source_branch "develop" "master" "develop" "Test PR")
 
     # Assert
     [ "${result}" = "develop" ]
 }
 
-@test "detect_source_branch: test mode override ignores git commands" {
+@test "detect_source_branch: test mode override ignores other parameters" {
     load_detect_source_branch
 
-    # Arrange - Set override value that should be returned regardless of git state
-    export BADGETIZR_TEST_SOURCE_BRANCH="custom-branch"
-
-    # Act
-    local result
-    result=$(detect_source_branch "develop" "master")
-
-    # Assert
-    [ "${result}" = "custom-branch" ]
-}
-
-# ============================================================================
-# Parameter Tests
-# ============================================================================
-
-@test "detect_source_branch: accepts develop_branch parameter" {
-    load_detect_source_branch
-
-    # Arrange
+    # Arrange - Set override value
     export BADGETIZR_TEST_SOURCE_BRANCH="production"
 
-    # Act - Pass custom develop branch name
+    # Act - Even with parameters that would return "develop", test mode wins
     local result
-    result=$(detect_source_branch "main" "master")
-
-    # Assert - Should still return test override
-    [ "${result}" = "production" ]
-}
-
-@test "detect_source_branch: accepts production_branch parameter" {
-    load_detect_source_branch
-
-    # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
-
-    # Act - Pass custom production branch name
-    local result
-    result=$(detect_source_branch "develop" "trunk")
-
-    # Assert - Should still return test override
-    [ "${result}" = "production" ]
-}
-
-@test "detect_source_branch: uses default develop branch when not specified" {
-    load_detect_source_branch
-
-    # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="develop"
-
-    # Act - Call with only one parameter (production branch)
-    local result
-    result=$(detect_source_branch "" "master")
-
-    # Assert
-    [ "${result}" = "develop" ]
-}
-
-@test "detect_source_branch: uses default production branch when not specified" {
-    load_detect_source_branch
-
-    # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
-
-    # Act - Call with empty production branch parameter
-    local result
-    result=$(detect_source_branch "develop" "")
+    result=$(detect_source_branch "develop" "master" "develop" "Regular PR")
 
     # Assert
     [ "${result}" = "production" ]
 }
 
 # ============================================================================
-# Function Behavior Tests
+# Hotfix Detection Tests (Simple Logic)
 # ============================================================================
 
-@test "detect_source_branch: function exists in badgetizr" {
-    # Check that the function is defined in badgetizr
-    grep -q "^detect_source_branch() {" "${BASE_PATH}/badgetizr"
-}
-
-@test "detect_source_branch: function has proper structure" {
-    # Verify function has key components
-    local func_body
-    func_body=$(sed -n '/^detect_source_branch() {$/,/^}$/p' "${BASE_PATH}/badgetizr")
-
-    # Should contain test mode check
-    echo "${func_body}" | grep -q "BADGETIZR_TEST_SOURCE_BRANCH"
-
-    # Should contain git merge-base commands
-    echo "${func_body}" | grep -q "git merge-base"
-}
-
-@test "detect_source_branch: returns production when merge-base is more recent" {
-    # This test verifies the logic without actually running git commands
-    load_detect_source_branch
-
-    # Use test mode to verify function can return "production"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
-    local result
-    result=$(detect_source_branch "develop" "master")
-
-    [ "${result}" = "production" ]
-}
-
-@test "detect_source_branch: returns develop when merge-base is more recent" {
-    # This test verifies the logic without actually running git commands
-    load_detect_source_branch
-
-    # Use test mode to verify function can return "develop"
-    export BADGETIZR_TEST_SOURCE_BRANCH="develop"
-    local result
-    result=$(detect_source_branch "develop" "master")
-
-    [ "${result}" = "develop" ]
-}
-
-@test "detect_source_branch: handles branch names with slashes" {
-    load_detect_source_branch
-
-    # Arrange - Test with branch names containing slashes
-    export BADGETIZR_TEST_SOURCE_BRANCH="release/v1.0"
-
-    # Act
-    local result
-    result=$(detect_source_branch "feature/new" "release/v1.0")
-
-    # Assert
-    [ "${result}" = "release/v1.0" ]
-}
-
-@test "detect_source_branch: handles branch names with hyphens" {
+@test "detect_source_branch: detects hotfix when MR targets master + title has hotfix" {
     load_detect_source_branch
 
     # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix-branch"
-
-    # Act
-    local result
-    result=$(detect_source_branch "develop-branch" "main-branch")
-
-    # Assert
-    [ "${result}" = "hotfix-branch" ]
-}
-
-# ============================================================================
-# Edge Cases
-# ============================================================================
-
-@test "detect_source_branch: handles empty BADGETIZR_TEST_SOURCE_BRANCH" {
-    load_detect_source_branch
-
-    # Arrange - Explicitly set to empty (different from unset)
-    export BADGETIZR_TEST_SOURCE_BRANCH=""
-
-    # Act - Should fall through to git logic (which we can't test without real git)
-    # In a real scenario without test override, function would use git commands
-    # For this test, we just verify it doesn't crash
-    local result
-    result=$(detect_source_branch "develop" "master" 2> /dev/null || echo "develop")
-
-    # Assert - Should return something (likely "develop" as fallback)
-    [ -n "${result}" ]
-}
-
-@test "detect_source_branch: test mode takes precedence over git" {
-    load_detect_source_branch
-
-    # Arrange - Set test override
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
-
-    # Act - Even if we're in a git repo, test mode should override
-    local result
-    result=$(detect_source_branch "develop" "master")
-
-    # Assert
-    [ "${result}" = "production" ]
-}
-
-@test "detect_source_branch: function returns without error" {
-    load_detect_source_branch
-
-    # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
-
-    # Act & Assert - Should complete without error
-    run detect_source_branch "develop" "master"
-    [ "$status" -eq 0 ]
-}
-
-# ============================================================================
-# Shallow Clone Fallback Tests
-# ============================================================================
-
-@test "detect_source_branch: fallback detects hotfix when MR targets master + title has hotfix" {
-    load_detect_source_branch
-
-    # Arrange - Simulate scenario where git merge-base fails
-    # Test mode is NOT set, so function will try real detection
-    # But we'll test the fallback logic by calling with parameters
     unset BADGETIZR_TEST_SOURCE_BRANCH
-
-    # For this test, we use test mode to simulate the final result
-    # In real scenario, shallow clone would trigger fallback
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
 
     # Act
     local result
     result=$(detect_source_branch "develop" "master" "master" "[HOTFIX] Fix critical bug")
 
-    # Assert - Should return production (hotfix detected)
+    # Assert
     [ "${result}" = "production" ]
 }
 
-@test "detect_source_branch: fallback ignores hotfix when title missing hotfix keyword" {
+@test "detect_source_branch: detects hotfix when MR targets main + title has hotfix" {
     load_detect_source_branch
 
-    # Arrange - MR targets master but title doesn't contain "hotfix"
-    export BADGETIZR_TEST_SOURCE_BRANCH="develop"
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
+
+    # Act
+    local result
+    result=$(detect_source_branch "develop" "main" "main" "Hotfix: urgent fix")
+
+    # Assert
+    [ "${result}" = "production" ]
+}
+
+@test "detect_source_branch: NOT hotfix when title missing hotfix keyword" {
+    load_detect_source_branch
+
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
 
     # Act
     local result
     result=$(detect_source_branch "develop" "master" "master" "Add new feature")
 
-    # Assert - Should return develop (not a hotfix)
+    # Assert
     [ "${result}" = "develop" ]
 }
 
-@test "detect_source_branch: fallback ignores when MR targets develop even with hotfix in title" {
+@test "detect_source_branch: NOT hotfix when MR targets develop" {
     load_detect_source_branch
 
-    # Arrange - MR targets develop, even though title has hotfix
-    export BADGETIZR_TEST_SOURCE_BRANCH="develop"
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
 
-    # Act
+    # Act - Even with hotfix in title, develop target = not hotfix
     local result
     result=$(detect_source_branch "develop" "master" "develop" "Hotfix: bug fix")
 
-    # Assert - Should return develop (doesn't target production)
+    # Assert
     [ "${result}" = "develop" ]
 }
 
-@test "detect_source_branch: fallback case insensitive hotfix detection" {
+@test "detect_source_branch: case insensitive hotfix detection" {
     load_detect_source_branch
 
-    # Arrange - Test various capitalizations of "hotfix"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
 
-    # Act & Assert - All should be detected
+    # Act - Test various capitalizations
     local result1 result2 result3 result4
     result1=$(detect_source_branch "develop" "master" "master" "HOTFIX: urgent")
     result2=$(detect_source_branch "develop" "master" "master" "hotfix: urgent")
     result3=$(detect_source_branch "develop" "master" "master" "HotFix: urgent")
     result4=$(detect_source_branch "develop" "master" "main" "[Hotfix] urgent")
 
+    # Assert
     [ "${result1}" = "production" ]
     [ "${result2}" = "production" ]
     [ "${result3}" = "production" ]
     [ "${result4}" = "production" ]
 }
 
-@test "detect_source_branch: accepts mr_base_branch and pr_title parameters" {
+@test "detect_source_branch: hotfix keyword anywhere in title" {
     load_detect_source_branch
 
     # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
+    unset BADGETIZR_TEST_SOURCE_BRANCH
 
-    # Act - Call with all 4 parameters
-    local result
-    result=$(detect_source_branch "develop" "master" "main" "Test PR")
+    # Act - Test hotfix in different positions
+    local result1 result2 result3
+    result1=$(detect_source_branch "develop" "master" "master" "[GL-1] - Test - hotfix")
+    result2=$(detect_source_branch "develop" "master" "master" "hotfix - [GL-1] - Test")
+    result3=$(detect_source_branch "develop" "master" "master" "[GL-1] - hotfix - Test")
 
-    # Assert - Should complete without error
-    [ "${result}" = "production" ]
+    # Assert
+    [ "${result1}" = "production" ]
+    [ "${result2}" = "production" ]
+    [ "${result3}" = "production" ]
 }
 
-@test "detect_source_branch: fallback works with main as production branch" {
+@test "detect_source_branch: custom production branch name" {
     load_detect_source_branch
 
-    # Arrange - Test with "main" instead of "master"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
 
-    # Act
+    # Act - Custom production branch "trunk"
     local result
-    result=$(detect_source_branch "develop" "main" "main" "Hotfix: critical")
+    result=$(detect_source_branch "develop" "trunk" "trunk" "Hotfix: fix")
 
     # Assert
     [ "${result}" = "production" ]
+}
+
+# ============================================================================
+# Edge Cases
+# ============================================================================
+
+@test "detect_source_branch: empty title returns develop" {
+    load_detect_source_branch
+
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
+
+    # Act
+    local result
+    result=$(detect_source_branch "develop" "master" "master" "")
+
+    # Assert
+    [ "${result}" = "develop" ]
+}
+
+@test "detect_source_branch: empty base branch returns develop" {
+    load_detect_source_branch
+
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
+
+    # Act
+    local result
+    result=$(detect_source_branch "develop" "master" "" "Hotfix: fix")
+
+    # Assert
+    [ "${result}" = "develop" ]
+}
+
+@test "detect_source_branch: function exists in badgetizr" {
+    # Check that the function is defined in badgetizr
+    grep -q "^detect_source_branch() {" "${BASE_PATH}/badgetizr"
+}
+
+@test "detect_source_branch: function returns without error" {
+    load_detect_source_branch
+
+    # Arrange
+    unset BADGETIZR_TEST_SOURCE_BRANCH
+
+    # Act & Assert - Should complete without error
+    run detect_source_branch "develop" "master" "master" "Test"
+    [ "$status" -eq 0 ]
+}
+
+@test "detect_source_branch: test mode takes precedence" {
+    load_detect_source_branch
+
+    # Arrange - Even with perfect hotfix conditions, test mode wins
+    export BADGETIZR_TEST_SOURCE_BRANCH="develop"
+
+    # Act
+    local result
+    result=$(detect_source_branch "develop" "master" "master" "Hotfix: urgent")
+
+    # Assert - Test mode returns develop, not production
+    [ "${result}" = "develop" ]
 }
