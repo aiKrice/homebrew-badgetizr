@@ -152,3 +152,38 @@ EOF_CONFIG
     assert_success
     assert_badge_type_exists "hotfix"
 }
+
+@test "Hotfix: full config coverage - all settings read" {
+    # Arrange - Config with ALL hotfix settings to cover config reading lines
+    export MOCK_PR_TITLE="[HOTFIX] Coverage test"
+    export MOCK_PR_BASE_BRANCH="master"
+    export MOCK_PR_HEAD_BRANCH="hotfix/coverage"
+    unset BADGETIZR_TEST_SOURCE_BRANCH
+
+    local full_config=$(create_temp_config "$(
+        cat << EOF_CONFIG
+badge_hotfix:
+  enabled: "true"
+  settings:
+    color: "red"
+    text_color: "white"
+    label: "HOTFIX"
+    production_branch: "master"
+    labelized: "hotfix"
+
+badge_base_branch:
+  enabled: "true"
+  settings:
+    base_branch: "develop"
+    color: "orange"
+    label: "Target"
+EOF_CONFIG
+    )")
+
+    # Act
+    run simulate_badgetizr_run 123 "$full_config" --pr-destination-branch="${MOCK_PR_BASE_BRANCH}"
+
+    # Assert - Should generate hotfix badge
+    assert_success
+    assert_badge_type_exists "hotfix"
+}
