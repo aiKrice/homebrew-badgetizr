@@ -289,10 +289,10 @@ Automatic categorization based on diff size:
 
 #### 7. Hotfix Detection Badge ✅ IMPLEMENTED (v2.5.0+)
 Automatic detection of hotfix PRs:
-- 🚨 Hotfix (when branch originates from `main`/`master`) - **DONE**
-- 🔥 Emergency (based on keywords) - Future enhancement
+- 🚨 Hotfix (MR targets production + "hotfix" in title) - **DONE**
+- 🔥 Emergency (based on additional keywords) - Future enhancement
 
-**Implementation**: Uses `git merge-base` to detect branch origin. Configurable via `badge_hotfix.settings.production_branch`.
+**Implementation**: Simple logic - checks if MR/PR targets production branch (main/master/trunk) AND title contains "hotfix" (case insensitive). Works on all CI platforms without git history. Configurable via `badge_hotfix.settings.production_branch`.
 
 #### 8. Dependencies Badge
 Security and maintenance awareness:
