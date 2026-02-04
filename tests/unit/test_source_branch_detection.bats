@@ -37,7 +37,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master" "master" "Test PR")
+    result=$(detect_source_branch "master" "master" "Test PR")
 
     # Assert
     [ "${result}" = "production" ]
@@ -51,7 +51,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master" "develop" "Test PR")
+    result=$(detect_source_branch "master" "develop" "Test PR")
 
     # Assert
     [ "${result}" = "develop" ]
@@ -65,7 +65,7 @@ load_detect_source_branch() {
 
     # Act - Even with parameters that would return "develop", test mode wins
     local result
-    result=$(detect_source_branch "develop" "master" "develop" "Regular PR")
+    result=$(detect_source_branch "master" "develop" "Regular PR")
 
     # Assert
     [ "${result}" = "production" ]
@@ -83,7 +83,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master" "master" "[HOTFIX] Fix critical bug")
+    result=$(detect_source_branch "master" "master" "[HOTFIX] Fix critical bug")
 
     # Assert
     [ "${result}" = "production" ]
@@ -97,7 +97,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "main" "main" "Hotfix: urgent fix")
+    result=$(detect_source_branch "main" "main" "Hotfix: urgent fix")
 
     # Assert
     [ "${result}" = "production" ]
@@ -111,7 +111,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master" "master" "Add new feature")
+    result=$(detect_source_branch "master" "master" "Add new feature")
 
     # Assert
     [ "${result}" = "develop" ]
@@ -125,7 +125,7 @@ load_detect_source_branch() {
 
     # Act - Even with hotfix in title, develop target = not hotfix
     local result
-    result=$(detect_source_branch "develop" "master" "develop" "Hotfix: bug fix")
+    result=$(detect_source_branch "master" "develop" "Hotfix: bug fix")
 
     # Assert
     [ "${result}" = "develop" ]
@@ -139,10 +139,10 @@ load_detect_source_branch() {
 
     # Act - Test various capitalizations
     local result1 result2 result3 result4
-    result1=$(detect_source_branch "develop" "master" "master" "HOTFIX: urgent")
-    result2=$(detect_source_branch "develop" "master" "master" "hotfix: urgent")
-    result3=$(detect_source_branch "develop" "master" "master" "HotFix: urgent")
-    result4=$(detect_source_branch "develop" "master" "main" "[Hotfix] urgent")
+    result1=$(detect_source_branch "master" "master" "HOTFIX: urgent")
+    result2=$(detect_source_branch "master" "master" "hotfix: urgent")
+    result3=$(detect_source_branch "master" "master" "HotFix: urgent")
+    result4=$(detect_source_branch "master" "main" "[Hotfix] urgent")
 
     # Assert
     [ "${result1}" = "production" ]
@@ -159,9 +159,9 @@ load_detect_source_branch() {
 
     # Act - Test hotfix in different positions
     local result1 result2 result3
-    result1=$(detect_source_branch "develop" "master" "master" "[GL-1] - Test - hotfix")
-    result2=$(detect_source_branch "develop" "master" "master" "hotfix - [GL-1] - Test")
-    result3=$(detect_source_branch "develop" "master" "master" "[GL-1] - hotfix - Test")
+    result1=$(detect_source_branch "master" "master" "[GL-1] - Test - hotfix")
+    result2=$(detect_source_branch "master" "master" "hotfix - [GL-1] - Test")
+    result3=$(detect_source_branch "master" "master" "[GL-1] - hotfix - Test")
 
     # Assert
     [ "${result1}" = "production" ]
@@ -177,7 +177,7 @@ load_detect_source_branch() {
 
     # Act - Custom production branch "trunk"
     local result
-    result=$(detect_source_branch "develop" "trunk" "trunk" "Hotfix: fix")
+    result=$(detect_source_branch "trunk" "trunk" "Hotfix: fix")
 
     # Assert
     [ "${result}" = "production" ]
@@ -195,7 +195,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master" "master" "")
+    result=$(detect_source_branch "master" "master" "")
 
     # Assert
     [ "${result}" = "develop" ]
@@ -209,7 +209,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master" "" "Hotfix: fix")
+    result=$(detect_source_branch "master" "" "Hotfix: fix")
 
     # Assert
     [ "${result}" = "develop" ]
@@ -227,7 +227,7 @@ load_detect_source_branch() {
     unset BADGETIZR_TEST_SOURCE_BRANCH
 
     # Act & Assert - Should complete without error
-    run detect_source_branch "develop" "master" "master" "Test"
+    run detect_source_branch "master" "master" "Test"
     [ "$status" -eq 0 ]
 }
 
@@ -239,7 +239,7 @@ load_detect_source_branch() {
 
     # Act
     local result
-    result=$(detect_source_branch "develop" "master" "master" "Hotfix: urgent")
+    result=$(detect_source_branch "master" "master" "Hotfix: urgent")
 
     # Assert - Test mode returns develop, not production
     [ "${result}" = "develop" ]

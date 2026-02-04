@@ -14,14 +14,13 @@ detect_base_path() {
 # Returns: "production" if hotfix detected, "develop" otherwise
 #
 # Parameters:
-#   $1 - develop_branch (unused, kept for compatibility)
-#   $2 - production_branch (default: "master")
-#   $3 - mr_base_branch (required: base branch of MR/PR)
-#   $4 - pr_title (required: PR/MR title)
+#   $1 - production_branch (default: "master")
+#   $2 - mr_base_branch (required: base branch of MR/PR)
+#   $3 - pr_title (required: PR/MR title)
 detect_source_branch() {
-    local production_branch="${2:-master}"
-    local mr_base_branch="${3:-}"
-    local pr_title="${4:-}"
+    local production_branch="${1:-master}"
+    local mr_base_branch="${2:-}"
+    local pr_title="${3:-}"
 
     # Test mode: allow override via environment variable
     if [[ -n "${BADGETIZR_TEST_SOURCE_BRANCH}" ]]; then
@@ -292,7 +291,7 @@ fi
 # Hotfix Badge
 if [[ "${hotfix_badge_enabled}" = "true" ]]; then
     # Detect if branch originated from production (main/master) = hotfix
-    source_branch=$(detect_source_branch "${branch_badge_base_branch}" "${hotfix_badge_production_branch}" "${ci_badge_destination_branch}" "${pull_request_title}")
+    source_branch=$(detect_source_branch "${hotfix_badge_production_branch}" "${ci_badge_destination_branch}" "${pull_request_title}")
 
     if [[ "${source_branch}" == "production" ]]; then
         hotfix_badge="![Static Badge](https://img.shields.io/badge/${hotfix_badge_label}-${hotfix_badge_color}?logoColor=${hotfix_badge_text_color}&color=${hotfix_badge_color})"
