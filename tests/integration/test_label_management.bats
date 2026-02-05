@@ -104,7 +104,7 @@ EOF
     export MOCK_PR_TITLE="Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix" # Simulate hotfix branch
     local hotfix_labelized_config=$(create_temp_config "$(
         cat << EOF
 badge_hotfix:
@@ -215,7 +215,7 @@ EOF
     export MOCK_PR_TITLE="Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent-fix"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix" # Simulate hotfix branch
     local hotfix_no_label_config=$(create_temp_config "$(
         cat << EOF
 badge_hotfix:
@@ -307,7 +307,7 @@ EOF
     export MOCK_PR_TITLE="[WIP] Fix critical bug"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/urgent"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix" # Simulate hotfix branch
     local multi_labelized_config=$(create_temp_config "$(
         cat << EOF
 badge_wip:

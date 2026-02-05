@@ -11,7 +11,7 @@ detect_base_path() {
 
 # Determine if a PR/MR is a hotfix based on target branch and title
 # Simple logic: MR targets production (main/master) AND title contains "hotfix"
-# Returns: "production" if hotfix detected, "develop" otherwise
+# Returns: "hotfix" if hotfix detected, "feature" otherwise
 #
 # Parameters:
 #   $1 - production_branch (default: "master")
@@ -31,13 +31,13 @@ is_hotfix_pr() {
     # Simple logic: MR targets production + title contains "hotfix" = hotfix badge
     if [[ "${mr_base_branch}" == "main" || "${mr_base_branch}" == "master" || "${mr_base_branch}" == "${production_branch}" ]]; then
         if [[ "${pr_title}" =~ [Hh][Oo][Tt][Ff][Ii][Xx] ]]; then
-            echo "production"
+            echo "hotfix"
             return 0
         fi
     fi
 
-    # Default: not a hotfix
-    echo "develop"
+    # Default: regular feature PR
+    echo "feature"
     return 0
 }
 
@@ -293,7 +293,7 @@ if [[ "${hotfix_badge_enabled}" = "true" ]]; then
     # Check if PR targets production + title contains "hotfix"
     hotfix_status=$(is_hotfix_pr "${hotfix_badge_production_branch}" "${ci_badge_destination_branch}" "${pull_request_title}")
 
-    if [[ "${hotfix_status}" == "production" ]]; then
+    if [[ "${hotfix_status}" == "hotfix" ]]; then
         hotfix_badge="![Static Badge](https://img.shields.io/badge/${hotfix_badge_label}-${hotfix_badge_color}?logoColor=${hotfix_badge_text_color}&color=${hotfix_badge_color})"
         all_badges="${all_badges} ${hotfix_badge}"
 

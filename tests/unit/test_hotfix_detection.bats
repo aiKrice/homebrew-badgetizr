@@ -29,46 +29,46 @@ load_is_hotfix_pr() {
 # Test Mode Override Tests
 # ============================================================================
 
-@test "is_hotfix_pr: test mode override returns production" {
+@test "is_hotfix_pr: test mode override returns hotfix" {
     load_is_hotfix_pr
 
     # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
+    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix"
 
     # Act
     local result
     result=$(is_hotfix_pr "master" "master" "Test PR")
 
     # Assert
-    [ "${result}" = "production" ]
+    [ "${result}" = "hotfix" ]
 }
 
-@test "is_hotfix_pr: test mode override returns develop" {
+@test "is_hotfix_pr: test mode override returns feature" {
     load_is_hotfix_pr
 
     # Arrange
-    export BADGETIZR_TEST_SOURCE_BRANCH="develop"
+    export BADGETIZR_TEST_SOURCE_BRANCH="feature"
 
     # Act
     local result
     result=$(is_hotfix_pr "master" "develop" "Test PR")
 
     # Assert
-    [ "${result}" = "develop" ]
+    [ "${result}" = "feature" ]
 }
 
 @test "is_hotfix_pr: test mode override ignores other parameters" {
     load_is_hotfix_pr
 
     # Arrange - Set override value
-    export BADGETIZR_TEST_SOURCE_BRANCH="production"
+    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix"
 
     # Act - Even with parameters that would return "develop", test mode wins
     local result
     result=$(is_hotfix_pr "master" "develop" "Regular PR")
 
     # Assert
-    [ "${result}" = "production" ]
+    [ "${result}" = "hotfix" ]
 }
 
 # ============================================================================
@@ -86,7 +86,7 @@ load_is_hotfix_pr() {
     result=$(is_hotfix_pr "master" "master" "[HOTFIX] Fix critical bug")
 
     # Assert
-    [ "${result}" = "production" ]
+    [ "${result}" = "hotfix" ]
 }
 
 @test "is_hotfix_pr: detects hotfix when MR targets main + title has hotfix" {
@@ -100,7 +100,7 @@ load_is_hotfix_pr() {
     result=$(is_hotfix_pr "main" "main" "Hotfix: urgent fix")
 
     # Assert
-    [ "${result}" = "production" ]
+    [ "${result}" = "hotfix" ]
 }
 
 @test "is_hotfix_pr: NOT hotfix when title missing hotfix keyword" {
@@ -114,7 +114,7 @@ load_is_hotfix_pr() {
     result=$(is_hotfix_pr "master" "master" "Add new feature")
 
     # Assert
-    [ "${result}" = "develop" ]
+    [ "${result}" = "feature" ]
 }
 
 @test "is_hotfix_pr: NOT hotfix when MR targets develop" {
@@ -128,7 +128,7 @@ load_is_hotfix_pr() {
     result=$(is_hotfix_pr "master" "develop" "Hotfix: bug fix")
 
     # Assert
-    [ "${result}" = "develop" ]
+    [ "${result}" = "feature" ]
 }
 
 @test "is_hotfix_pr: case insensitive hotfix detection" {
@@ -145,10 +145,10 @@ load_is_hotfix_pr() {
     result4=$(is_hotfix_pr "master" "main" "[Hotfix] urgent")
 
     # Assert
-    [ "${result1}" = "production" ]
-    [ "${result2}" = "production" ]
-    [ "${result3}" = "production" ]
-    [ "${result4}" = "production" ]
+    [ "${result1}" = "hotfix" ]
+    [ "${result2}" = "hotfix" ]
+    [ "${result3}" = "hotfix" ]
+    [ "${result4}" = "hotfix" ]
 }
 
 @test "is_hotfix_pr: hotfix keyword anywhere in title" {
@@ -164,9 +164,9 @@ load_is_hotfix_pr() {
     result3=$(is_hotfix_pr "master" "master" "[GL-1] - hotfix - Test")
 
     # Assert
-    [ "${result1}" = "production" ]
-    [ "${result2}" = "production" ]
-    [ "${result3}" = "production" ]
+    [ "${result1}" = "hotfix" ]
+    [ "${result2}" = "hotfix" ]
+    [ "${result3}" = "hotfix" ]
 }
 
 @test "is_hotfix_pr: custom production branch name" {
@@ -180,14 +180,14 @@ load_is_hotfix_pr() {
     result=$(is_hotfix_pr "trunk" "trunk" "Hotfix: fix")
 
     # Assert
-    [ "${result}" = "production" ]
+    [ "${result}" = "hotfix" ]
 }
 
 # ============================================================================
 # Edge Cases
 # ============================================================================
 
-@test "is_hotfix_pr: empty title returns develop" {
+@test "is_hotfix_pr: empty title returns feature" {
     load_is_hotfix_pr
 
     # Arrange
@@ -198,10 +198,10 @@ load_is_hotfix_pr() {
     result=$(is_hotfix_pr "master" "master" "")
 
     # Assert
-    [ "${result}" = "develop" ]
+    [ "${result}" = "feature" ]
 }
 
-@test "is_hotfix_pr: empty base branch returns develop" {
+@test "is_hotfix_pr: empty base branch returns feature" {
     load_is_hotfix_pr
 
     # Arrange
@@ -212,7 +212,7 @@ load_is_hotfix_pr() {
     result=$(is_hotfix_pr "master" "" "Hotfix: fix")
 
     # Assert
-    [ "${result}" = "develop" ]
+    [ "${result}" = "feature" ]
 }
 
 @test "is_hotfix_pr: function exists in badgetizr" {
@@ -235,12 +235,12 @@ load_is_hotfix_pr() {
     load_is_hotfix_pr
 
     # Arrange - Even with perfect hotfix conditions, test mode wins
-    export BADGETIZR_TEST_SOURCE_BRANCH="develop"
+    export BADGETIZR_TEST_SOURCE_BRANCH="feature"
 
     # Act
     local result
     result=$(is_hotfix_pr "master" "master" "Hotfix: urgent")
 
-    # Assert - Test mode returns develop, not production
-    [ "${result}" = "develop" ]
+    # Assert - Test mode returns feature, not production
+    [ "${result}" = "feature" ]
 }

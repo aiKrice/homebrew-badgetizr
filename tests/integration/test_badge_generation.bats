@@ -415,7 +415,7 @@ EOF
     export MOCK_PR_TITLE="[WIP] Test"
     export MOCK_PR_BASE_BRANCH="main"
     export MOCK_PR_HEAD_BRANCH="hotfix/test"
-    export BADGETIZR_TEST_SOURCE_BRANCH="production" # Simulate hotfix branch
+    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix" # Simulate hotfix branch
 
     # Act
     run simulate_badgetizr_run 123 "$custom_config"
