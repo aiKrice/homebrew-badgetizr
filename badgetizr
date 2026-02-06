@@ -9,6 +9,38 @@ detect_base_path() {
     fi
 }
 
+# Determine if a PR/MR is a hotfix based on target branch and title
+# Simple logic: MR targets production (main/master) AND title contains "hotfix"
+# Returns: "hotfix" if hotfix detected, "feature" otherwise
+#
+# Parameters:
+#   $1 - production_branch (default: "master")
+#   $2 - mr_base_branch (required: base branch of MR/PR)
+#   $3 - pr_title (required: PR/MR title)
+is_hotfix_pr() {
+    local production_branch="${1:-master}"
+    local mr_base_branch="${2:-}"
+    local pr_title="${3:-}"
+
+    # Test mode: allow override via environment variable
+    if [[ -n "${BADGETIZR_TEST_SOURCE_BRANCH}" ]]; then
+        echo "${BADGETIZR_TEST_SOURCE_BRANCH}"
+        return 0
+    fi
+
+    # Simple logic: MR targets production + title contains "hotfix" = hotfix badge
+    if [[ "${mr_base_branch}" == "main" || "${mr_base_branch}" == "master" || "${mr_base_branch}" == "${production_branch}" ]]; then
+        if [[ "${pr_title}" =~ [Hh][Oo][Tt][Ff][Ii][Xx] ]]; then
+            echo "hotfix"
+            return 0
+        fi
+    fi
+
+    # Default: regular feature PR
+    echo "feature"
+    return 0
+}
+
 # load extra files
 BASE_PATH=$(detect_base_path)
 source "${BASE_PATH}/utils.sh"
@@ -165,6 +197,7 @@ if [[ -f "${config_file}" && -s "${config_file}" ]]; then
     hotfix_badge_text_color=$(yq e '.badge_hotfix.settings.text_color // "white"' "${config_file}")
     hotfix_badge_label=$(yq e '.badge_hotfix.settings.label // "HOTFIX"' "${config_file}")
     hotfix_badge_labelized=$(yq e '.badge_hotfix.settings.labelized // ""' "${config_file}")
+    hotfix_badge_production_branch=$(yq e '.badge_hotfix.settings.production_branch // "master"' "${config_file}")
 
     branch_badge_enabled=$(yq e '.badge_base_branch.enabled // "false"' "${config_file}")
     branch_badge_base_branch=$(yq e '.badge_base_branch.settings.base_branch // "develop"' "${config_file}")
@@ -203,6 +236,7 @@ else
     hotfix_badge_color="red"
     hotfix_badge_text_color="white"
     hotfix_badge_label="HOTFIX"
+    hotfix_badge_production_branch="master"
 
     branch_badge_enabled="true"
     branch_badge_base_branch="develop"
@@ -219,7 +253,6 @@ fi
 pr_info_json=$(get_pr_info "${ci_badge_pull_request_id}")
 pull_request_title=$(yq -r '.title' <<< "${pr_info_json}")
 pull_request_body_raw=$(yq -r '.body // .description // ""' <<< "${pr_info_json}")
-destination_branch=$(get_destination_branch "${ci_badge_pull_request_id}")
 
 # Remove existing badgetizr badges and carriage returns from PR body
 pull_request_body=$(awk '/<!--begin:badgetizr-->/ {flag=1; next} /<!--end:badgetizr-->/ {flag=0; next} !flag' <<< "${pull_request_body_raw}" | tr -d '\r')
@@ -257,7 +290,10 @@ fi
 
 # Hotfix Badge
 if [[ "${hotfix_badge_enabled}" = "true" ]]; then
-    if [[ "${destination_branch}" == "main" || "${destination_branch}" == "master" ]]; then
+    # Check if PR targets production + title contains "hotfix"
+    hotfix_status=$(is_hotfix_pr "${hotfix_badge_production_branch}" "${ci_badge_destination_branch}" "${pull_request_title}")
+
+    if [[ "${hotfix_status}" == "hotfix" ]]; then
         hotfix_badge="![Static Badge](https://img.shields.io/badge/${hotfix_badge_label}-${hotfix_badge_color}?logoColor=${hotfix_badge_text_color}&color=${hotfix_badge_color})"
         all_badges="${all_badges} ${hotfix_badge}"
 
@@ -271,7 +307,7 @@ if [[ "${hotfix_badge_enabled}" = "true" ]]; then
             fi
         fi
     else
-        # PR is not targeting main/master, remove label if configured
+        # Branch originated from develop, not a hotfix - remove label if configured
         if [[ -n "${hotfix_badge_labelized}" && "${hotfix_badge_labelized}" != "null" ]]; then
             remove_pr_label "${ci_badge_pull_request_id}" "${hotfix_badge_labelized}"
         fi

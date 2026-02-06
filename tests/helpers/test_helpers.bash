@@ -14,6 +14,9 @@ setup_test_env() {
     export UTILS_SCRIPT="${PROJECT_ROOT}/utils.sh"
     export TEST_CONFIG="${PROJECT_ROOT}/tests/fixtures/test-config.yml"
 
+    # Default: simulate feature branch (created from develop)
+    export BADGETIZR_TEST_SOURCE_BRANCH="feature"
+
     # Create temp directory for test artifacts
     TEST_TEMP_DIR="$(mktemp -d)"
     export TEST_TEMP_DIR

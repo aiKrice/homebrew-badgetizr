@@ -20,6 +20,7 @@ setup_hotfix_pr() {
     export MOCK_PR_HEAD_BRANCH="hotfix/critical-fix"
     export MOCK_PR_STATE="open"
     export MOCK_PR_LABELS=""
+    export BADGETIZR_TEST_SOURCE_BRANCH="hotfix" # Simulate hotfix PR
 }
 
 # Scenario: PR with ticket ID
