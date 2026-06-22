@@ -33,7 +33,7 @@ jobs:
           echo "✅ Version format valid: $VERSION"
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PAT }}  # PAT required to bypass branch protections
