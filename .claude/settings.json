@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "current=$(gh api user --jq .login 2>/dev/null)\nif [[ \"$current\" != \"aiKrice\" ]]; then\n  gh auth switch -h github.com -u aiKrice >/dev/null 2>&1\n  jq -n --arg cur \"${current:-none}\" '{systemMessage: (\"gh active account is \\($cur), not aiKrice. Ran gh auth switch -u aiKrice to fix the stored default, but if GITHUB_TOKEN is exported in your shell it overrides this - run: source ./gh-login.sh in your terminal before ./publish.sh.\")}'\nfi\nexit 0",
+            "timeout": 15,
+            "statusMessage": "Checking active GitHub account..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); if [[ \"$(basename -- \"$FILE\" 2>/dev/null)\" == \"publish.sh\" ]]; then ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$ROOT/publish_test.sh\"; fi; exit 0",
+            "timeout": 30,
+            "statusMessage": "Validating publish.sh regex patterns..."
+          }
+        ]
+      }
+    ]
+  }
+}

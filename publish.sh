@@ -81,7 +81,7 @@ fail_if_error "Failed to switch develop. Please stash changes."
 git pull
 fail_if_error "Failed to pull develop. Please stash changes."
 
-echo "🟡 [Step 1/6] Bumping version to ${cyan}${VERSION}${reset} in all files..."
+echo -e "🟡 [Step 1/6] Bumping version to ${cyan}${VERSION}${reset} in all files..."
 # Changing the version for -v option
 "${SED_INPLACE[@]}" "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"${VERSION}\"|" "${UTILS_PATH}"
 "${SED_INPLACE[@]}" -E \
@@ -112,7 +112,7 @@ fail_if_error "Failed to merge develop into master"
 echo "🟢 [Step 2/6] Master is updated."
 git push --no-verify
 
-echo "🟡 [Step 3/6] Creating the release tag ${cyan}${VERSION}${reset}..."
+echo -e "🟡 [Step 3/6] Creating the release tag ${cyan}${VERSION}${reset}..."
 git tag -a "${VERSION}" -m "Release ${VERSION}"
 git push origin "${VERSION}" --no-verify
 fail_if_error "Failed to push tag ${VERSION}"
@@ -176,7 +176,7 @@ echo "🟡 [Step 7/7] Preparing and submitting to Bitrise StepLib..."
 
 # Get the commit hash of the tagged version (^{} dereferences annotated tags to get the actual commit)
 COMMIT_HASH=$(git rev-parse "${VERSION}^{}")
-echo "📝 Commit hash: ${cyan}${COMMIT_HASH}${reset}"
+echo -e "📝 Commit hash: ${cyan}${COMMIT_HASH}${reset}"
 
 # Clone your fork in temp directory
 STEPLIB_FORK="aiKrice/bitrise-steplib"
@@ -282,7 +282,7 @@ rm -rf "${STEPLIB_TEMP}"
 
 echo "🟢 [Step 7/7] Pull Request created successfully!"
 echo ""
-echo "📋 ${cyan}Next steps:${reset}"
+echo -e "📋 ${cyan}Next steps:${reset}"
 echo "   - Monitor the PR: https://github.com/bitrise-io/bitrise-steplib/pulls"
 echo "   - Respond to review comments if any"
 echo "   - Wait for Bitrise team to merge"

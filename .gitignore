@@ -25,5 +25,4 @@ Thumbs.db
 .bundle/
 vendor/
 
-publish_test.sh
 gh-login.sh
