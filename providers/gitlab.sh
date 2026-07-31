@@ -7,14 +7,14 @@ provider_get_pr_info() {
     local mr_id="$1"
 
     # Fetch both title and description in a single call for efficiency
-    glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null
+    glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2> /dev/null
 }
 
 provider_update_pr_description() {
     local mr_id="$1"
     local new_body="$2"
 
-    glab mr update "${mr_id}" --description "${new_body}" --repo="${CI_PROJECT_PATH}" 2>/dev/null
+    glab mr update "${mr_id}" --description "${new_body}" --repo="${CI_PROJECT_PATH}" 2> /dev/null
 }
 
 provider_add_pr_label() {
@@ -23,17 +23,30 @@ provider_add_pr_label() {
 
     echo "🏷️  Adding GitLab label: ${label_name}"
 
-    # Check if label already exists with proper colors (avoid recreation)
-    if glab label list --repo="${CI_PROJECT_PATH}" 2>/dev/null | grep -F "${label_name}" >/dev/null 2>&1; then
-        # Label exists, just add it normally
-        if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2>/dev/null; then
-            echo "✅ Label '${label_name}' added successfully"
-            return 0
+    # Check if label already exists
+    if glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null | yq -r '.[].name' 2> /dev/null | grep -F "${label_name}" > /dev/null 2>&1; then
+        # Label exists - check if it's managed by Badgetizr
+        if provider_is_label_managed "${label_name}"; then
+            # Label is managed by Badgetizr, safe to add it
+            if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
+                echo "✅ Label '${label_name}' added successfully"
+                return 0
+            else
+                return 1
+            fi
         else
-            return 1
+            # Label exists but not managed by Badgetizr - warn but still add it
+            echo "⚠️  Label '${label_name}' exists but was not created by Badgetizr"
+            echo "    Using existing label to avoid conflicts"
+            if glab mr update "${mr_id}" --label "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
+                echo "✅ Label '${label_name}' added successfully"
+                return 0
+            else
+                return 1
+            fi
         fi
     else
-        # Label doesn't exist, force creation with colors
+        # Label doesn't exist, force creation with proper colors
         echo "⚠️  Label '${label_name}' doesn't exist, will create with proper colors"
         return 1
     fi
@@ -45,7 +58,7 @@ provider_remove_pr_label() {
 
     echo "🏷️  Removing GitLab label: ${label_name}"
 
-    if glab mr update "${mr_id}" --unlabel "${label_name}" --repo="${CI_PROJECT_PATH}" 2>/dev/null; then
+    if glab mr update "${mr_id}" --unlabel "${label_name}" --repo="${CI_PROJECT_PATH}" 2> /dev/null; then
         echo "✅ Label '${label_name}' removed successfully"
     else
         echo "ℹ️  Label '${label_name}' was not present on this MR"
@@ -57,27 +70,33 @@ provider_create_pr_label() {
     local hex_color="$2"
     local description="$3"
 
-    echo "⚠️  Label '${label_name}' doesn't exist, creating it..."
-
     # GitLab expects color with # prefix
     local gitlab_color="#${hex_color}"
 
-    # Delete label first if it exists, then recreate with correct colors
-    echo "🗑️  Deleting existing label '${label_name}'..."
-    glab label delete "${label_name}" --repo="${CI_PROJECT_PATH}" 2>/dev/null || true
+    # Check if label already exists with correct description
+    local existing_description
+    existing_description=$(glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null | yq -r ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
 
-    echo "🔧 Creating label: glab label create --name \"${label_name}\" --color \"${gitlab_color}\" --description \"${description}\" --repo=\"${CI_PROJECT_PATH}\""
+    if [[ -n "${existing_description}" ]]; then
+        if [[ "${existing_description}" == "${description}" ]]; then
+            echo "ℹ️  Label '${label_name}' already exists with correct description"
+            return 0
+        else
+            printf "⚠️  Label '%s' exists but with different description\n" "${label_name}"
+            printf "    Existing: '%s'\n" "${existing_description}"
+            printf "    Expected: '%s'\n" "${description}"
+            printf "    Using existing label to avoid conflicts\n"
+            return 0
+        fi
+    fi
+
+    # Label doesn't exist, create it
+    echo "🔧 Creating label '${label_name}' with color ${gitlab_color}"
     local result
     result=$(glab label create --name "${label_name}" --color "${gitlab_color}" --description "${description}" --repo="${CI_PROJECT_PATH}" 2>&1)
     local exit_code=$?
 
-    echo "🐛 glab exit code: ${exit_code}"
-    echo "🐛 glab output: ${result}"
-
-    if [[ "${result}" == *"Label already exists"* ]]; then
-        echo "ℹ️  Label '${label_name}' already exists (shouldn't happen after delete)"
-        return 0
-    elif [[ ${exit_code} -eq 0 ]]; then
+    if [[ "${result}" == *"Label already exists"* ]] || [[ ${exit_code} -eq 0 ]]; then
         echo "✅ Label '${label_name}' created successfully"
         return 0
     else
@@ -89,7 +108,7 @@ provider_create_pr_label() {
 provider_get_destination_branch() {
     local mr_id="$1"
 
-    glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2>/dev/null | yq -r '.target_branch'
+    glab mr view "${mr_id}" --repo="${CI_PROJECT_PATH}" --output json 2> /dev/null | yq -r '.target_branch'
 }
 
 provider_test_auth() {
@@ -114,14 +133,14 @@ provider_test_auth() {
     if [[ "${gitlab_host}" != "gitlab.com" ]]; then
         echo "🔧 Configuring glab for self-managed GitLab instance..."
         export GITLAB_HOST="${gitlab_host}"
-        glab auth status --hostname "${gitlab_host}" >/dev/null 2>&1 || {
+        glab auth status --hostname "${gitlab_host}" > /dev/null 2>&1 || {
             echo "⚙️  Authenticating glab with ${gitlab_host}..."
-            echo "${GITLAB_TOKEN}" | glab auth login --hostname "${gitlab_host}" --stdin >/dev/null 2>&1
+            echo "${GITLAB_TOKEN}" | glab auth login --hostname "${gitlab_host}" --stdin > /dev/null 2>&1
         }
     fi
 
     # Test with GitLab API directly
-    if curl -s -H "Authorization: Bearer ${GITLAB_TOKEN}" "https://${gitlab_host}/api/v4/user" >/dev/null 2>&1; then
+    if curl -s -H "Authorization: Bearer ${GITLAB_TOKEN}" "https://${gitlab_host}/api/v4/user" > /dev/null 2>&1; then
         echo "✅ GitLab authentication is working"
         return 0
     else
@@ -132,4 +151,16 @@ provider_test_auth() {
         fi
         return 1
     fi
+}
+
+provider_is_label_managed() {
+    local label_name="$1"
+
+    # Fetch label description from GitLab
+    local description
+    description=$(glab label list --output json --repo="${CI_PROJECT_PATH}" 2> /dev/null | yq -r ".[] | select(.name==\"${label_name}\") | .description" 2> /dev/null)
+
+    # Check if description matches exactly
+    # shellcheck disable=SC2154  # BADGETIZR_LABEL_DESCRIPTION is defined in provider_utils.sh
+    [[ "${description}" == "${BADGETIZR_LABEL_DESCRIPTION}" ]]
 }

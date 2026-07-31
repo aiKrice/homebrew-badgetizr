@@ -1,5 +1,5 @@
 #!/bin/bash
-BADGETIZR_VERSION="3.0.3"
+export BADGETIZR_VERSION="3.0.3"
 
 # URL encode a string for shields.io badge API
 # Shields.io requires special escaping:
@@ -14,7 +14,7 @@ url_encode_shields() {
 }
 
 show_help() {
-    cat <<EOF
+    cat << EOF
 Usage: $0 [options]
 
 Options :
@@ -42,5 +42,3 @@ Options :
 
 EOF
 }
-
-

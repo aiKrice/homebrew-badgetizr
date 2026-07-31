@@ -12,8 +12,8 @@ setup_suite() {
     )
 
     for path in "${bats_support_paths[@]}"; do
-        if [ -f "$path" ]; then
-            load "$path"
+        if [[ -f "${path}" ]]; then
+            load "${path}"
             break
         fi
     done
@@ -26,16 +26,20 @@ setup_suite() {
     )
 
     for path in "${bats_assert_paths[@]}"; do
-        if [ -f "$path" ]; then
-            load "$path"
+        if [[ -f "${path}" ]]; then
+            load "${path}"
             break
         fi
     done
 
     # Set up test environment
-    export BATS_TEST_DIRNAME="$(cd "$(dirname "$BATS_TEST_FILENAME")" >/dev/null 2>&1 && pwd)"
-    export PROJECT_ROOT="$(cd "$BATS_TEST_DIRNAME/.." >/dev/null 2>&1 && pwd)"
+    # shellcheck disable=SC2154  # BATS_TEST_FILENAME is provided by bats
+    BATS_TEST_DIRNAME="$(cd "$(dirname "${BATS_TEST_FILENAME}")" > /dev/null 2>&1 && pwd)"
+    export BATS_TEST_DIRNAME
+
+    PROJECT_ROOT="$(cd "${BATS_TEST_DIRNAME}/.." > /dev/null 2>&1 && pwd)"
+    export PROJECT_ROOT
 
     # Add project root to PATH for testing
-    export PATH="$PROJECT_ROOT:$PATH"
+    export PATH="${PROJECT_ROOT}:${PATH}"
 }

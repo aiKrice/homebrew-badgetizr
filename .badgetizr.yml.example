@@ -15,6 +15,7 @@ badge_hotfix:
     color: "red"
     text_color: "white"
     label: "HOTFIX"
+    production_branch: "master"  # Default: "master". Specify your production branch (main/master)
     # labelized: "Hotfix"  # Optional: auto-manage GitHub/GitLab labels
 
 badge_ticket:

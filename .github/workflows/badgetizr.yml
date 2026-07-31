@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Badgetizr - Running Tests
-        uses: aiKrice/homebrew-badgetizr@3.0.3
+        uses: aiKrice/homebrew-badgetizr@3.1.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run shellcheck with reviewdog
         uses: reviewdog/action-shellcheck@v1
@@ -73,11 +73,11 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Badgetizr - Success
         if: needs.shellcheck.result == 'success' && needs.tests.result == 'success'
-        uses: aiKrice/homebrew-badgetizr@3.0.3
+        uses: aiKrice/homebrew-badgetizr@3.1.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -90,7 +90,7 @@ jobs:
 
       - name: Badgetizr - Failed
         if: needs.shellcheck.result != 'success' || needs.tests.result != 'success'
-        uses: aiKrice/homebrew-badgetizr@3.0.3
+        uses: aiKrice/homebrew-badgetizr@3.1.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -102,9 +102,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   claude-review:
-    # Only run Claude review if all checks passed
+    # Only run Claude review if all checks passed AND claude-review-needed label is present
     needs: [shellcheck, tests, badgetizr-result]
-    if: ${{ needs.shellcheck.result == 'success' && needs.tests.result == 'success' }}
+    if: ${{ needs.shellcheck.result == 'success' && needs.tests.result == 'success' && contains(github.event.pull_request.labels.*.name, 'claude-review-needed') }}
     uses: ./.github/workflows/claude-code-review.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}

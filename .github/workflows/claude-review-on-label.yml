@@ -1,0 +1,23 @@
+name: Claude Review on Label (Catch-up)
+
+# This workflow is a "catch-up" mechanism:
+# If you forget to add the claude-review-needed label when creating the PR,
+# adding it later will trigger a Claude review without re-running all tests.
+
+on:
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  claude-review-catchup:
+    # Only run if the specific label was just added
+    if: github.event.label.name == 'claude-review-needed'
+
+    uses: ./.github/workflows/claude-code-review.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      pr_author: ${{ github.event.pull_request.user.login }}
+      head_ref: ${{ github.head_ref }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

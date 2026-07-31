@@ -3,10 +3,10 @@
     <br/>
     Badgetizr
 
-![Static Badge](https://img.shields.io/badge/3.0.3-grey?logo=homebrew&logoColor=white&label=Homebrew-tap&labelColor=darkgreen)
-[![Static Badge](https://img.shields.io/badge/3.0.3-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
-[![Static Badge](https://img.shields.io/badge/3.0.3-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
-![Static Badge](https://img.shields.io/badge/3.0.3-grey?logo=bitrise&logoColor=white&label=Bitrise&labelColor=purple)
+![Static Badge](https://img.shields.io/badge/3.1.0-grey?logo=homebrew&logoColor=white&label=Homebrew-tap&labelColor=darkgreen)
+[![Static Badge](https://img.shields.io/badge/3.1.0-grey?logo=github&logoColor=white&label=Github-Action&labelColor=black)](https://github.com/marketplace/actions/badgetizr)
+[![Static Badge](https://img.shields.io/badge/3.1.0-pink?logo=gitlab&logoColor=orange&label=Gitlab&labelColor=white)](https://gitlab.com/chris-saez/badgetizr-integration)
+![Static Badge](https://img.shields.io/badge/3.1.0-grey?logo=bitrise&logoColor=white&label=Bitrise&labelColor=purple)
 [![codecov](https://codecov.io/gh/aiKrice/homebrew-badgetizr/graph/badge.svg?token=4NSN7QGO0E)](https://codecov.io/gh/aiKrice/homebrew-badgetizr)
 </h1>
 
@@ -80,7 +80,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Run Badgetizr
-        uses: aiKrice/homebrew-badgetizr@3.0.3
+        uses: aiKrice/homebrew-badgetizr@3.1.0
         with:
           pr_id: ${{ github.event.pull_request.number }}
           configuration: .badgetizr.yml
@@ -104,7 +104,7 @@ badgetizr:
   stage: build
   image: alpine:latest
   variables:
-    BADGETIZR_VERSION: "3.0.3"
+    BADGETIZR_VERSION: "3.1.0"
     GLAB_VERSION: "1.78.3"
     # Auto-detects: gitlab.com for SaaS, your instance for self-managed
     GITLAB_HOST: "${CI_SERVER_HOST}"
@@ -151,7 +151,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - badgetizr@3.0.3:
+      - badgetizr@3.1.0:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -166,7 +166,7 @@ workflows:
   primary:
     steps:
       - git-clone: {}
-      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.0.3:
+      - git::https://github.com/aiKrice/homebrew-badgetizr.git@3.1.0:
           title: Run Badgetizr
           inputs:
             - pr_id: $BITRISE_PULL_REQUEST
@@ -305,7 +305,7 @@ Badgetizr supports multiple badge types that can be customized to track differen
 |-----------|----------------|---------|---------|-----------|
 | 🎫 **Ticket** | Disabled | Links to ticket systems (Jira, GitHub Issues, etc.) | ![JIRA-ABC-123](https://img.shields.io/badge/JIRA-ABC--123-blue?logo=jirasoftware) | - |
 | ⚠️ **WIP** | Enabled | Identifies work-in-progress pull requests | ![WIP](https://img.shields.io/badge/WIP-yellow?logo=vlcmediaplayer) | ✅ |
-| 🚨 **Hotfix** | Disabled | Automatically detects PRs targeting main/master | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) | ✅ |
+| 🚨 **Hotfix** | Disabled | PR to production + "hotfix" in title | ![HOTFIX](https://img.shields.io/badge/HOTFIX-red?logoColor=white&color=red) | ✅ |
 | 📊 **Dynamic** | Disabled | Tracks checklist completion and custom patterns | ![Tests-Done](https://img.shields.io/badge/Tests-Done-darkgreen) | - |
 | 🌿 **Branch** | Disabled | Highlights non-standard target branches | ![Target-main](https://img.shields.io/badge/Target-main-orange) | - |
 | 🚀 **CI** | Disabled | Shows CI status and build info with clickable links | ![Build-456](https://img.shields.io/badge/456-ignored?label=Build&color=darkgreen&logo=github) | - |

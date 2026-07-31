@@ -41,17 +41,17 @@ setup() {
 }
 
 @test "badgetizr without --pr-id shows error" {
-    run "$BADGETIZR_SCRIPT" 2>/dev/null
+    run "$BADGETIZR_SCRIPT" 2> /dev/null
     [ "$status" -ne 0 ]
 }
 
 @test "badgetizr with invalid option shows error" {
-    run "$BADGETIZR_SCRIPT" --invalid-option 2>/dev/null
+    run "$BADGETIZR_SCRIPT" --invalid-option 2> /dev/null
     [ "$status" -eq 1 ]
 }
 
 @test "badgetizr with invalid short option shows error" {
-    run "$BADGETIZR_SCRIPT" -x 2>/dev/null
+    run "$BADGETIZR_SCRIPT" -x 2> /dev/null
     [ "$status" -eq 1 ]
 }
 

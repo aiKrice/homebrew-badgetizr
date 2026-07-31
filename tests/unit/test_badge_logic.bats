@@ -55,7 +55,7 @@ setup() {
 @test "CI status validation - started" {
     status="started"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
+        "started" | "passed" | "warning" | "failed")
             valid=true
             ;;
         *)
@@ -68,7 +68,7 @@ setup() {
 @test "CI status validation - passed" {
     status="passed"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
+        "started" | "passed" | "warning" | "failed")
             valid=true
             ;;
         *)
@@ -81,7 +81,7 @@ setup() {
 @test "CI status validation - warning" {
     status="warning"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
+        "started" | "passed" | "warning" | "failed")
             valid=true
             ;;
         *)
@@ -94,7 +94,7 @@ setup() {
 @test "CI status validation - failed" {
     status="failed"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
+        "started" | "passed" | "warning" | "failed")
             valid=true
             ;;
         *)
@@ -107,7 +107,7 @@ setup() {
 @test "CI status validation - invalid status" {
     status="invalid"
     case "$status" in
-        "started"|"passed"|"warning"|"failed")
+        "started" | "passed" | "warning" | "failed")
             valid=true
             ;;
         *)
@@ -119,13 +119,13 @@ setup() {
 
 @test "Checkbox counting - no checkboxes" {
     body="This is a PR body without checkboxes"
-    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || true)
+    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2> /dev/null || true)
     [ "$unchecked_count" -eq 0 ]
 }
 
 @test "Checkbox counting - one unchecked checkbox" {
     body="- [ ] Task 1"
-    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
+    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2> /dev/null || echo "0")
     [ "$unchecked_count" -eq 1 ]
 }
 
@@ -133,7 +133,7 @@ setup() {
     body="- [ ] Task 1
 - [ ] Task 2
 - [ ] Task 3"
-    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
+    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2> /dev/null || echo "0")
     [ "$unchecked_count" -eq 3 ]
 }
 
@@ -141,7 +141,7 @@ setup() {
     body="- [x] Task 1
 - [ ] Task 2
 - [x] Task 3"
-    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || echo "0")
+    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2> /dev/null || echo "0")
     [ "$unchecked_count" -eq 1 ]
 }
 
@@ -149,6 +149,6 @@ setup() {
     body="- [x] Task 1
 - [x] Task 2
 - [x] Task 3"
-    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2>/dev/null || true)
+    unchecked_count=$(printf "%s\n" "$body" | grep -c "\- \[ \]" 2> /dev/null || true)
     [ "$unchecked_count" -eq 0 ]
 }

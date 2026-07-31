@@ -107,6 +107,9 @@ teardown() {
 
 @test "GitHub provider: add_pr_label adds label to PR" {
     # Arrange
+    mkdir -p "$MOCK_GH_RESPONSES_DIR"
+    # Create the label in labels_db so the mock allows adding it
+    echo "wip|fbca04|WIP label" > "$MOCK_GH_RESPONSES_DIR/labels_db.txt"
     source "$PROJECT_ROOT/providers/github.sh"
 
     # Act
@@ -249,10 +252,11 @@ teardown() {
 
 @test "GitLab provider: add_pr_label adds label to MR" {
     # Arrange
+    source "$PROJECT_ROOT/providers/provider_utils.sh"
     source "$PROJECT_ROOT/providers/gitlab.sh"
 
-    # Pre-create the label so it exists in the mock
-    provider_create_pr_label "wip" "yellow" "Work in progress"
+    # Pre-create the label with Badgetizr description so it's recognized as managed
+    provider_create_pr_label "wip" "yellow" "${BADGETIZR_LABEL_DESCRIPTION}"
 
     # Act
     provider_add_pr_label 123 "wip"
@@ -260,6 +264,36 @@ teardown() {
     # Assert
     [ -f "$MOCK_GLAB_RESPONSES_DIR/added_labels.txt" ]
     grep -q "^wip$" "$MOCK_GLAB_RESPONSES_DIR/added_labels.txt"
+}
+
+@test "GitLab provider: add_pr_label fails when label doesn't exist (forces creation)" {
+    # Arrange
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Act - Try to add a label that doesn't exist
+    run provider_add_pr_label 123 "nonexistent-label"
+
+    # Assert - Should return 1 to force provider_create_pr_label
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "doesn't exist, will create with proper colors" ]]
+}
+
+@test "GitLab provider: add_pr_label warns when using manual label" {
+    # Arrange
+    source "$PROJECT_ROOT/providers/gitlab.sh"
+
+    # Create a manual label (not managed by Badgetizr)
+    mkdir -p "$MOCK_GLAB_RESPONSES_DIR"
+    echo "team-label|#0052CC|Manual team label" > "$MOCK_GLAB_RESPONSES_DIR/labels_db.txt"
+
+    # Act
+    run provider_add_pr_label 123 "team-label"
+
+    # Assert - Should succeed but warn
+    assert_success
+    [[ "$output" =~ "exists but was not created by Badgetizr" ]]
+    [[ "$output" =~ "Using existing label to avoid conflicts" ]]
+    grep -q "^team-label$" "$MOCK_GLAB_RESPONSES_DIR/added_labels.txt"
 }
 
 @test "GitLab provider: remove_pr_label removes label from MR" {
