@@ -9,10 +9,10 @@
 # Detect OS for sed compatibility
 if [[ "$(uname)" == "Darwin" ]]; then
     # macOS uses BSD sed (requires empty string after -i)
-    SED_INPLACE="sed -i ''"
+    SED_INPLACE=(sed -i '')
 else
     # Linux uses GNU sed (no empty string needed)
-    SED_INPLACE="sed -i"
+    SED_INPLACE=(sed -i)
 fi
 
 # Configuration
@@ -83,21 +83,21 @@ fail_if_error "Failed to pull develop. Please stash changes."
 
 echo "🟡 [Step 1/6] Bumping version to ${cyan}${VERSION}${reset} in all files..."
 # Changing the version for -v option
-${SED_INPLACE} "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"${VERSION}\"|" "${UTILS_PATH}"
-${SED_INPLACE} -E \
+"${SED_INPLACE[@]}" "s|^BADGETIZR_VERSION=.*|BADGETIZR_VERSION=\"${VERSION}\"|" "${UTILS_PATH}"
+"${SED_INPLACE[@]}" -E \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=homebrew.*)@\1${VERSION}\2@" \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=github.*)@\1${VERSION}\2@" \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-pink\\?logo=gitlab.*)@\1${VERSION}\2@" \
     -e "s@(https://img\.shields\.io/badge/)[0-9]+\.[0-9]+\.[0-9]+(-grey\\?logo=bitrise.*)@\1${VERSION}\2@" \
     "${README_PATH}"
-${SED_INPLACE} "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "${WORKFLOW_PATH}" "${README_PATH}"
-${SED_INPLACE} "s|archive/refs/tags/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
-${SED_INPLACE} "s|BADGETIZR_VERSION: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION: \"${VERSION}\"|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
+"${SED_INPLACE[@]}" "s|uses: aiKrice/homebrew-badgetizr@.*|uses: aiKrice/homebrew-badgetizr@${VERSION}|" "${WORKFLOW_PATH}" "${README_PATH}"
+"${SED_INPLACE[@]}" "s|archive/refs/tags/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.tar\.gz|archive/refs/tags/${VERSION}.tar.gz|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
+"${SED_INPLACE[@]}" "s|BADGETIZR_VERSION: \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION: \"${VERSION}\"|g" "${README_PATH}" "${GITLAB_TESTING_PATH}"
 
 # Update Bitrise step files
-${SED_INPLACE} "s|BADGETIZR_VERSION=\"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION=\"${VERSION}\"|" "${BITRISE_STEP_SH}"
-${SED_INPLACE} "s|@[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|@${VERSION}|g" "${BITRISE_DOC}" "${README_PATH}"
-${SED_INPLACE} "s/| No | [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* |/| No | ${VERSION} |/" "${BITRISE_DOC}"
+"${SED_INPLACE[@]}" "s|BADGETIZR_VERSION=\"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"|BADGETIZR_VERSION=\"${VERSION}\"|" "${BITRISE_STEP_SH}"
+"${SED_INPLACE[@]}" "s|@[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*|@${VERSION}|g" "${BITRISE_DOC}" "${README_PATH}"
+"${SED_INPLACE[@]}" "s/| No | [0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* |/| No | ${VERSION} |/" "${BITRISE_DOC}"
 
 git add "${UTILS_PATH}" "${WORKFLOW_PATH}" "${README_PATH}" "${BADGES_PATH}" "${TROUBLESHOOTING_PATH}" "${CONTRIBUTING_PATH}" "${PUBLISHING_PATH}" "${GITLAB_TESTING_PATH}" "${BITRISE_STEP_YML}" "${BITRISE_STEP_SH}" "${BITRISE_DOC}"
 git commit --no-verify -m "Bump version to ${VERSION} for -v option"
@@ -133,7 +133,7 @@ SHA256=$(shasum -a 256 "badgetizr-${VERSION}.tar.gz" | awk '{print $1}')
 echo -e "🟢 SHA256 generated: ${cyan}${SHA256}${reset}"
 
 # Update the formula
-${SED_INPLACE} -E \
+"${SED_INPLACE[@]}" -E \
     -e "s#(url \").*(\".*)#\1${ARCHIVE_URL}\2#" \
     -e "s#(sha256 \").*(\".*)#\1${SHA256}\2#" \
     "${FORMULA_PATH}"
