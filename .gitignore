@@ -26,3 +26,4 @@ Thumbs.db
 vendor/
 
 publish_test.sh
+gh-login.sh
